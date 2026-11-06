@@ -1,0 +1,82 @@
+<!-- EV charging network: fraud (IDs 110200-110299). -->
+<group name="evcharge,fraud,">
+
+  <rule id="110200" level="4">
+    <if_sid>110000</if_sid>
+    <field name="event">^auth\.reject$</field>
+    <field name="result" type="pcre2">^(Blocked|Invalid|Expired)$</field>
+    <description>Authorize refused ($(result)): $(card) at $(hier_id).</description>
+    <mitre><id>T1078</id></mitre>
+  </rule>
+
+  <rule id="110201" level="10" frequency="5" timeframe="600">
+    <if_matched_sid>110200</if_matched_sid>
+    <same_field>card</same_field>
+    <description>Fraud: card $(card) refused 5 times within 10 minutes (blocked card in use).</description>
+    <mitre><id>T1078</id></mitre>
+  </rule>
+
+  <!-- 120 s, not 10 min: the simulated drivers roam between cities (home bias 0.8), so a card
+       refused with ConcurrentTx in two cities within minutes is normal traffic (3 per 12 h);
+       two refusals within two minutes are a cloned card -->
+  <rule id="110203" level="10" frequency="2" timeframe="120">
+    <if_matched_sid>110011</if_matched_sid>
+    <same_field>card</same_field>
+    <different_field>city</different_field>
+    <description>Fraud: card $(card) in a transaction in two cities at once, cloned card (T0859 valid accounts).</description>
+    <mitre><id>T1078</id></mitre>
+    <group>mitre_ics_T0859,</group>
+  </rule>
+
+  <!-- meter.anomaly in a city without TLS is 110116 (hijack file) -->
+  <rule id="110204" level="7">
+    <if_sid>110000</if_sid>
+    <field name="event">^meter\.anomaly$</field>
+    <description>Fraud: meter anomaly ($(reason)) at $(hier_id), card $(card) (T0856 spoof reporting message).</description>
+    <mitre><id>T1565.002</id></mitre>
+    <group>mitre_ics_T0856,</group>
+  </rule>
+
+  <rule id="110205" level="11" frequency="3" timeframe="600">
+    <if_matched_sid>110204</if_matched_sid>
+    <same_field>hier_id</same_field>
+    <description>Fraud: 3 meter anomalies at $(hier_id) within 10 minutes, tampered meter (T0856).</description>
+    <mitre><id>T1565.002</id></mitre>
+    <group>mitre_ics_T0856,</group>
+  </rule>
+
+  <!-- 120 s, not 30 min: with 20 % of the sessions on a card of another city, a card starting
+       sessions in two cities within half an hour happened about 5 times per hour on normal load
+       and the response would block those cards; the distance-aware check is the fraud service
+       (110207) -->
+  <rule id="110206" level="10" frequency="2" timeframe="120">
+    <if_matched_sid>110015</if_matched_sid>
+    <same_field>card</same_field>
+    <different_field>city</different_field>
+    <description>Fraud: card $(card) starts sessions in two cities within 30 minutes, impossible travel.</description>
+    <mitre><id>T1078</id></mitre>
+  </rule>
+
+  <rule id="110207" level="10">
+    <if_sid>110000</if_sid>
+    <field name="event">^fraud\.alert$</field>
+    <field name="rule">^impossible_travel$</field>
+    <description>Fraud service: impossible travel for $(card), $(hier_id) to $(other_hier_id).</description>
+    <mitre><id>T1078</id></mitre>
+  </rule>
+
+  <rule id="110208" level="9">
+    <if_sid>110000</if_sid>
+    <field name="event">^fraud\.alert$</field>
+    <description>Fraud service alert $(rule) for $(card) at $(hier_id) (T0856).</description>
+    <mitre><id>T1565.002</id></mitre>
+    <group>mitre_ics_T0856,</group>
+  </rule>
+
+  <rule id="110209" level="5">
+    <if_sid>110000</if_sid>
+    <field name="event" type="pcre2">^billing\.(card_blocked|card_unblocked|session_flagged)$</field>
+    <description>Billing audit: $(event) for card $(card).</description>
+  </rule>
+
+</group>

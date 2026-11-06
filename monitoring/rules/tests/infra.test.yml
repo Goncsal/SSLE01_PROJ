@@ -1,0 +1,171 @@
+rule_files: [../alerts.yml, ../baseline.yml]
+evaluation_interval: 1m
+tests:
+  - name: CSMSDown fires on up==0, not on up==1
+    interval: 1m
+    input_series:
+      - {series: 'up{job="csms",pod="csms-a"}', values: '0x6'}
+      - {series: 'up{job="csms",pod="csms-b"}', values: '1x6'}
+    alert_rule_test:
+      - eval_time: 30s
+        alertname: CSMSDown
+        exp_alerts: []
+      - eval_time: 4m
+        alertname: CSMSDown
+        exp_alerts:
+          - exp_labels: {severity: critical, city: central, hier_id: pt.central.csms, threat: infra, job: csms, pod: csms-a}
+            exp_annotations:
+              summary: "CSMS is down"
+              description: "Scrape of the CSMS (pod csms-a) fails, or no CSMS target exists (up=0)."
+  - name: CSMSDown absent target fires; healthy does not
+    interval: 1m
+    input_series:
+      - {series: 'up{job="registry",pod="r"}', values: '1x6'}
+    alert_rule_test:
+      - eval_time: 4m
+        alertname: CSMSDown
+        exp_alerts:
+          - exp_labels: {severity: critical, city: central, hier_id: pt.central.csms, threat: infra, job: csms}
+            exp_annotations:
+              summary: "CSMS is down"
+              description: "Scrape of the CSMS (pod ) fails, or no CSMS target exists (up=1)."
+  - name: CSMSDown quiet when up
+    interval: 1m
+    input_series:
+      - {series: 'up{job="csms",pod="csms-a"}', values: '1x6'}
+    alert_rule_test:
+      - {eval_time: 4m, alertname: CSMSDown, exp_alerts: []}
+  - name: RegistryDown and BillingDown
+    interval: 1m
+    input_series:
+      - {series: 'up{job="registry",pod="reg"}', values: '0x6'}
+      - {series: 'up{job="billing",pod="bil"}', values: '1x6'}
+    alert_rule_test:
+      - eval_time: 4m
+        alertname: RegistryDown
+        exp_alerts:
+          - exp_labels: {severity: critical, city: central, hier_id: pt.central.registry, threat: infra, job: registry, pod: reg}
+            exp_annotations:
+              summary: "Registry is down"
+              description: "Scrape of the registry (pod reg) fails (up=0)."
+      - {eval_time: 4m, alertname: BillingDown, exp_alerts: []}
+  - name: BillingDown fires
+    interval: 1m
+    input_series:
+      - {series: 'up{job="billing",pod="bil"}', values: '0x6'}
+      - {series: 'up{job="registry",pod="reg"}', values: '1x6'}
+    alert_rule_test:
+      - eval_time: 4m
+        alertname: BillingDown
+        exp_alerts:
+          - exp_labels: {severity: critical, city: central, hier_id: pt.central.billing, threat: infra, job: billing, pod: bil}
+            exp_annotations:
+              summary: "Billing is down"
+              description: "Scrape of billing (pod bil) fails (up=0)."
+      - {eval_time: 4m, alertname: RegistryDown, exp_alerts: []}
+  - name: EdgeDown by failed federation (porto) but not lisboa
+    interval: 1m
+    input_series:
+      - {series: 'up{job="federate-porto",city="porto"}', values: '0x6'}
+      - {series: 'up{job="federate-lisboa",city="lisboa"}', values: '1x6'}
+    alert_rule_test:
+      - eval_time: 30s
+        alertname: EdgeDown
+        exp_alerts: []
+      - eval_time: 4m
+        alertname: EdgeDown
+        exp_alerts:
+          - exp_labels: {severity: critical, city: porto, hier_id: pt.porto.edge, threat: infra}
+            exp_annotations:
+              summary: "Edge of porto is down or unreachable"
+              description: "The edge pt.porto.edge does not answer the federation or its nginx is down (value 0); its stations and chargers are inhibited."
+  - name: EdgeDown by nginx down while federation answers
+    interval: 1m
+    input_series:
+      - {series: 'up{job="federate-aveiro",city="aveiro"}', values: '1x6'}
+      - {series: 'city:edge_up:min{city="aveiro"}', values: '0x6'}
+    alert_rule_test:
+      - eval_time: 4m
+        alertname: EdgeDown
+        exp_alerts:
+          - exp_labels: {severity: critical, city: aveiro, hier_id: pt.aveiro.edge, threat: infra}
+            exp_annotations:
+              summary: "Edge of aveiro is down or unreachable"
+              description: "The edge pt.aveiro.edge does not answer the federation or its nginx is down (value 0); its stations and chargers are inhibited."
+  - name: EdgeDown quiet when healthy
+    interval: 1m
+    input_series:
+      - {series: 'up{job="federate-aveiro",city="aveiro"}', values: '1x6'}
+      - {series: 'city:edge_up:min{city="aveiro"}', values: '1x6'}
+    alert_rule_test:
+      - {eval_time: 4m, alertname: EdgeDown, exp_alerts: []}
+  - name: StationDown
+    interval: 1m
+    input_series:
+      - {series: 'city:station_up:min{city="porto",station="st-002",hier_id="pt.porto.st-002"}', values: '0x6'}
+      - {series: 'city:station_up:min{city="porto",station="st-001",hier_id="pt.porto.st-001"}', values: '1x6'}
+    alert_rule_test:
+      - eval_time: 4m
+        alertname: StationDown
+        exp_alerts:
+          - exp_labels: {severity: warning, city: porto, station: st-002, hier_id: pt.porto.st-002, threat: infra}
+            exp_annotations:
+              summary: "Station pt.porto.st-002 is down"
+              description: "The simulator endpoint of pt.porto.st-002 in porto is not scraped by the city Prometheus (up=0)."
+  - name: StationDown quiet
+    interval: 1m
+    input_series:
+      - {series: 'city:station_up:min{city="porto",station="st-001",hier_id="pt.porto.st-001"}', values: '1x6'}
+    alert_rule_test:
+      - {eval_time: 4m, alertname: StationDown, exp_alerts: []}
+  - name: ChargerOffline - partial connection on one replica sum, absent gauge counts as zero
+    interval: 1m
+    input_series:
+      # st-001: 2 chargers, replicas report 1+0 -> 1 missing
+      - {series: 'city:station_chargers:count{city="porto",station="st-001",hier_id="pt.porto.st-001"}', values: '2x8'}
+      - {series: 'evcharge_csms_connected_chargers{city="porto",station="st-001",hier_id="pt.porto.st-001",pod="a"}', values: '1x8'}
+      - {series: 'evcharge_csms_connected_chargers{city="porto",station="st-001",hier_id="pt.porto.st-001",pod="b"}', values: '0x8'}
+      # st-002: 2 chargers, gauge absent on every replica -> 2 missing
+      - {series: 'city:station_chargers:count{city="porto",station="st-002",hier_id="pt.porto.st-002"}', values: '2x8'}
+      # st-003: fully connected, split over two replicas
+      - {series: 'city:station_chargers:count{city="porto",station="st-003",hier_id="pt.porto.st-003"}', values: '2x8'}
+      - {series: 'evcharge_csms_connected_chargers{city="porto",station="st-003",hier_id="pt.porto.st-003",pod="a"}', values: '1x8'}
+      - {series: 'evcharge_csms_connected_chargers{city="porto",station="st-003",hier_id="pt.porto.st-003",pod="b"}', values: '1x8'}
+    alert_rule_test:
+      - eval_time: 1m
+        alertname: ChargerOffline
+        exp_alerts: []
+      - eval_time: 5m
+        alertname: ChargerOffline
+        exp_alerts:
+          - exp_labels: {severity: warning, city: porto, station: st-001, hier_id: pt.porto.st-001, threat: infra}
+            exp_annotations:
+              summary: "Chargers of pt.porto.st-001 are not connected to the CSMS"
+              description: "1 charger(s) of pt.porto.st-001 (porto) are missing from the CSMS view."
+          - exp_labels: {severity: warning, city: porto, station: st-002, hier_id: pt.porto.st-002, threat: infra}
+            exp_annotations:
+              summary: "Chargers of pt.porto.st-002 are not connected to the CSMS"
+              description: "2 charger(s) of pt.porto.st-002 (porto) are missing from the CSMS view."
+  - name: ChargerOffline quiet when all connected
+    interval: 1m
+    input_series:
+      - {series: 'city:station_chargers:count{city="porto",station="st-001",hier_id="pt.porto.st-001"}', values: '2x8'}
+      - {series: 'evcharge_csms_connected_chargers{city="porto",station="st-001",hier_id="pt.porto.st-001",pod="a"}', values: '2x8'}
+    alert_rule_test:
+      - {eval_time: 5m, alertname: ChargerOffline, exp_alerts: []}
+  - name: ChargerFlapping fires above 5 reconnects in 5 min, only after 5m
+    interval: 1m
+    input_series:
+      - {series: 'city:reconnects:rate5m{city="aveiro"}', values: '0.05x10'}
+      - {series: 'city:reconnects:rate5m{city="lisboa"}', values: '0.01x10'}
+    alert_rule_test:
+      - eval_time: 3m
+        alertname: ChargerFlapping
+        exp_alerts: []
+      - eval_time: 7m
+        alertname: ChargerFlapping
+        exp_alerts:
+          - exp_labels: {severity: warning, city: aveiro, hier_id: pt.aveiro, threat: infra}
+            exp_annotations:
+              summary: "Chargers of aveiro keep reconnecting"
+              description: "15.0 reconnects in 5 min in aveiro (limit 5). Known false positive: a CSMS rollout restart."

@@ -1,0 +1,134 @@
+rule_files: [../alerts.yml]
+evaluation_interval: 1m
+tests:
+  - name: DuplicateChargerID fires on rejected duplicates only
+    interval: 1m
+    input_series:
+      - {series: 'evcharge_csms_duplicate_id_total{city="porto",outcome="rejected"}', values: '0 0 0 3 3 3 3'}
+      - {series: 'evcharge_csms_duplicate_id_total{city="lisboa",outcome="replaced"}', values: '0 0 0 3 3 3 3'}
+    alert_rule_test:
+      - eval_time: 2m
+        alertname: DuplicateChargerID
+        exp_alerts: []
+      - eval_time: 4m
+        alertname: DuplicateChargerID
+        exp_alerts:
+          - exp_labels: {severity: critical, city: porto, hier_id: pt.porto, threat: hijack}
+            exp_annotations:
+              summary: "Duplicate charger identity refused in porto"
+              description: "3 connection(s) in 5 min presented an identity that is already connected in porto."
+  - name: DuplicateChargerID fires on the first event, when the counter is born at 1
+    interval: 1m
+    input_series:
+      - {series: 'evcharge_csms_duplicate_id_total{city="aveiro",outcome="rejected"}', values: '_ _ _ 1 1 1 1'}
+    alert_rule_test:
+      - eval_time: 4m
+        alertname: DuplicateChargerID
+        exp_alerts:
+          - exp_labels: {severity: critical, city: aveiro, hier_id: pt.aveiro, threat: hijack}
+            exp_annotations:
+              summary: "Duplicate charger identity refused in aveiro"
+              description: "1 connection(s) in 5 min presented an identity that is already connected in aveiro."
+  - name: IdentityRejections fires except for duplicate_id
+    interval: 1m
+    input_series:
+      - {series: 'evcharge_csms_identity_rejections_total{city="aveiro",reason="unknown"}', values: '0 0 0 2 2 2 2'}
+      - {series: 'evcharge_csms_identity_rejections_total{city="aveiro",reason="duplicate_id"}', values: '0 0 0 9 9 9 9'}
+    alert_rule_test:
+      - eval_time: 2m
+        alertname: IdentityRejections
+        exp_alerts: []
+      - eval_time: 4m
+        alertname: IdentityRejections
+        exp_alerts:
+          - exp_labels: {severity: warning, city: aveiro, reason: unknown, hier_id: pt.aveiro, threat: hijack}
+            exp_annotations:
+              summary: "Identity rejections (unknown) in aveiro"
+              description: "2 handshake(s) in 5 min were rejected with reason unknown in aveiro."
+  - name: AuthFailureBurst counts Blocked, ignores ConcurrentTx
+    interval: 1m
+    input_series:
+      - {series: 'baseline:city_auth_failures_10m:upper{city="porto",basis="test"}', values: '5x20'}
+      - {series: 'baseline:city_auth_failures_10m:upper{city="lisboa",basis="test"}', values: '5x20'}
+      # porto: 40 Blocked in the burst -> fires
+      - {series: 'evcharge_csms_card_auth_total{city="porto",result="Blocked"}', values: '0x5 40x15'}
+      # lisboa: only ConcurrentTx grows (big) -> must not fire
+      - {series: 'evcharge_csms_card_auth_total{city="lisboa",result="ConcurrentTx"}', values: '0x5 200x15'}
+      - {series: 'evcharge_csms_card_auth_total{city="lisboa",result="Accepted"}', values: '0x5 500x15'}
+    alert_rule_test:
+      - eval_time: 3m
+        alertname: AuthFailureBurst
+        exp_alerts: []
+      - eval_time: 8m
+        alertname: AuthFailureBurst
+        exp_alerts:
+          - exp_labels: {severity: warning, city: porto, hier_id: pt.porto, threat: fraud}
+            exp_annotations:
+              summary: "Card authorisation failures above baseline in porto"
+              description: "40 refused authorisations in 10 min in porto, above the baseline upper bound."
+  - name: MeterUnderReporting fires after 5m above 1000 W
+    interval: 1m
+    input_series:
+      - {series: 'city:station_power_gap_watts{city="aveiro",station="st-003",hier_id="pt.aveiro.st-003"}', values: '4000x12'}
+      - {series: 'city:station_power_gap_watts{city="aveiro",station="st-001",hier_id="pt.aveiro.st-001"}', values: '200x12'}
+    alert_rule_test:
+      - eval_time: 3m
+        alertname: MeterUnderReporting
+        exp_alerts: []
+      - eval_time: 8m
+        alertname: MeterUnderReporting
+        exp_alerts:
+          - exp_labels: {severity: critical, city: aveiro, station: st-003, hier_id: pt.aveiro.st-003, threat: fraud}
+            exp_annotations:
+              summary: "Meter of pt.aveiro.st-003 reports less than the feeder"
+              description: "The feeder meter of pt.aveiro.st-003 (aveiro) exceeds the reported power by 4000 W."
+  - name: MeterAnomalies
+    interval: 1m
+    input_series:
+      - {series: 'evcharge_csms_meter_anomalies_total{city="porto",reason="backwards"}', values: '0 0 0 1 1 1 1'}
+      - {series: 'evcharge_csms_meter_anomalies_total{city="lisboa",reason="backwards"}', values: '0x6'}
+    alert_rule_test:
+      - eval_time: 2m
+        alertname: MeterAnomalies
+        exp_alerts: []
+      - eval_time: 4m
+        alertname: MeterAnomalies
+        exp_alerts:
+          - exp_labels: {severity: warning, city: porto, reason: backwards, hier_id: pt.porto, threat: fraud}
+            exp_annotations:
+              summary: "Meter anomalies (backwards) in porto"
+              description: "1 meter anomaly(ies) of kind backwards in 5 min in porto."
+  - name: MsgRateAnomaly fires 2m above baseline, not below
+    interval: 1m
+    input_series:
+      - {series: 'baseline:city_msgs_rate:upper{city="porto",basis="test"}', values: '4.5x12'}
+      - {series: 'baseline:city_msgs_rate:upper{city="lisboa",basis="test"}', values: '4.5x12'}
+      - {series: 'city:ocpp_messages_sent:rate1m{city="porto"}', values: '1.5x3 30x9'}
+      - {series: 'city:ocpp_messages_sent:rate1m{city="lisboa"}', values: '1.5x12'}
+    alert_rule_test:
+      - eval_time: 4m
+        alertname: MsgRateAnomaly
+        exp_alerts: []
+      - eval_time: 8m
+        alertname: MsgRateAnomaly
+        exp_alerts:
+          - exp_labels: {severity: warning, city: porto, hier_id: pt.porto, threat: botnet}
+            exp_annotations:
+              summary: "OCPP message rate of porto above baseline"
+              description: "porto sends 30.00 msg/s, above the baseline upper bound."
+  - name: ChargerMsgFlood
+    interval: 1m
+    input_series:
+      - {series: 'city:charger_msg_rate:max1m{city="lisboa"}', values: '0.2x3 5x9'}
+      - {series: 'city:charger_msg_rate:max1m{city="aveiro"}', values: '0.3x12'}
+    alert_rule_test:
+      - eval_time: 3m
+        alertname: ChargerMsgFlood
+        exp_alerts: []
+      - eval_time: 8m
+        alertname: ChargerMsgFlood
+        exp_alerts:
+          - exp_labels: {severity: critical, city: lisboa, hier_id: pt.lisboa, threat: botnet}
+            exp_annotations:
+              summary: "A charger in lisboa floods the CSMS"
+              description: "The busiest charger of lisboa sends 5.00 msg/s (sustained CSMS limit: 1)."

@@ -1,0 +1,20 @@
+[Unit]
+Description=EV station simulator @STATION@
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=evcharge
+EnvironmentFile=/etc/evcharge/sim.env
+ExecStart=/opt/evcharge/venv/bin/python -m evsim --roster /etc/evcharge/roster.yaml \
+  --station @STATION@ --csms-url ${SIM_CSMS_URL} --pki-dir /etc/evcharge/pki \
+  --metrics-host 0.0.0.0 --metrics-port 9300 --log-dir /var/log/evcharge $SIM_EXTRA_ARGS
+Restart=always
+RestartSec=5
+NoNewPrivileges=yes
+ProtectSystem=strict
+ReadWritePaths=/var/log/evcharge
+PrivateTmp=yes
+
+[Install]
+WantedBy=multi-user.target

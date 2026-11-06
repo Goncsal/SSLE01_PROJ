@@ -1,0 +1,27 @@
+rule_files: [../alerts.yml, ../baseline.yml]
+evaluation_interval: 1m
+tests:
+  - name: CityLoadSpike uses the provisional baseline of baseline.yml
+    interval: 1m
+    input_series:
+      - {series: 'city:grid_power_watts:sum{city="aveiro"}', values: '150000x3 450000x9'}
+      - {series: 'city:grid_power_watts:sum{city="porto"}', values: '150000x12'}
+    alert_rule_test:
+      - eval_time: 4m
+        alertname: CityLoadSpike
+        exp_alerts: []
+      - eval_time: 8m
+        alertname: CityLoadSpike
+        exp_alerts:
+          - exp_labels: {severity: critical, city: aveiro, hier_id: pt.aveiro, threat: botnet}
+            exp_annotations:
+              summary: "Grid load of aveiro above baseline"
+              description: "Feeder meters of aveiro read 450000 W, above the baseline upper bound."
+  - name: baseline.yml provisional series
+    interval: 1m
+    input_series: []
+    promql_expr_test:
+      - expr: baseline:city_grid_power_watts:upper{city="porto"}
+        eval_time: 1m
+        exp_samples:
+          - {labels: 'baseline:city_grid_power_watts:upper{basis="provisional",city="porto"}', value: 414000}

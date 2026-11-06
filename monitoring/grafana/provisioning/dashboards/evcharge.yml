@@ -1,0 +1,12 @@
+# Dashboard provider: the JSON files are mounted at /var/lib/grafana/dashboards.
+apiVersion: 1
+providers:
+  - name: evcharge
+    orgId: 1
+    folder: EV charging
+    type: file
+    disableDeletion: true
+    allowUiUpdates: false
+    updateIntervalSeconds: 30
+    options:
+      path: /var/lib/grafana/dashboards

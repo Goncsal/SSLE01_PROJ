@@ -1,0 +1,18 @@
+== wire sizes, one scrape cycle (bytes: uncompressed / gzip) ==
+aveiro   federate    7912 /    730   direct 7 targets   177935 /   26729
+lisboa   federate    7962 /    748   direct 7 targets   177753 /   26746
+porto    federate    7744 /    708   direct 7 targets   177452 /   26749
+
+== bytes per minute from the sizes above (federate every 30 s, direct every 5 s) ==
+city         A raw    A gzip       B raw     B gzip  saving raw  saving gzip
+aveiro       15824      1460     2135220     320748       99.3%        99.5%
+lisboa       15924      1496     2133036     320952       99.3%        99.5%
+porto        15488      1416     2129424     320988       99.3%        99.6%
+total        47236      4372     6397680     962688       99.3%        99.5%
+
+== 14.6 PromQL over 30m ending at 1793925150 (uncompressed body, bytes/min) ==
+city        A B/min     B B/min   saving  A samples/min  B samples/min
+aveiro        15847     2130751    99.3%            108          18492
+lisboa        15884     2128245    99.3%            108          18468
+porto         15502     2124570    99.3%            108          18467
+total         47234     6383567   99.3%            324          55427

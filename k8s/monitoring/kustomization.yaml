@@ -1,0 +1,11 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: monitoring
+# The ConfigMaps prometheus-config, prometheus-rules, alertmanager-config, grafana-datasources,
+# grafana-dashboard-provider and grafana-dashboards and the Secret grafana-env are created by infra/06_monitoring.sh
+# from monitoring/ and secrets/platform.env.
+resources:
+  - namespace.yaml
+  - prometheus.yaml
+  - alertmanager.yaml
+  - grafana.yaml

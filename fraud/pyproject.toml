@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "evfraud"
+version = "0.1.0"
+description = "Fraud scoring of the EV charging network: cloned cards, meter tampering, alerts and isolate-only responses."
+requires-python = ">=3.13"
+dependencies = [
+    "evcommon",
+    "fastapi",
+    "uvicorn",
+    "sqlalchemy",
+    "httpx",
+    "prometheus-client",
+]
+
+[project.optional-dependencies]
+test = ["pytest"]
+pg = ["psycopg[binary]"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -1,0 +1,25 @@
+NAME                            READY   STATUS    RESTARTS   AGE   IP           NODE         NOMINATED NODE   READINESS GATES
+pod/billing-6fdc8b9fc-qdkj2     1/1     Running   0          36m   10.42.1.22   k3s-node1    <none>           <none>
+pod/csms-5b57bf5f7f-bqsmr       1/1     Running   0          37s   10.42.0.29   k3s-master   <none>           <none>
+pod/csms-5b57bf5f7f-xqwxg       1/1     Running   0          18m   10.42.1.26   k3s-node1    <none>           <none>
+pod/postgres-0                  1/1     Running   0          46m   10.42.0.22   k3s-master   <none>           <none>
+pod/registry-84f4d4f5d6-jf27r   1/1     Running   0          36m   10.42.1.21   k3s-node1    <none>           <none>
+
+NAME                        TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)          AGE   SELECTOR
+service/billing             NodePort    10.43.232.245   <none>        8002:30802/TCP   46m   app.kubernetes.io/name=billing
+service/csms                NodePort    10.43.27.123    <none>        8000:30800/TCP   46m   app.kubernetes.io/name=csms
+service/csms-ocpp           NodePort    10.43.190.135   <none>        9000:30900/TCP   46m   app.kubernetes.io/name=csms
+service/postgres            ClusterIP   10.43.86.188    <none>        5432/TCP         46m   app.kubernetes.io/name=postgres
+service/postgres-headless   ClusterIP   None            <none>        5432/TCP         46m   app.kubernetes.io/name=postgres
+service/registry            NodePort    10.43.17.229    <none>        8001:30801/TCP   46m   app.kubernetes.io/name=registry
+
+NAME                                       REFERENCE         TARGETS        MINPODS   MAXPODS   REPLICAS   AGE
+horizontalpodautoscaler.autoscaling/csms   Deployment/csms   cpu: 38%/70%   2         4         2          46m
+
+NAME                                    STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE   VOLUMEMODE
+persistentvolumeclaim/data-postgres-0   Bound    pvc-3aa9672d-fe42-4395-9d6a-89c5a24a0c2d   2Gi        RWO            local-path     <unset>                 46m   Filesystem
+--- kubectl top nodes (end of run)
+NAME         CPU(cores)   CPU(%)   MEMORY(bytes)   MEMORY(%)   
+k3s-master   262m         13%      1420Mi          49%         
+k3s-node1    110m         5%       852Mi           29%         
+----

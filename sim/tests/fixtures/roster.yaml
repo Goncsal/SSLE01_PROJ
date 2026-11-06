@@ -1,0 +1,33 @@
+version: 1
+country: pt
+cities:
+  - city: porto
+    name: Porto
+    plain_ws: false
+    stations:
+      - station: st-001
+        name: Porto - Avenida dos Aliados
+        lat: 41.1496
+        lon: -8.6109
+        dev_metrics_port: 9301
+        chargers:
+          - {charger: cp-1, max_kw: 22, connectors: 1, vendor: EVLab, model: EVL-AC22, serial: EVL22-0001}
+          - {charger: cp-2, max_kw: 50, connectors: 1, vendor: EVLab, model: EVL-DC50, serial: EVL50-0002}
+  - city: aveiro
+    name: Aveiro
+    plain_ws: true
+    stations:
+      - station: st-001
+        name: Aveiro - Forum
+        lat: 40.6412
+        lon: -8.6535
+        dev_metrics_port: 9311
+        chargers:
+          - {charger: cp-1, max_kw: 22, connectors: 1, vendor: EVLab, model: EVL-AC22, serial: EVL22-0101}
+cards:
+  - {card: 04A1B2C3D4E5F6, holder: driver-0001, home_city: porto, tariff: standard, blocked: false}
+  - {card: 04B2C3D4E5F6A7, holder: driver-0002, home_city: porto, tariff: standard, blocked: false}
+  - {card: 04C3D4E5F6A7B8, holder: driver-0003, home_city: porto, tariff: standard, blocked: true}
+  - {card: 04D4E5F6A7B8C9, holder: driver-0004, home_city: aveiro, tariff: standard, blocked: false}
+  - {card: 04E5F6A7B8C9D0, holder: driver-0005, home_city: aveiro, tariff: standard, blocked: false}
+  - {card: 04F6A7B8C9D0E1, holder: driver-0006, home_city: porto, tariff: standard, blocked: false}

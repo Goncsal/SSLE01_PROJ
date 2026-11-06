@@ -1,0 +1,20 @@
+1 110090  # 110090 info catch-all
+2 110000  # parent only, unknown level
+3 none  # 110000 negative: service not ours
+4 none  # 110000 negative: not JSON
+5 110010  # 110010 edge WebSocket ended
+6 110090  # 110010 negative: edge 200 stays catch-all
+7 110011  # 110011 ConcurrentTx
+8 110200  # 110011 negative: Blocked is 110200
+9 110012  # 110012 package manager outbound
+10 110303  # 110012 negative: other process
+11 110013  # 110013 listed id is silenced
+12 110104  # 110013 negative: unlisted id
+13 110014  # 110014 sim chatter
+14 110091  # 110014 negative: sim.rejected stays visible
+15 110015  # 110015 session.start
+16 110090  # 110015 negative: session.stop
+17 110091  # 110091 warning catch-all
+18 110090  # 110091 negative: info is 110090
+19 110092  # 110092 error catch-all
+20 110091  # 110092 negative: warning is 110091

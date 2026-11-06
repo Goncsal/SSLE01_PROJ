@@ -1,0 +1,25 @@
+# Alertmanager configuration (contract 14.4).
+route:
+  receiver: default
+  group_by: [alertname, city, hier_id]
+  group_wait: 10s
+  group_interval: 1m
+  repeat_interval: 4h
+
+receivers:
+  # No integration yet. Phase 9 adds, to this receiver:
+  #   webhook_configs:
+  #     - url: http://correlator.evcharge:8004/signals/alertmanager
+  #       http_config:
+  #         authorization: {type: Bearer, credentials_file: /etc/alertmanager/correlator-token}
+  #       send_resolved: true
+  - name: default
+
+# One EdgeDown instead of one alert per station and charger; a dead CSMS hides the
+# per-charger alerts it causes.
+inhibit_rules:
+  - source_matchers: [alertname="EdgeDown"]
+    target_matchers: [alertname=~"ChargerOffline|StationDown|ChargerFlapping|MsgRateAnomaly|CityLoadSpike"]
+    equal: [city]
+  - source_matchers: [alertname="CSMSDown"]
+    target_matchers: [alertname=~"ChargerOffline|ChargerFlapping"]

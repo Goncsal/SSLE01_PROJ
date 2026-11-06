@@ -1,0 +1,592 @@
+version: 1
+country: pt
+cities:
+- city: porto
+  name: Porto
+  plain_ws: false
+  edge_lat: 41.1496
+  edge_lon: -8.6109
+  stations:
+  - station: st-001
+    name: Porto - Avenida dos Aliados
+    lat: 41.1496
+    lon: -8.6109
+    dev_metrics_port: 9301
+    chargers:
+    - charger: cp-1
+      max_kw: 22.0
+      connectors: 1
+      vendor: EVLab
+      model: EVL-AC22
+      serial: EVL22-0001
+    - charger: cp-2
+      max_kw: 50.0
+      connectors: 1
+      vendor: EVLab
+      model: EVL-DC50
+      serial: EVL50-0002
+  - station: st-002
+    name: Porto - Boavista
+    lat: 41.1579
+    lon: -8.6291
+    dev_metrics_port: 9302
+    chargers:
+    - charger: cp-1
+      max_kw: 22.0
+      connectors: 1
+      vendor: EVLab
+      model: EVL-AC22
+      serial: EVL22-0003
+    - charger: cp-2
+      max_kw: 50.0
+      connectors: 1
+      vendor: EVLab
+      model: EVL-DC50
+      serial: EVL50-0004
+  - station: st-003
+    name: Porto - Campanhã
+    lat: 41.1486
+    lon: -8.5856
+    dev_metrics_port: 9303
+    chargers:
+    - charger: cp-1
+      max_kw: 22.0
+      connectors: 1
+      vendor: EVLab
+      model: EVL-AC22
+      serial: EVL22-0005
+    - charger: cp-2
+      max_kw: 50.0
+      connectors: 1
+      vendor: EVLab
+      model: EVL-DC50
+      serial: EVL50-0006
+  - station: st-004
+    name: Porto - Foz do Douro
+    lat: 41.152
+    lon: -8.6763
+    dev_metrics_port: 9304
+    chargers:
+    - charger: cp-1
+      max_kw: 22.0
+      connectors: 1
+      vendor: EVLab
+      model: EVL-AC22
+      serial: EVL22-0007
+    - charger: cp-2
+      max_kw: 50.0
+      connectors: 1
+      vendor: EVLab
+      model: EVL-DC50
+      serial: EVL50-0008
+  - station: st-005
+    name: Porto - Asprela
+    lat: 41.178
+    lon: -8.602
+    dev_metrics_port: 9305
+    chargers:
+    - charger: cp-1
+      max_kw: 22.0
+      connectors: 1
+      vendor: EVLab
+      model: EVL-AC22
+      serial: EVL22-0009
+    - charger: cp-2
+      max_kw: 150.0
+      connectors: 1
+      vendor: EVLab
+      model: EVL-DC150
+      serial: EVL150-0010
+- city: lisboa
+  name: Lisboa
+  plain_ws: false
+  edge_lat: 38.711
+  edge_lon: -9.1366
+  stations:
+  - station: st-001
+    name: Lisboa - Baixa
+    lat: 38.711
+    lon: -9.1366
+    dev_metrics_port: 9306
+    chargers:
+    - charger: cp-1
+      max_kw: 22.0
+      connectors: 1
+      vendor: EVLab
+      model: EVL-AC22
+      serial: EVL22-0011
+    - charger: cp-2
+      max_kw: 50.0
+      connectors: 1
+      vendor: EVLab
+      model: EVL-DC50
+      serial: EVL50-0012
+  - station: st-002
+    name: Lisboa - Parque das Nações
+    lat: 38.768
+    lon: -9.094
+    dev_metrics_port: 9307
+    chargers:
+    - charger: cp-1
+      max_kw: 22.0
+      connectors: 1
+      vendor: EVLab
+      model: EVL-AC22
+      serial: EVL22-0013
+    - charger: cp-2
+      max_kw: 50.0
+      connectors: 1
+      vendor: EVLab
+      model: EVL-DC50
+      serial: EVL50-0014
+  - station: st-003
+    name: Lisboa - Alvalade
+    lat: 38.753
+    lon: -9.143
+    dev_metrics_port: 9308
+    chargers:
+    - charger: cp-1
+      max_kw: 22.0
+      connectors: 1
+      vendor: EVLab
+      model: EVL-AC22
+      serial: EVL22-0015
+    - charger: cp-2
+      max_kw: 50.0
+      connectors: 1
+      vendor: EVLab
+      model: EVL-DC50
+      serial: EVL50-0016
+  - station: st-004
+    name: Lisboa - Belém
+    lat: 38.697
+    lon: -9.206
+    dev_metrics_port: 9309
+    chargers:
+    - charger: cp-1
+      max_kw: 22.0
+      connectors: 1
+      vendor: EVLab
+      model: EVL-AC22
+      serial: EVL22-0017
+    - charger: cp-2
+      max_kw: 50.0
+      connectors: 1
+      vendor: EVLab
+      model: EVL-DC50
+      serial: EVL50-0018
+  - station: st-005
+    name: Lisboa - Benfica
+    lat: 38.751
+    lon: -9.201
+    dev_metrics_port: 9310
+    chargers:
+    - charger: cp-1
+      max_kw: 22.0
+      connectors: 1
+      vendor: EVLab
+      model: EVL-AC22
+      serial: EVL22-0019
+    - charger: cp-2
+      max_kw: 150.0
+      connectors: 1
+      vendor: EVLab
+      model: EVL-DC150
+      serial: EVL150-0020
+- city: aveiro
+  name: Aveiro
+  plain_ws: true
+  edge_lat: 40.6405
+  edge_lon: -8.6538
+  stations:
+  - station: st-001
+    name: Aveiro - Fórum Aveiro
+    lat: 40.6405
+    lon: -8.6538
+    dev_metrics_port: 9311
+    chargers:
+    - charger: cp-1
+      max_kw: 22.0
+      connectors: 1
+      vendor: EVLab
+      model: EVL-AC22
+      serial: EVL22-0021
+    - charger: cp-2
+      max_kw: 50.0
+      connectors: 1
+      vendor: EVLab
+      model: EVL-DC50
+      serial: EVL50-0022
+  - station: st-002
+    name: Aveiro - Universidade
+    lat: 40.6303
+    lon: -8.6574
+    dev_metrics_port: 9312
+    chargers:
+    - charger: cp-1
+      max_kw: 22.0
+      connectors: 1
+      vendor: EVLab
+      model: EVL-AC22
+      serial: EVL22-0023
+    - charger: cp-2
+      max_kw: 50.0
+      connectors: 1
+      vendor: EVLab
+      model: EVL-DC50
+      serial: EVL50-0024
+  - station: st-003
+    name: Aveiro - Glicínias
+    lat: 40.628
+    lon: -8.644
+    dev_metrics_port: 9313
+    chargers:
+    - charger: cp-1
+      max_kw: 22.0
+      connectors: 1
+      vendor: EVLab
+      model: EVL-AC22
+      serial: EVL22-0025
+    - charger: cp-2
+      max_kw: 50.0
+      connectors: 1
+      vendor: EVLab
+      model: EVL-DC50
+      serial: EVL50-0026
+  - station: st-004
+    name: Aveiro - Esgueira
+    lat: 40.65
+    lon: -8.629
+    dev_metrics_port: 9314
+    chargers:
+    - charger: cp-1
+      max_kw: 22.0
+      connectors: 1
+      vendor: EVLab
+      model: EVL-AC22
+      serial: EVL22-0027
+    - charger: cp-2
+      max_kw: 50.0
+      connectors: 1
+      vendor: EVLab
+      model: EVL-DC50
+      serial: EVL50-0028
+  - station: st-005
+    name: Aveiro - Praia da Barra
+    lat: 40.643
+    lon: -8.747
+    dev_metrics_port: 9315
+    chargers:
+    - charger: cp-1
+      max_kw: 22.0
+      connectors: 1
+      vendor: EVLab
+      model: EVL-AC22
+      serial: EVL22-0029
+    - charger: cp-2
+      max_kw: 150.0
+      connectors: 1
+      vendor: EVLab
+      model: EVL-DC150
+      serial: EVL150-0030
+cards:
+- card: E3EE5BE2ED4120
+  holder: driver-0001
+  home_city: porto
+  tariff: standard
+  blocked: false
+- card: E89D88BF3AC6D9
+  holder: driver-0002
+  home_city: lisboa
+  tariff: standard
+  blocked: false
+- card: 0D37277B3506AD
+  holder: driver-0003
+  home_city: aveiro
+  tariff: standard
+  blocked: false
+- card: A77BA0FA3D8686
+  holder: driver-0004
+  home_city: porto
+  tariff: standard
+  blocked: false
+- card: BF0062DDC0F7E4
+  holder: driver-0005
+  home_city: lisboa
+  tariff: standard
+  blocked: false
+- card: ACA7AFF4E7AB0E
+  holder: driver-0006
+  home_city: aveiro
+  tariff: standard
+  blocked: false
+- card: CA3ACFE6EFF2D9
+  holder: driver-0007
+  home_city: porto
+  tariff: standard
+  blocked: false
+- card: B3A853EE8D9583
+  holder: driver-0008
+  home_city: lisboa
+  tariff: standard
+  blocked: false
+- card: 32B99D7C7BFAF6
+  holder: driver-0009
+  home_city: aveiro
+  tariff: standard
+  blocked: false
+- card: 0942D7BDC322D7
+  holder: driver-0010
+  home_city: porto
+  tariff: standard
+  blocked: false
+- card: B57B5C4FF998B6
+  holder: driver-0011
+  home_city: lisboa
+  tariff: standard
+  blocked: false
+- card: D16A72A1D77FB5
+  holder: driver-0012
+  home_city: aveiro
+  tariff: standard
+  blocked: false
+- card: 7CF582A3B486A9
+  holder: driver-0013
+  home_city: porto
+  tariff: standard
+  blocked: false
+- card: 4672C98C1BCDE5
+  holder: driver-0014
+  home_city: lisboa
+  tariff: standard
+  blocked: false
+- card: 77C0442427041F
+  holder: driver-0015
+  home_city: aveiro
+  tariff: standard
+  blocked: false
+- card: 4AB5EE3CD4AA84
+  holder: driver-0016
+  home_city: porto
+  tariff: standard
+  blocked: false
+- card: 55DA8D5278DBFB
+  holder: driver-0017
+  home_city: lisboa
+  tariff: standard
+  blocked: false
+- card: FE63849D279003
+  holder: driver-0018
+  home_city: aveiro
+  tariff: standard
+  blocked: false
+- card: B96B9CF76ABEB1
+  holder: driver-0019
+  home_city: porto
+  tariff: standard
+  blocked: false
+- card: 78EF4C06219BB5
+  holder: driver-0020
+  home_city: lisboa
+  tariff: standard
+  blocked: false
+- card: 392A3725999B16
+  holder: driver-0021
+  home_city: aveiro
+  tariff: standard
+  blocked: false
+- card: E8A97F9B922047
+  holder: driver-0022
+  home_city: porto
+  tariff: standard
+  blocked: false
+- card: CD40A17EA0986F
+  holder: driver-0023
+  home_city: lisboa
+  tariff: standard
+  blocked: false
+- card: D3699D81DF161A
+  holder: driver-0024
+  home_city: aveiro
+  tariff: standard
+  blocked: false
+- card: AFAA13EEB100FD
+  holder: driver-0025
+  home_city: porto
+  tariff: standard
+  blocked: false
+- card: 0124F8B9184DF7
+  holder: driver-0026
+  home_city: lisboa
+  tariff: standard
+  blocked: false
+- card: 985353ECFE1CF2
+  holder: driver-0027
+  home_city: aveiro
+  tariff: standard
+  blocked: false
+- card: D718607E5651A9
+  holder: driver-0028
+  home_city: porto
+  tariff: standard
+  blocked: false
+- card: F597400A50D393
+  holder: driver-0029
+  home_city: lisboa
+  tariff: standard
+  blocked: false
+- card: BF77F247F5274E
+  holder: driver-0030
+  home_city: aveiro
+  tariff: standard
+  blocked: false
+- card: B9137D03B1119D
+  holder: driver-0031
+  home_city: porto
+  tariff: standard
+  blocked: false
+- card: BAFC69CEBB7E0B
+  holder: driver-0032
+  home_city: lisboa
+  tariff: standard
+  blocked: false
+- card: DBA27E1591CDAB
+  holder: driver-0033
+  home_city: aveiro
+  tariff: standard
+  blocked: false
+- card: 29330B0F3BA395
+  holder: driver-0034
+  home_city: porto
+  tariff: standard
+  blocked: false
+- card: BA5F09B968B6CE
+  holder: driver-0035
+  home_city: lisboa
+  tariff: standard
+  blocked: true
+- card: B2C84EB3C51711
+  holder: driver-0036
+  home_city: aveiro
+  tariff: standard
+  blocked: false
+- card: 06482E034BB4EC
+  holder: driver-0037
+  home_city: porto
+  tariff: standard
+  blocked: false
+- card: DBEA22B4FDE926
+  holder: driver-0038
+  home_city: lisboa
+  tariff: standard
+  blocked: false
+- card: 677CB605CED4C1
+  holder: driver-0039
+  home_city: aveiro
+  tariff: standard
+  blocked: false
+- card: 0F0C89196CB02D
+  holder: driver-0040
+  home_city: porto
+  tariff: standard
+  blocked: false
+- card: C8A7722179697C
+  holder: driver-0041
+  home_city: lisboa
+  tariff: standard
+  blocked: true
+- card: EA0A8579A63028
+  holder: driver-0042
+  home_city: aveiro
+  tariff: standard
+  blocked: false
+- card: 4CD5B7CD345C2B
+  holder: driver-0043
+  home_city: porto
+  tariff: standard
+  blocked: false
+- card: 7E50631B571C35
+  holder: driver-0044
+  home_city: lisboa
+  tariff: standard
+  blocked: false
+- card: B1D9626D834889
+  holder: driver-0045
+  home_city: aveiro
+  tariff: standard
+  blocked: false
+- card: 759225FF6ECFCE
+  holder: driver-0046
+  home_city: porto
+  tariff: standard
+  blocked: false
+- card: CA8DD791922343
+  holder: driver-0047
+  home_city: lisboa
+  tariff: standard
+  blocked: false
+- card: B215A3384E4A87
+  holder: driver-0048
+  home_city: aveiro
+  tariff: standard
+  blocked: false
+- card: 8C9969D2D53750
+  holder: driver-0049
+  home_city: porto
+  tariff: standard
+  blocked: false
+- card: C1AF6A99F15DCE
+  holder: driver-0050
+  home_city: lisboa
+  tariff: standard
+  blocked: false
+- card: D1A52EA01C7B37
+  holder: driver-0051
+  home_city: aveiro
+  tariff: standard
+  blocked: false
+- card: B5CB6E9B6E8FC7
+  holder: driver-0052
+  home_city: porto
+  tariff: standard
+  blocked: false
+- card: EBA8C48BFEE994
+  holder: driver-0053
+  home_city: lisboa
+  tariff: standard
+  blocked: false
+- card: 4C229BC2B6A90B
+  holder: driver-0054
+  home_city: aveiro
+  tariff: standard
+  blocked: false
+- card: 9552A537D0F8C5
+  holder: driver-0055
+  home_city: porto
+  tariff: standard
+  blocked: false
+- card: CFBB1D9DA6B798
+  holder: driver-0056
+  home_city: lisboa
+  tariff: standard
+  blocked: false
+- card: 6EB08E1700AEEF
+  holder: driver-0057
+  home_city: aveiro
+  tariff: standard
+  blocked: false
+- card: 2A526D07299003
+  holder: driver-0058
+  home_city: porto
+  tariff: standard
+  blocked: false
+- card: 07008A0ED14A3E
+  holder: driver-0059
+  home_city: lisboa
+  tariff: standard
+  blocked: false
+- card: D1A79AF453DC80
+  holder: driver-0060
+  home_city: aveiro
+  tariff: standard
+  blocked: false

@@ -1,0 +1,70 @@
+1 110400  # 110400 dependency.error
+2 110090  # 110400 negative: service.start
+3 reset  # 110401 positive: 10 errors of one dependency
+4 110400  # dep (1 of 10)
+5 110400  # dep (2 of 10)
+6 110400  # dep (3 of 10)
+7 110400  # dep (4 of 10)
+8 110400  # dep (5 of 10)
+9 110400  # dep (6 of 10)
+10 110400  # dep (7 of 10)
+11 110400  # dep (8 of 10)
+12 110400  # dep (9 of 10)
+13 110401  # dep (10 of 10)
+14 reset  # 110401 negative: 10 errors of ten dependencies
+15 110400  # dep (1 of 10)
+16 110400  # dep (2 of 10)
+17 110400  # dep (3 of 10)
+18 110400  # dep (4 of 10)
+19 110400  # dep (5 of 10)
+20 110400  # dep (6 of 10)
+21 110400  # dep (7 of 10)
+22 110400  # dep (8 of 10)
+23 110400  # dep (9 of 10)
+24 110400  # dep (10 of 10)
+25 reset  # new session
+26 110402  # 110402 api.auth_failed
+27 110091  # 110402 negative: other warning
+28 reset  # 110403 positive: 10 bad tokens from one source
+29 110402  # token (1 of 10)
+30 110402  # token (2 of 10)
+31 110402  # token (3 of 10)
+32 110402  # token (4 of 10)
+33 110402  # token (5 of 10)
+34 110402  # token (6 of 10)
+35 110402  # token (7 of 10)
+36 110402  # token (8 of 10)
+37 110402  # token (9 of 10)
+38 110403  # token (10 of 10)
+39 reset  # 110403 negative: 10 bad tokens from ten sources
+40 110402  # token (1 of 10)
+41 110402  # token (2 of 10)
+42 110402  # token (3 of 10)
+43 110402  # token (4 of 10)
+44 110402  # token (5 of 10)
+45 110402  # token (6 of 10)
+46 110402  # token (7 of 10)
+47 110402  # token (8 of 10)
+48 110402  # token (9 of 10)
+49 110402  # token (10 of 10)
+50 reset  # new session
+51 110404  # 110404 write_denied
+52 110090  # 110404 negative: registry.write
+53 reset  # new session
+54 110405  # 110405 registry.quarantine
+55 110405  # 110405 registry.release
+56 110090  # 110405 negative: registry.write
+57 reset  # new session
+58 110406  # 110406 command.result from wazuh
+59 110090  # 110406 negative: command.result without wazuh
+60 reset  # new session
+61 110410  # 110410 ar.action ok
+62 110090  # 110410 negative: ar.action skipped
+63 reset  # new session
+64 110411  # 110411 ar.action refused
+65 110411  # 110411 ar.action error
+66 110410  # 110411 negative: ok is 110410
+67 reset  # new session
+68 110412  # 110412 ar.evidence
+69 110412  # 110412 ar.evidence warning stays quiet
+70 110090  # 110412 negative: other info event

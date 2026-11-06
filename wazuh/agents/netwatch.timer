@@ -1,0 +1,10 @@
+[Unit]
+Description=Run the station outbound watcher every 10 s
+
+[Timer]
+OnBootSec=20s
+OnUnitInactiveSec=10s
+AccuracySec=1s
+
+[Install]
+WantedBy=timers.target

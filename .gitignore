@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+
+# Secrets and key material
+.env
+*.env
+secrets/
+*.key
+*-key.pem
+*.p12
+wazuh-passwords.txt
+pki/out/
+
+# Runtime output
+logs/
+*.log
+*.db
+eval/results/raw/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store

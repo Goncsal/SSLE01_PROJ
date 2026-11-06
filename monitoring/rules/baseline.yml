@@ -1,0 +1,31 @@
+# Baseline thresholds computed by monitoring/baseline/compute.py (contract 14.7).
+# window: 2026-11-05T23:01:57Z .. 2026-11-06T11:01:57Z (12h), step 60s, upper = mean + 3 sigma
+# basis="12h-20261106"; load upper capped at 0.9 x installed capacity
+# city series        n        mean       sigma       upper  note
+# aveiro grid_w      721     93376.6     52666.3    251375.4  cap 414000.0 not applied
+# aveiro msgs/s      721      0.8209      0.1696      1.3298  
+# aveiro auth10m     432        0.00        0.00        0.00  
+# lisboa grid_w      721     91272.7     51376.9    245403.5  cap 414000.0 not applied
+# lisboa msgs/s      721      0.7980      0.1671      1.2994  
+# lisboa auth10m     659        0.47        0.78        2.82  
+# porto  grid_w      721    104395.9     61374.5    288519.4  cap 414000.0 not applied
+# porto  msgs/s      721      0.9454      1.8266      6.4253  
+# porto  auth10m     636        0.03        0.17        0.55  
+groups:
+  - name: baseline
+    rules:
+      - {record: "baseline:city_grid_power_watts:mean", expr: "vector(93376.6)", labels: {city: aveiro, basis: "12h-20261106"}}
+      - {record: "baseline:city_grid_power_watts:upper", expr: "vector(251375)", labels: {city: aveiro, basis: "12h-20261106"}}
+      - {record: "baseline:city_msgs_rate:mean", expr: "vector(0.820884)", labels: {city: aveiro, basis: "12h-20261106"}}
+      - {record: "baseline:city_msgs_rate:upper", expr: "vector(1.32983)", labels: {city: aveiro, basis: "12h-20261106"}}
+      - {record: "baseline:city_auth_failures_10m:upper", expr: "vector(0)", labels: {city: aveiro, basis: "12h-20261106"}}
+      - {record: "baseline:city_grid_power_watts:mean", expr: "vector(91272.7)", labels: {city: lisboa, basis: "12h-20261106"}}
+      - {record: "baseline:city_grid_power_watts:upper", expr: "vector(245403)", labels: {city: lisboa, basis: "12h-20261106"}}
+      - {record: "baseline:city_msgs_rate:mean", expr: "vector(0.798003)", labels: {city: lisboa, basis: "12h-20261106"}}
+      - {record: "baseline:city_msgs_rate:upper", expr: "vector(1.29935)", labels: {city: lisboa, basis: "12h-20261106"}}
+      - {record: "baseline:city_auth_failures_10m:upper", expr: "vector(2.81575)", labels: {city: lisboa, basis: "12h-20261106"}}
+      - {record: "baseline:city_grid_power_watts:mean", expr: "vector(104396)", labels: {city: porto, basis: "12h-20261106"}}
+      - {record: "baseline:city_grid_power_watts:upper", expr: "vector(288519)", labels: {city: porto, basis: "12h-20261106"}}
+      - {record: "baseline:city_msgs_rate:mean", expr: "vector(0.945356)", labels: {city: porto, basis: "12h-20261106"}}
+      - {record: "baseline:city_msgs_rate:upper", expr: "vector(6.42527)", labels: {city: porto, basis: "12h-20261106"}}
+      - {record: "baseline:city_auth_failures_10m:upper", expr: "vector(0.554456)", labels: {city: porto, basis: "12h-20261106"}}

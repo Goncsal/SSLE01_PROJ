@@ -1,0 +1,50 @@
+[
+ {
+  "job": "edge-nginx",
+  "instance": "127.0.0.1:9113",
+  "health": "up",
+  "scrapeUrl": "http://127.0.0.1:9113/metrics"
+ },
+ {
+  "job": "edge-node",
+  "instance": "127.0.0.1:9100",
+  "health": "up",
+  "scrapeUrl": "http://127.0.0.1:9100/metrics"
+ },
+ {
+  "job": "prometheus",
+  "instance": "127.0.0.1:9090",
+  "health": "up",
+  "scrapeUrl": "http://127.0.0.1:9090/metrics"
+ },
+ {
+  "job": "stations",
+  "instance": "st-001.aveiro.pt.lab:9300",
+  "health": "up",
+  "scrapeUrl": "http://st-001.aveiro.pt.lab:9300/metrics"
+ },
+ {
+  "job": "stations",
+  "instance": "st-002.aveiro.pt.lab:9300",
+  "health": "up",
+  "scrapeUrl": "http://st-002.aveiro.pt.lab:9300/metrics"
+ },
+ {
+  "job": "stations",
+  "instance": "st-003.aveiro.pt.lab:9300",
+  "health": "up",
+  "scrapeUrl": "http://st-003.aveiro.pt.lab:9300/metrics"
+ },
+ {
+  "job": "stations",
+  "instance": "st-004.aveiro.pt.lab:9300",
+  "health": "up",
+  "scrapeUrl": "http://st-004.aveiro.pt.lab:9300/metrics"
+ },
+ {
+  "job": "stations",
+  "instance": "st-005.aveiro.pt.lab:9300",
+  "health": "up",
+  "scrapeUrl": "http://st-005.aveiro.pt.lab:9300/metrics"
+ }
+]

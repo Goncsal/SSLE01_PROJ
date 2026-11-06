@@ -1,0 +1,41 @@
+# Grafana datasources (docs/interfaces.md, section 14.5).
+# central: the central Prometheus, in the same namespace as Grafana.
+# city-<city>: the per-city Prometheus on each edge, the only place with per-charger series.
+apiVersion: 1
+datasources:
+  - name: central
+    uid: central
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: false
+    jsonData:
+      timeInterval: 15s
+  - name: city-porto
+    uid: city-porto
+    type: prometheus
+    access: proxy
+    url: http://edge.porto.pt.lab:9090
+    isDefault: false
+    editable: false
+    jsonData:
+      timeInterval: 5s
+  - name: city-lisboa
+    uid: city-lisboa
+    type: prometheus
+    access: proxy
+    url: http://edge.lisboa.pt.lab:9090
+    isDefault: false
+    editable: false
+    jsonData:
+      timeInterval: 5s
+  - name: city-aveiro
+    uid: city-aveiro
+    type: prometheus
+    access: proxy
+    url: http://edge.aveiro.pt.lab:9090
+    isDefault: false
+    editable: false
+    jsonData:
+      timeInterval: 5s

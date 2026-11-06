@@ -1,0 +1,403 @@
+#!/var/ossec/framework/python/bin/python3
+"""block-card: block a card in billing and flag its session (manager, location server).
+
+Wazuh active-response protocol (4.x): one JSON message on stdin, e.g.
+  {"version":1,"origin":{...},"command":"add","parameters":{"extra_args":[],"alert":{...}}}
+The alert carries our decoded log fields under "data" (card, hier_id, transaction_id, ...).
+
+Steps (each independent, a failure does not stop the next one):
+  1. evidence: billing GET /sessions?card=...        (ar.evidence line)
+  2. billing POST /cards/{card}/block                (source=wazuh, incident_id = alert id)
+  3. billing POST /sessions/{transaction_id}/flag    (only when the alert has transaction_id)
+No unblock, no deletion. Standard library only; runs on the manager interpreter.
+
+Manual use:  block-card --self-test [FILE]   parse a sample alert, print the plan
+             block-card --dry-run [FILE]     full guards and URLs, no change (FILE or stdin)
+"""
+import fcntl
+import ipaddress
+import json
+import os
+import re
+import socket
+import sys
+import time
+import urllib.error
+import urllib.request
+from datetime import datetime, timezone
+from urllib.parse import urlsplit, urlunsplit
+
+NAME = "block-card"
+ETC = os.environ.get("EVCHARGE_AR_ETC", "/var/ossec/etc/evcharge")
+LOGS = os.environ.get("EVCHARGE_AR_LOGS", "/var/ossec/logs")
+RUN = os.environ.get("EVCHARGE_AR_RUN", "/var/ossec/var/run")
+AR_ENV = os.path.join(ETC, "ar.env")
+ALLOWLIST = os.path.join(ETC, "card-allowlist")
+AR_LOG = os.path.join(LOGS, "evcharge-ar.json")
+STATE = os.path.join(RUN, "evcharge-block-rate.json")
+
+HTTP_TIMEOUT = 5.0      # seconds per call
+TOTAL_TIMEOUT = 30.0    # seconds for the whole response
+RATE_LIMIT = 10         # distinct cards ...
+RATE_WINDOW = 3600      # ... per hour
+
+CARD_RE = re.compile(r"^[0-9A-F]{8,20}$")
+HIER_RE = re.compile(r"^pt\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*(?:\.st-[0-9]{3}(?:\.cp-[1-9][0-9]?)?)?$")
+URL_KEY = {"registry": "REGISTRY_URL", "csms": "CSMS_API_URL", "billing": "BILLING_URL"}
+FALLBACK_HOST = ("k3s-master.incus", "k3s-node1.incus")
+
+SAMPLE_ALERT = {
+    "id": "1730000000.123456",
+    "rule": {"id": "110203", "level": 12, "description": "self-test sample alert"},
+    "data": {"card": "04A1B2C3D4E5F6", "hier_id": "pt.porto.st-005.cp-9", "transaction_id": 424242},
+}
+
+
+def now_iso():
+    t = datetime.now(timezone.utc)
+    return t.strftime("%Y-%m-%dT%H:%M:%S.") + "%03dZ" % (t.microsecond // 1000)
+
+
+def clean(value, limit=64):
+    """Printable, bounded text for log fields (ids from forged lines never go in raw)."""
+    return re.sub(r"[^A-Za-z0-9._:@/ -]", "?", str(value))[:limit]
+
+
+def read_kv(path):
+    out = {}
+    try:
+        with open(path, encoding="utf-8") as fh:
+            for line in fh:
+                line = line.strip()
+                if not line or line.startswith("#"):
+                    continue
+                if line.startswith("export "):
+                    line = line[7:].lstrip()
+                key, sep, val = line.partition("=")
+                if sep:
+                    out[key.strip()] = val.strip().strip("'\"")
+    except OSError:
+        pass
+    return out
+
+
+def read_list(path):
+    items = set()
+    try:
+        with open(path, encoding="utf-8") as fh:
+            for line in fh:
+                line = line.split("#", 1)[0].strip()
+                if line:
+                    items.add(line)
+    except OSError:
+        pass
+    return items
+
+
+class Ctx:
+    def __init__(self, alert):
+        self.alert = alert
+        data = alert.get("data") if isinstance(alert.get("data"), dict) else {}
+        rule = alert.get("rule") if isinstance(alert.get("rule"), dict) else {}
+        self.data = data
+        self.rule_id = clean(rule.get("id", ""), 16)
+        self.alert_id = clean(alert.get("id", ""), 64)
+        self.description = clean(rule.get("description", ""), 120)
+        self.raw_id = data.get("card", "")
+        self.card = self.raw_id if isinstance(self.raw_id, str) and CARD_RE.match(self.raw_id) else None
+        hid = data.get("hier_id", "")
+        self.hier_id = hid if isinstance(hid, str) and HIER_RE.match(hid) else None
+        tid = data.get("transaction_id")
+        if isinstance(tid, str) and re.fullmatch(r"[0-9]{1,18}", tid):
+            tid = int(tid)
+        self.transaction_id = tid if isinstance(tid, int) and not isinstance(tid, bool) and 0 < tid < 2**63 else None
+        self.srcip = None
+        try:
+            self.srcip = str(ipaddress.ip_address(str(data.get("srcip", ""))))
+        except ValueError:
+            pass
+        self.instance = socket.gethostname()
+
+    def reason(self):
+        text = "wazuh rule %s" % self.rule_id
+        if self.description:
+            text += ": " + self.description
+        return text[:200]
+
+
+def append_line(path, obj, mode=0o640):
+    line = json.dumps(obj, separators=(",", ":")) + "\n"
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    fd = os.open(path, os.O_WRONLY | os.O_APPEND | os.O_CREAT, mode)
+    try:
+        fcntl.flock(fd, fcntl.LOCK_EX)
+        os.write(fd, line.encode("utf-8"))
+    finally:
+        os.close(fd)
+
+
+def log_action(ctx, result, reason, level=None):
+    rec = {"ts": now_iso(), "level": level or {"ok": "info", "refused": "warning"}.get(result, "error"),
+           "service": "ar", "instance": ctx.instance, "event": "ar.action",
+           "msg": "%s %s: %s" % (NAME, result, reason),
+           "ar_command": NAME, "target": ctx.card or clean(ctx.raw_id)}
+    if ctx.card:
+        rec["card"] = ctx.card
+    if ctx.hier_id:
+        rec["hier_id"] = ctx.hier_id
+    if ctx.transaction_id:
+        rec["transaction_id"] = ctx.transaction_id
+    if ctx.srcip:
+        rec["srcip"] = ctx.srcip
+    if ctx.rule_id:
+        rec["rule_id"] = ctx.rule_id
+    if ctx.alert_id:
+        rec["alert_id"] = ctx.alert_id
+    rec["result"] = result
+    rec["reason"] = reason[:300]
+    try:
+        append_line(AR_LOG, rec)
+    except OSError as exc:
+        print("%s: cannot write %s: %s" % (NAME, AR_LOG, exc), file=sys.stderr)
+
+
+def log_evidence(ctx, kind, status, body):
+    rec = {"ts": now_iso(), "level": "info", "service": "ar", "instance": ctx.instance,
+           "event": "ar.evidence", "msg": "%s evidence %s" % (NAME, kind),
+           "ar_command": NAME, "target": ctx.card, "card": ctx.card,
+           "rule_id": ctx.rule_id, "alert_id": ctx.alert_id,
+           "kind": kind, "http_status": status,
+           "detail": json.dumps(body, separators=(",", ":"), sort_keys=True)[:1800]}
+    try:
+        append_line(AR_LOG, rec)
+    except OSError as exc:
+        print("%s: cannot write %s: %s" % (NAME, AR_LOG, exc), file=sys.stderr)
+
+
+class Api:
+    """Tiny HTTP client: bearer token, per-call timeout, one fallback address, global deadline."""
+
+    def __init__(self, env, deadline):
+        self.env = env
+        self.deadline = deadline
+        self.order = {}
+
+    def bases(self, svc):
+        key = URL_KEY[svc]
+        primary = self.env.get(key, "").rstrip("/")
+        fallback = self.env.get(key + "_FALLBACK", "").rstrip("/")
+        if primary and not fallback:
+            parts = urlsplit(primary)
+            if parts.hostname == FALLBACK_HOST[0]:
+                netloc = FALLBACK_HOST[1] + (":%d" % parts.port if parts.port else "")
+                fallback = urlunsplit((parts.scheme, netloc, parts.path, "", "")).rstrip("/")
+        out = [b for b in (primary, fallback) if b]
+        pref = self.order.get(svc)
+        if pref in out:
+            out.remove(pref)
+            out.insert(0, pref)
+        return out
+
+    def call(self, svc, token_key, method, path, body=None):
+        """Returns (status, parsed_json_or_None, error_or_None). status 0 = no answer."""
+        token = self.env.get(token_key, "")
+        bases = self.bases(svc)
+        if not bases or not token:
+            return 0, None, "not_configured"
+        err = "unreachable"
+        for base in bases:
+            remaining = self.deadline - time.monotonic()
+            if remaining <= 0:
+                return 0, None, "deadline"
+            data = json.dumps(body).encode() if body is not None else None
+            req = urllib.request.Request(base + path, data=data, method=method)
+            req.add_header("Authorization", "Bearer " + token)
+            req.add_header("Accept", "application/json")
+            if data is not None:
+                req.add_header("Content-Type", "application/json")
+            try:
+                with urllib.request.urlopen(req, timeout=min(HTTP_TIMEOUT, remaining)) as resp:
+                    status, raw = resp.status, resp.read(65536)
+            except urllib.error.HTTPError as exc:
+                status, raw = exc.code, exc.read(65536)
+            except (urllib.error.URLError, OSError, ValueError) as exc:
+                err = "unreachable: %s" % clean(getattr(exc, "reason", exc), 80)
+                continue
+            self.order[svc] = base
+            try:
+                parsed = json.loads(raw.decode("utf-8")) if raw else None
+            except ValueError:
+                parsed = None
+            return status, parsed, None
+        return 0, None, err
+
+
+def rate_guard(key, record):
+    """True if `key` may act. At most RATE_LIMIT distinct keys per RATE_WINDOW; state under flock."""
+    if not record and not os.path.exists(STATE):
+        return True
+    os.makedirs(os.path.dirname(STATE), exist_ok=True)
+    fd = os.open(STATE, os.O_RDWR | os.O_CREAT, 0o600)
+    try:
+        fcntl.flock(fd, fcntl.LOCK_EX)
+        raw = os.read(fd, 1 << 20)
+        try:
+            entries = [e for e in json.loads(raw.decode() or "[]") if isinstance(e, list) and len(e) == 2]
+        except ValueError:
+            entries = []
+        now = time.time()
+        entries = [e for e in entries if now - float(e[0]) < RATE_WINDOW]
+        distinct = {e[1] for e in entries}
+        if key not in distinct and len(distinct) >= RATE_LIMIT:
+            allowed = False
+        else:
+            allowed = True
+            if record:
+                entries.append([now, key])
+        if record or not allowed:
+            os.ftruncate(fd, 0)
+            os.lseek(fd, 0, os.SEEK_SET)
+            os.write(fd, json.dumps(entries).encode())
+        return allowed
+    finally:
+        os.close(fd)
+
+
+def plan(ctx):
+    meta = {"reason": ctx.reason(), "source": "wazuh"}
+    if ctx.alert_id:
+        meta["incident_id"] = ctx.alert_id
+    steps = [
+        ("billing", "BILLING_RESPONDER_TOKEN", "GET", "/sessions?card=%s&limit=100" % ctx.card, None, "evidence"),
+        ("billing", "BILLING_RESPONDER_TOKEN", "POST", "/cards/%s/block" % ctx.card, dict(meta), "block"),
+    ]
+    if ctx.transaction_id:
+        steps.append(("billing", "BILLING_RESPONDER_TOKEN", "POST", "/sessions/%d/flag" % ctx.transaction_id,
+                      dict(meta), "flag"))
+    return steps
+
+
+def guards(ctx, record):
+    """Returns (ok, result, reason). Order: format, allow-list, rate."""
+    if ctx.card is None:
+        return False, "refused", "invalid_card"
+    if ctx.card in read_list(ALLOWLIST):
+        return False, "refused", "allowlisted"
+    try:
+        if not rate_guard(ctx.card, record):
+            return False, "refused", "rate_guard: more than %d cards in %d min" % (RATE_LIMIT, RATE_WINDOW // 60)
+    except OSError as exc:
+        return False, "error", "rate_state_unavailable: %s" % clean(exc, 80)
+    return True, "ok", ""
+
+
+def execute(ctx, env):
+    api = Api(env, time.monotonic() + TOTAL_TIMEOUT)
+    failures = []
+    for svc, tok, method, path, body, step in plan(ctx):
+        status, parsed, err = api.call(svc, tok, method, path, body)
+        if step == "evidence":
+            log_evidence(ctx, "sessions", status, parsed if err is None else {"error": err})
+        elif err is not None:
+            failures.append("%s: %s" % (step, err))
+        elif status != 200:
+            failures.append("%s: http %d" % (step, status))
+    if failures:
+        log_action(ctx, "error", "; ".join(failures))
+    else:
+        log_action(ctx, "ok", "card blocked" + (", session flagged" if ctx.transaction_id else ""))
+
+
+def print_plan(ctx, env=None):
+    for svc, _tok, method, path, body, step in plan(ctx):
+        base = ""
+        if env is not None:
+            base = (Api(env, 0).bases(svc) or ["<%s url missing>" % svc])[0]
+        print("  %-5s %s%s%s" % (method, base or svc + ":", path, " " + json.dumps(body) if body else ""))
+
+
+def extract_alert(msg):
+    if isinstance(msg, dict) and isinstance(msg.get("parameters"), dict):
+        return msg.get("command", "add"), msg["parameters"].get("alert") or {}
+    return "add", msg if isinstance(msg, dict) else {}
+
+
+def manual(mode, path):
+    try:
+        if path:
+            with open(path, encoding="utf-8") as fh:
+                msg = json.load(fh)
+        elif mode == "--self-test":
+            msg = SAMPLE_ALERT
+        else:
+            msg = json.load(sys.stdin)
+    except (OSError, ValueError) as exc:
+        print("cannot read alert: %s" % exc, file=sys.stderr)
+        return 2
+    _cmd, alert = extract_alert(msg)
+    ctx = Ctx(alert)
+    if ctx.card is None:
+        print("%s: invalid card %r: would refuse" % (NAME, clean(ctx.raw_id)))
+        return 0 if mode == "--dry-run" else 1
+    print("%s %s: card %s rule %s alert %s" % (NAME, mode[2:], ctx.card, ctx.rule_id, ctx.alert_id))
+    if mode == "--self-test":
+        print_plan(ctx)
+        print("self-test ok (interpreter %s)" % sys.version.split()[0])
+        return 0
+    ok, result, reason = guards(ctx, record=False)
+    if not ok:
+        print("  would %s: %s" % (result, reason))
+        return 0
+    print_plan(ctx, read_kv(AR_ENV))
+    print("dry-run: nothing sent, nothing written")
+    return 0
+
+
+def main():
+    args = sys.argv[1:]
+    if args and args[0] in ("--self-test", "--dry-run"):
+        return manual(args[0], args[1] if len(args) > 1 else None)
+    if args:
+        print(__doc__, file=sys.stderr)
+        return 2
+    line = sys.stdin.readline()
+    try:
+        msg = json.loads(line)
+    except ValueError:
+        print("%s: invalid input" % NAME, file=sys.stderr)
+        return 0
+    command, alert = extract_alert(msg)
+    if command != "add":
+        return 0            # no timeout: unblock is a manual step
+    ctx = Ctx(alert)
+    try:
+        if ctx.card is None:
+            log_action(ctx, "refused", "invalid_card")
+            return 0
+        # check_keys handshake: lets execd drop a repeated alert for the same card
+        out = {"version": 1, "origin": {"name": NAME, "module": "active-response"},
+               "command": "check_keys", "parameters": {"keys": [ctx.card]}}
+        sys.stdout.write(json.dumps(out) + "\n")
+        sys.stdout.flush()
+        try:
+            reply = json.loads(sys.stdin.readline())
+        except ValueError:
+            reply = {}
+        if reply.get("command") == "abort":
+            return 0
+        ok, result, reason = guards(ctx, record=True)
+        if not ok:
+            log_action(ctx, result, reason)
+            return 0
+        env = read_kv(AR_ENV)
+        if not env:
+            log_action(ctx, "error", "ar.env missing or empty")
+            return 0
+        execute(ctx, env)
+    except Exception as exc:  # never let a bug escape as a non-zero exit
+        log_action(ctx, "error", "internal: %s" % clean(exc, 120))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -1,0 +1,774 @@
+{
+  "uid": "evcharge-map",
+  "title": "EV charging: network map",
+  "description": "Stations on a map, status by connected chargers, red ring while an alert fires, city totals.",
+  "tags": [
+    "evcharge"
+  ],
+  "timezone": "browser",
+  "editable": true,
+  "graphTooltip": 1,
+  "refresh": "10s",
+  "schemaVersion": 39,
+  "version": 1,
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": [
+      "5s",
+      "10s",
+      "30s",
+      "1m"
+    ]
+  },
+  "templating": {
+    "list": []
+  },
+  "annotations": {
+    "list": []
+  },
+  "links": [],
+  "panels": [
+    {
+      "type": "geomap",
+      "title": "Charging stations (green: all connected, orange: partly, grey: none, red ring: alert firing)",
+      "description": "One marker per station. Colour is the share of its chargers connected to the CSMS; the red ring appears while an alert fires on the station.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "central"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "((sum by (hier_id) (evcharge_csms_connected_chargers) / on (hier_id) max by (hier_id) (city:station_chargers:count)) or on (hier_id) (0 * max by (hier_id) (evcharge_registry_station_info))) * on (hier_id) group_left (city, station, lat, lon) max by (hier_id, city, station, lat, lon) (evcharge_registry_station_info)",
+          "legendFormat": "",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "table"
+        },
+        {
+          "refId": "B",
+          "expr": "sum by (hier_id) (evcharge_csms_connected_chargers)",
+          "legendFormat": "",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "table"
+        },
+        {
+          "refId": "C",
+          "expr": "max by (hier_id) (city:station_chargers:count)",
+          "legendFormat": "",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "table"
+        },
+        {
+          "refId": "D",
+          "expr": "clamp_max(max by (hier_id) (ALERTS{alertstate=\"firing\", hier_id=~\"pt\\\\.[a-z]+\\\\.st-.+\"}), 1) or on (hier_id) (0 * max by (hier_id) (evcharge_registry_station_info))",
+          "legendFormat": "",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "table"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "joinByField",
+          "options": {
+            "byField": "hier_id",
+            "mode": "outer"
+          }
+        },
+        {
+          "id": "convertFieldType",
+          "options": {
+            "conversions": [
+              {
+                "targetField": "lat",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "lon",
+                "destinationType": "number"
+              }
+            ]
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "Time 1": true,
+              "Time 2": true,
+              "Time 3": true,
+              "Time 4": true
+            },
+            "indexByName": {
+              "Element": 0,
+              "City": 1,
+              "Station": 2,
+              "Chargers connected": 3,
+              "Chargers total": 4,
+              "Share connected": 5,
+              "Alert": 6,
+              "lat": 7,
+              "lon": 8
+            },
+            "renameByName": {
+              "hier_id": "Element",
+              "city": "City",
+              "station": "Station",
+              "Value #A": "Share connected",
+              "Value #B": "Chargers connected",
+              "Value #C": "Chargers total",
+              "Value #D": "Alert"
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#8c8c8c",
+                "value": null
+              },
+              {
+                "color": "#f2a33a",
+                "value": 0.0001
+              },
+              {
+                "color": "#37a864",
+                "value": 1
+              }
+            ]
+          },
+          "decimals": 0,
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Share connected"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percentunit"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Alert"
+            },
+            "properties": [
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "rgba(0,0,0,0)",
+                      "value": null
+                    },
+                    {
+                      "color": "#e0463e",
+                      "value": 1
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "0": {
+                        "text": "none",
+                        "index": 0
+                      },
+                      "1": {
+                        "text": "firing",
+                        "color": "red",
+                        "index": 1
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "^(lat|lon)$"
+            },
+            "properties": [
+              {
+                "id": "decimals",
+                "value": 4
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "view": {
+          "id": "coords",
+          "lat": 39.95,
+          "lon": -8.0,
+          "zoom": 7.6,
+          "allLayers": true
+        },
+        "controls": {
+          "showZoom": true,
+          "mouseWheelZoom": true,
+          "showAttribution": true,
+          "showScale": true,
+          "showDebug": false
+        },
+        "basemap": {
+          "type": "osm-standard",
+          "name": "OpenStreetMap"
+        },
+        "tooltip": {
+          "mode": "details"
+        },
+        "layers": [
+          {
+            "type": "markers",
+            "name": "Alert ring",
+            "tooltip": true,
+            "location": {
+              "mode": "coords",
+              "latitude": "lat",
+              "longitude": "lon"
+            },
+            "config": {
+              "showLegend": false,
+              "style": {
+                "size": {
+                  "fixed": 24,
+                  "min": 2,
+                  "max": 15
+                },
+                "color": {
+                  "field": "Alert",
+                  "fixed": "grey"
+                },
+                "opacity": 0.5,
+                "symbol": {
+                  "mode": "fixed",
+                  "fixed": "img/icons/marker/circle.svg"
+                },
+                "textConfig": {
+                  "fontSize": 12,
+                  "offsetX": 0,
+                  "offsetY": 0,
+                  "textAlign": "center",
+                  "textBaseline": "middle"
+                }
+              }
+            }
+          },
+          {
+            "type": "markers",
+            "name": "Stations",
+            "tooltip": true,
+            "location": {
+              "mode": "coords",
+              "latitude": "lat",
+              "longitude": "lon"
+            },
+            "config": {
+              "showLegend": false,
+              "style": {
+                "size": {
+                  "fixed": 9,
+                  "min": 2,
+                  "max": 15
+                },
+                "color": {
+                  "field": "Share connected",
+                  "fixed": "grey"
+                },
+                "opacity": 0.95,
+                "symbol": {
+                  "mode": "fixed",
+                  "fixed": "img/icons/marker/circle.svg"
+                },
+                "textConfig": {
+                  "fontSize": 12,
+                  "offsetX": 0,
+                  "offsetY": 0,
+                  "textAlign": "center",
+                  "textBaseline": "middle"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "id": 1,
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 15,
+        "h": 17
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Chargers connected per city",
+      "description": "Chargers with an open OCPP connection at the CSMS.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "central"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (city) (evcharge_csms_connected_chargers)",
+          "legendFormat": "{{city}}",
+          "editorMode": "code",
+          "range": true,
+          "instant": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "textMode": "value_and_name",
+        "orientation": "auto"
+      },
+      "id": 2,
+      "gridPos": {
+        "x": 15,
+        "y": 0,
+        "w": 9,
+        "h": 5
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Power: reported by chargers vs feeder meter (kW)",
+      "description": "Reported is the sum of charger readings, grid is the station feeder meter. A persistent gap points at under-reporting meters.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "central"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "city:power_watts:sum / 1000",
+          "legendFormat": "{{city}} reported",
+          "editorMode": "code",
+          "range": true,
+          "instant": false
+        },
+        {
+          "refId": "B",
+          "expr": "city:grid_power_watts:sum / 1000",
+          "legendFormat": "{{city}} grid",
+          "editorMode": "code",
+          "range": true,
+          "instant": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "kwatt",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "textMode": "value_and_name",
+        "orientation": "auto"
+      },
+      "id": 3,
+      "gridPos": {
+        "x": 15,
+        "y": 5,
+        "w": 9,
+        "h": 7
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Sessions started in the last hour",
+      "description": "Transactions started per city over the last 60 minutes.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "central"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (city) (increase(evcharge_csms_sessions_started_total[1h]))",
+          "legendFormat": "{{city}}",
+          "editorMode": "code",
+          "range": true,
+          "instant": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "textMode": "value_and_name",
+        "orientation": "auto"
+      },
+      "id": 4,
+      "gridPos": {
+        "x": 15,
+        "y": 12,
+        "w": 9,
+        "h": 5
+      }
+    },
+    {
+      "type": "table",
+      "title": "Firing alerts",
+      "description": "Alerts currently firing on the central Prometheus. Empty means all quiet.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "central"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "ALERTS{alertstate=\"firing\"}",
+          "legendFormat": "",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "table"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "Value": true,
+              "__name__": true,
+              "alertstate": true,
+              "job": true,
+              "instance": true
+            },
+            "indexByName": {
+              "alertname": 0,
+              "severity": 1,
+              "city": 2,
+              "hier_id": 3,
+              "threat": 4
+            },
+            "renameByName": {
+              "alertname": "Alert",
+              "severity": "Severity",
+              "city": "City",
+              "hier_id": "Element",
+              "threat": "Threat"
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "filterable": true
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Severity"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "critical": {
+                        "color": "red",
+                        "index": 0
+                      },
+                      "warning": {
+                        "color": "orange",
+                        "index": 1
+                      },
+                      "info": {
+                        "color": "blue",
+                        "index": 2
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm"
+      },
+      "id": 5,
+      "gridPos": {
+        "x": 0,
+        "y": 17,
+        "w": 24,
+        "h": 7
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Grid power per city (kW) with baseline limit",
+      "description": "Feeder-meter load per city. Dashed line is the learned upper limit (mean + 3 sigma) used by CityLoadSpike.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "central"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "city:grid_power_watts:sum / 1000",
+          "legendFormat": "{{city}}",
+          "editorMode": "code",
+          "range": true,
+          "instant": false
+        },
+        {
+          "refId": "B",
+          "expr": "baseline:city_grid_power_watts:upper / 1000",
+          "legendFormat": "{{city}} upper limit",
+          "editorMode": "code",
+          "range": true,
+          "instant": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "kwatt",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": true,
+            "lineInterpolation": "linear"
+          },
+          "min": 0,
+          "decimals": 1
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*upper limit"
+            },
+            "properties": [
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "fill": "dash",
+                  "dash": [
+                    10,
+                    10
+                  ]
+                }
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "red"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "id": 6,
+      "gridPos": {
+        "x": 0,
+        "y": 24,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Chargers connected over time",
+      "description": "Per city, from the CSMS view.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "central"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (city) (evcharge_csms_connected_chargers)",
+          "legendFormat": "{{city}}",
+          "editorMode": "code",
+          "range": true,
+          "instant": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": true,
+            "lineInterpolation": "linear"
+          },
+          "min": 0,
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "id": 7,
+      "gridPos": {
+        "x": 12,
+        "y": 24,
+        "w": 12,
+        "h": 8
+      }
+    }
+  ]
+}

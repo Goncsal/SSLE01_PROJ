@@ -1,0 +1,214 @@
+# HELP evcharge_csms_connected_chargers Chargers with an open OCPP connection on this replica
+# TYPE evcharge_csms_connected_chargers gauge
+evcharge_csms_connected_chargers{city="porto",hier_id="pt.porto.st-002",station="st-002"} 2.0
+evcharge_csms_connected_chargers{city="porto",hier_id="pt.porto.st-004",station="st-004"} 2.0
+evcharge_csms_connected_chargers{city="lisboa",hier_id="pt.lisboa.st-005",station="st-005"} 2.0
+evcharge_csms_connected_chargers{city="aveiro",hier_id="pt.aveiro.st-005",station="st-005"} 2.0
+evcharge_csms_connected_chargers{city="porto",hier_id="pt.porto.st-001",station="st-001"} 2.0
+evcharge_csms_connected_chargers{city="porto",hier_id="pt.porto.st-005",station="st-005"} 2.0
+evcharge_csms_connected_chargers{city="aveiro",hier_id="pt.aveiro.st-004",station="st-004"} 2.0
+evcharge_csms_connected_chargers{city="lisboa",hier_id="pt.lisboa.st-002",station="st-002"} 2.0
+evcharge_csms_connected_chargers{city="lisboa",hier_id="pt.lisboa.st-003",station="st-003"} 2.0
+evcharge_csms_connected_chargers{city="porto",hier_id="pt.porto.st-003",station="st-003"} 2.0
+evcharge_csms_connected_chargers{city="lisboa",hier_id="pt.lisboa.st-001",station="st-001"} 2.0
+evcharge_csms_connected_chargers{city="aveiro",hier_id="pt.aveiro.st-003",station="st-003"} 2.0
+evcharge_csms_connected_chargers{city="aveiro",hier_id="pt.aveiro.st-001",station="st-001"} 2.0
+evcharge_csms_connected_chargers{city="lisboa",hier_id="pt.lisboa.st-004",station="st-004"} 2.0
+evcharge_csms_connected_chargers{city="aveiro",hier_id="pt.aveiro.st-002",station="st-002"} 2.0
+# HELP evcharge_csms_connections_total WebSocket handshakes by outcome (accepted|rejected)
+# TYPE evcharge_csms_connections_total counter
+evcharge_csms_connections_total{city="porto",result="accepted"} 11.0
+evcharge_csms_connections_total{city="lisboa",result="accepted"} 10.0
+evcharge_csms_connections_total{city="aveiro",result="accepted"} 10.0
+# HELP evcharge_csms_identity_rejections_total Handshakes refused by identity checks; reason = ident.* event suffix or duplicate_id
+# TYPE evcharge_csms_identity_rejections_total counter
+# HELP evcharge_csms_duplicate_id_total Second connection for a connected id (outcome rejected|replaced)
+# TYPE evcharge_csms_duplicate_id_total counter
+# HELP evcharge_csms_ocpp_messages_total OCPP CALL messages by action and direction (in = from charger)
+# TYPE evcharge_csms_ocpp_messages_total counter
+evcharge_csms_ocpp_messages_total{action="BootNotification",city="porto",direction="in"} 11.0
+evcharge_csms_ocpp_messages_total{action="StatusNotification",city="porto",direction="in"} 28.0
+evcharge_csms_ocpp_messages_total{action="BootNotification",city="lisboa",direction="in"} 10.0
+evcharge_csms_ocpp_messages_total{action="BootNotification",city="aveiro",direction="in"} 10.0
+evcharge_csms_ocpp_messages_total{action="StatusNotification",city="lisboa",direction="in"} 26.0
+evcharge_csms_ocpp_messages_total{action="StatusNotification",city="aveiro",direction="in"} 26.0
+evcharge_csms_ocpp_messages_total{action="Authorize",city="porto",direction="in"} 3.0
+evcharge_csms_ocpp_messages_total{action="StartTransaction",city="porto",direction="in"} 3.0
+evcharge_csms_ocpp_messages_total{action="MeterValues",city="porto",direction="in"} 589.0
+evcharge_csms_ocpp_messages_total{action="Authorize",city="aveiro",direction="in"} 3.0
+evcharge_csms_ocpp_messages_total{action="StartTransaction",city="aveiro",direction="in"} 3.0
+evcharge_csms_ocpp_messages_total{action="Heartbeat",city="porto",direction="in"} 69.0
+evcharge_csms_ocpp_messages_total{action="Heartbeat",city="aveiro",direction="in"} 70.0
+evcharge_csms_ocpp_messages_total{action="Heartbeat",city="lisboa",direction="in"} 70.0
+evcharge_csms_ocpp_messages_total{action="MeterValues",city="aveiro",direction="in"} 27.0
+evcharge_csms_ocpp_messages_total{action="Authorize",city="lisboa",direction="in"} 3.0
+evcharge_csms_ocpp_messages_total{action="StartTransaction",city="lisboa",direction="in"} 3.0
+evcharge_csms_ocpp_messages_total{action="MeterValues",city="lisboa",direction="in"} 32.0
+# HELP evcharge_csms_ocpp_errors_total OCPP errors (invalid|not_implemented|before_boot|call_error|timeout)
+# TYPE evcharge_csms_ocpp_errors_total counter
+# HELP evcharge_csms_ocpp_handle_seconds Time to handle an incoming OCPP CALL
+# TYPE evcharge_csms_ocpp_handle_seconds histogram
+evcharge_csms_ocpp_handle_seconds_bucket{action="BootNotification",le="0.001"} 0.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="BootNotification",le="0.0025"} 0.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="BootNotification",le="0.005"} 0.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="BootNotification",le="0.01"} 0.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="BootNotification",le="0.025"} 4.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="BootNotification",le="0.05"} 7.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="BootNotification",le="0.1"} 7.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="BootNotification",le="0.25"} 25.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="BootNotification",le="0.5"} 27.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="BootNotification",le="1.0"} 31.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="BootNotification",le="2.5"} 31.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="BootNotification",le="5.0"} 31.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="BootNotification",le="+Inf"} 31.0
+evcharge_csms_ocpp_handle_seconds_count{action="BootNotification"} 31.0
+evcharge_csms_ocpp_handle_seconds_sum{action="BootNotification"} 6.130463828041684
+evcharge_csms_ocpp_handle_seconds_bucket{action="StatusNotification",le="0.001"} 0.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="StatusNotification",le="0.0025"} 0.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="StatusNotification",le="0.005"} 9.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="StatusNotification",le="0.01"} 13.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="StatusNotification",le="0.025"} 37.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="StatusNotification",le="0.05"} 53.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="StatusNotification",le="0.1"} 64.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="StatusNotification",le="0.25"} 78.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="StatusNotification",le="0.5"} 79.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="StatusNotification",le="1.0"} 80.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="StatusNotification",le="2.5"} 80.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="StatusNotification",le="5.0"} 80.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="StatusNotification",le="+Inf"} 80.0
+evcharge_csms_ocpp_handle_seconds_count{action="StatusNotification"} 80.0
+evcharge_csms_ocpp_handle_seconds_sum{action="StatusNotification"} 5.017906733992277
+evcharge_csms_ocpp_handle_seconds_bucket{action="Authorize",le="0.001"} 0.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="Authorize",le="0.0025"} 1.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="Authorize",le="0.005"} 9.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="Authorize",le="0.01"} 9.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="Authorize",le="0.025"} 9.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="Authorize",le="0.05"} 9.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="Authorize",le="0.1"} 9.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="Authorize",le="0.25"} 9.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="Authorize",le="0.5"} 9.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="Authorize",le="1.0"} 9.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="Authorize",le="2.5"} 9.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="Authorize",le="5.0"} 9.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="Authorize",le="+Inf"} 9.0
+evcharge_csms_ocpp_handle_seconds_count{action="Authorize"} 9.0
+evcharge_csms_ocpp_handle_seconds_sum{action="Authorize"} 0.028072676024748944
+evcharge_csms_ocpp_handle_seconds_bucket{action="StartTransaction",le="0.001"} 0.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="StartTransaction",le="0.0025"} 0.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="StartTransaction",le="0.005"} 0.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="StartTransaction",le="0.01"} 1.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="StartTransaction",le="0.025"} 9.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="StartTransaction",le="0.05"} 9.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="StartTransaction",le="0.1"} 9.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="StartTransaction",le="0.25"} 9.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="StartTransaction",le="0.5"} 9.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="StartTransaction",le="1.0"} 9.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="StartTransaction",le="2.5"} 9.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="StartTransaction",le="5.0"} 9.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="StartTransaction",le="+Inf"} 9.0
+evcharge_csms_ocpp_handle_seconds_count{action="StartTransaction"} 9.0
+evcharge_csms_ocpp_handle_seconds_sum{action="StartTransaction"} 0.13419086101930588
+evcharge_csms_ocpp_handle_seconds_bucket{action="MeterValues",le="0.001"} 0.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="MeterValues",le="0.0025"} 2.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="MeterValues",le="0.005"} 125.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="MeterValues",le="0.01"} 129.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="MeterValues",le="0.025"} 129.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="MeterValues",le="0.05"} 129.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="MeterValues",le="0.1"} 129.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="MeterValues",le="0.25"} 129.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="MeterValues",le="0.5"} 129.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="MeterValues",le="1.0"} 129.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="MeterValues",le="2.5"} 129.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="MeterValues",le="5.0"} 129.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="MeterValues",le="+Inf"} 129.0
+evcharge_csms_ocpp_handle_seconds_count{action="MeterValues"} 129.0
+evcharge_csms_ocpp_handle_seconds_sum{action="MeterValues"} 0.39139282288670074
+evcharge_csms_ocpp_handle_seconds_bucket{action="Heartbeat",le="0.001"} 0.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="Heartbeat",le="0.0025"} 2.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="Heartbeat",le="0.005"} 117.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="Heartbeat",le="0.01"} 170.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="Heartbeat",le="0.025"} 208.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="Heartbeat",le="0.05"} 208.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="Heartbeat",le="0.1"} 208.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="Heartbeat",le="0.25"} 208.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="Heartbeat",le="0.5"} 208.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="Heartbeat",le="1.0"} 208.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="Heartbeat",le="2.5"} 208.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="Heartbeat",le="5.0"} 208.0
+evcharge_csms_ocpp_handle_seconds_bucket{action="Heartbeat",le="+Inf"} 208.0
+evcharge_csms_ocpp_handle_seconds_count{action="Heartbeat"} 208.0
+evcharge_csms_ocpp_handle_seconds_sum{action="Heartbeat"} 1.40400311598205
+# HELP evcharge_csms_rate_limited_total Messages dropped by the per-connection rate limit
+# TYPE evcharge_csms_rate_limited_total counter
+evcharge_csms_rate_limited_total{city="porto"} 520.0
+# HELP evcharge_csms_card_auth_total Card authorisations by OCPP status (Accepted|Blocked|Expired|Invalid|ConcurrentTx|Error)
+# TYPE evcharge_csms_card_auth_total counter
+evcharge_csms_card_auth_total{city="porto",result="Accepted"} 6.0
+evcharge_csms_card_auth_total{city="aveiro",result="Accepted"} 6.0
+evcharge_csms_card_auth_total{city="lisboa",result="Accepted"} 6.0
+# HELP evcharge_csms_sessions_active Open transactions on this replica
+# TYPE evcharge_csms_sessions_active gauge
+evcharge_csms_sessions_active{city="porto",hier_id="pt.porto.st-005",station="st-005"} 1.0
+evcharge_csms_sessions_active{city="aveiro",hier_id="pt.aveiro.st-003",station="st-003"} 1.0
+evcharge_csms_sessions_active{city="porto",hier_id="pt.porto.st-004",station="st-004"} 1.0
+evcharge_csms_sessions_active{city="lisboa",hier_id="pt.lisboa.st-002",station="st-002"} 1.0
+evcharge_csms_sessions_active{city="lisboa",hier_id="pt.lisboa.st-004",station="st-004"} 1.0
+evcharge_csms_sessions_active{city="lisboa",hier_id="pt.lisboa.st-005",station="st-005"} 1.0
+evcharge_csms_sessions_active{city="aveiro",hier_id="pt.aveiro.st-005",station="st-005"} 1.0
+evcharge_csms_sessions_active{city="aveiro",hier_id="pt.aveiro.st-001",station="st-001"} 1.0
+evcharge_csms_sessions_active{city="porto",hier_id="pt.porto.st-001",station="st-001"} 1.0
+# HELP evcharge_csms_sessions_started_total Transactions started
+# TYPE evcharge_csms_sessions_started_total counter
+evcharge_csms_sessions_started_total{city="porto"} 3.0
+evcharge_csms_sessions_started_total{city="aveiro"} 3.0
+evcharge_csms_sessions_started_total{city="lisboa"} 3.0
+# HELP evcharge_csms_sessions_stopped_total Transactions stopped by OCPP reason
+# TYPE evcharge_csms_sessions_stopped_total counter
+# HELP evcharge_csms_energy_wh_total Energy delivered as reported by chargers (sum of register deltas), Wh
+# TYPE evcharge_csms_energy_wh_total counter
+evcharge_csms_energy_wh_total{city="porto",hier_id="pt.porto.st-005",station="st-005"} 1228.0
+evcharge_csms_energy_wh_total{city="porto",hier_id="pt.porto.st-004",station="st-004"} 60.0
+evcharge_csms_energy_wh_total{city="aveiro",hier_id="pt.aveiro.st-003",station="st-003"} 1161.0
+evcharge_csms_energy_wh_total{city="lisboa",hier_id="pt.lisboa.st-002",station="st-002"} 316.0
+evcharge_csms_energy_wh_total{city="lisboa",hier_id="pt.lisboa.st-004",station="st-004"} 287.0
+evcharge_csms_energy_wh_total{city="lisboa",hier_id="pt.lisboa.st-005",station="st-005"} 119.0
+evcharge_csms_energy_wh_total{city="aveiro",hier_id="pt.aveiro.st-005",station="st-005"} 517.0
+evcharge_csms_energy_wh_total{city="aveiro",hier_id="pt.aveiro.st-001",station="st-001"} 60.0
+evcharge_csms_energy_wh_total{city="porto",hier_id="pt.porto.st-001",station="st-001"} 116.0
+# HELP evcharge_csms_power_watts Sum of the last reported Power.Active.Import of open transactions, W
+# TYPE evcharge_csms_power_watts gauge
+evcharge_csms_power_watts{city="porto",hier_id="pt.porto.st-005",station="st-005"} 22268.0
+evcharge_csms_power_watts{city="aveiro",hier_id="pt.aveiro.st-003",station="st-003"} 20109.0
+evcharge_csms_power_watts{city="porto",hier_id="pt.porto.st-004",station="st-004"} 7252.0
+evcharge_csms_power_watts{city="lisboa",hier_id="pt.lisboa.st-002",station="st-002"} 6969.0
+evcharge_csms_power_watts{city="lisboa",hier_id="pt.lisboa.st-004",station="st-004"} 11161.0
+evcharge_csms_power_watts{city="lisboa",hier_id="pt.lisboa.st-005",station="st-005"} 7324.0
+evcharge_csms_power_watts{city="aveiro",hier_id="pt.aveiro.st-005",station="st-005"} 45172.0
+evcharge_csms_power_watts{city="aveiro",hier_id="pt.aveiro.st-001",station="st-001"} 7255.0
+evcharge_csms_power_watts{city="porto",hier_id="pt.porto.st-001",station="st-001"} 20987.0
+# HELP evcharge_csms_meter_anomalies_total meter.anomaly events by reason
+# TYPE evcharge_csms_meter_anomalies_total counter
+# HELP evcharge_csms_commands_total Commands to chargers by command and result
+# TYPE evcharge_csms_commands_total counter
+# HELP evcharge_csms_dependency_errors_total Failed calls to registry|billing|fraud|database
+# TYPE evcharge_csms_dependency_errors_total counter
+# HELP evcharge_csms_dependency_seconds Latency of calls to registry|billing|fraud
+# TYPE evcharge_csms_dependency_seconds histogram
+evcharge_csms_dependency_seconds_bucket{dependency="registry",le="0.001"} 0.0
+evcharge_csms_dependency_seconds_bucket{dependency="registry",le="0.0025"} 0.0
+evcharge_csms_dependency_seconds_bucket{dependency="registry",le="0.005"} 0.0
+evcharge_csms_dependency_seconds_bucket{dependency="registry",le="0.01"} 0.0
+evcharge_csms_dependency_seconds_bucket{dependency="registry",le="0.025"} 3.0
+evcharge_csms_dependency_seconds_bucket{dependency="registry",le="0.05"} 5.0
+evcharge_csms_dependency_seconds_bucket{dependency="registry",le="0.1"} 19.0
+evcharge_csms_dependency_seconds_bucket{dependency="registry",le="0.25"} 57.0
+evcharge_csms_dependency_seconds_bucket{dependency="registry",le="0.5"} 59.0
+evcharge_csms_dependency_seconds_bucket{dependency="registry",le="1.0"} 59.0
+evcharge_csms_dependency_seconds_bucket{dependency="registry",le="2.5"} 59.0
+evcharge_csms_dependency_seconds_bucket{dependency="registry",le="5.0"} 59.0
+evcharge_csms_dependency_seconds_bucket{dependency="registry",le="+Inf"} 59.0
+evcharge_csms_dependency_seconds_count{dependency="registry"} 59.0
+evcharge_csms_dependency_seconds_sum{dependency="registry"} 7.191097528979299
+# HELP evcharge_csms_events_dropped_total Fraud events dropped because the outbound queue was full
+# TYPE evcharge_csms_events_dropped_total counter
+evcharge_csms_events_dropped_total 0.0

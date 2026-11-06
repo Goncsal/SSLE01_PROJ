@@ -1,0 +1,80 @@
+{"ts":"2026-11-06T10:00:00.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"ocpp.rate_limited","msg":"ocpp rate_limited","hier_id":"pt.porto.st-003.cp-1","srcip":"198.51.100.10","msg_rate":80.0,"dropped":12,"city":"porto"}
+{"ts":"2026-11-06T10:00:01.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"conn.kicked","msg":"conn kicked","hier_id":"pt.porto.st-003.cp-1","srcip":"198.51.100.10","reason":"command","city":"porto"}
+{"_session":"reset"}
+{"ts":"2026-11-06T10:00:03.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"conn.kicked","msg":"conn kicked","hier_id":"pt.porto.st-003.cp-1","srcip":"198.51.100.10","reason":"rate_limit","city":"porto"}
+{"ts":"2026-11-06T10:00:04.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"conn.kicked","msg":"conn kicked","hier_id":"pt.porto.st-003.cp-1","srcip":"198.51.100.10","reason":"quarantine","city":"porto"}
+{"_session":"reset"}
+{"ts":"2026-11-06T10:00:06.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"ocpp.rate_limited","msg":"ocpp rate_limited","hier_id":"pt.porto.st-001.cp-1","srcip":"198.51.100.1","msg_rate":80.0,"dropped":12,"city":"porto"}
+{"ts":"2026-11-06T10:00:07.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"ocpp.rate_limited","msg":"ocpp rate_limited","hier_id":"pt.porto.st-002.cp-1","srcip":"198.51.100.2","msg_rate":80.0,"dropped":12,"city":"porto"}
+{"ts":"2026-11-06T10:00:08.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"ocpp.rate_limited","msg":"ocpp rate_limited","hier_id":"pt.porto.st-003.cp-1","srcip":"198.51.100.3","msg_rate":80.0,"dropped":12,"city":"porto"}
+{"_session":"reset"}
+{"ts":"2026-11-06T10:00:10.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"ocpp.rate_limited","msg":"ocpp rate_limited","hier_id":"pt.porto.st-003.cp-1","srcip":"198.51.100.10","msg_rate":80.0,"dropped":12,"city":"porto"}
+{"ts":"2026-11-06T10:00:11.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"ocpp.rate_limited","msg":"ocpp rate_limited","hier_id":"pt.porto.st-003.cp-1","srcip":"198.51.100.10","msg_rate":80.0,"dropped":12,"city":"porto"}
+{"ts":"2026-11-06T10:00:12.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"ocpp.rate_limited","msg":"ocpp rate_limited","hier_id":"pt.porto.st-003.cp-1","srcip":"198.51.100.10","msg_rate":80.0,"dropped":12,"city":"porto"}
+{"_session":"reset"}
+{"ts":"2026-11-06T10:00:14.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"ocpp.rate_limited","msg":"ocpp rate_limited","hier_id":"pt.porto.st-001.cp-1","srcip":"198.51.100.1","msg_rate":80.0,"dropped":12,"city":"porto"}
+{"ts":"2026-11-06T10:00:15.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"ocpp.rate_limited","msg":"ocpp rate_limited","hier_id":"pt.lisboa.st-001.cp-1","srcip":"198.51.100.2","msg_rate":80.0,"dropped":12,"city":"lisboa"}
+{"ts":"2026-11-06T10:00:16.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"ocpp.rate_limited","msg":"ocpp rate_limited","hier_id":"pt.aveiro.st-001.cp-1","srcip":"198.51.100.3","msg_rate":80.0,"dropped":12,"city":"aveiro"}
+{"_session":"reset"}
+{"ts":"2026-11-06T10:00:18.000Z","level":"warning","service":"netwatch","instance":"netwatch","event":"host.new_outbound","msg":"host new_outbound","process":"python3","dstip":"203.0.113.50","dstport":4444,"hier_id":"pt.porto.st-001"}
+{"ts":"2026-11-06T10:00:19.000Z","level":"warning","service":"netwatch","instance":"netwatch","event":"host.new_outbound","msg":"host new_outbound","process":"apt","dstip":"203.0.113.50","dstport":443,"hier_id":"pt.porto.st-001"}
+{"_session":"reset"}
+{"ts":"2026-11-06T10:00:21.000Z","level":"warning","service":"netwatch","instance":"netwatch","event":"host.new_outbound","msg":"host new_outbound","process":"python3","dstip":"203.0.113.50","dstport":4444,"hier_id":"pt.porto.st-001"}
+{"ts":"2026-11-06T10:00:22.000Z","level":"warning","service":"netwatch","instance":"netwatch","event":"host.new_outbound","msg":"host new_outbound","process":"python3","dstip":"203.0.113.50","dstport":4444,"hier_id":"pt.porto.st-002"}
+{"ts":"2026-11-06T10:00:23.000Z","level":"warning","service":"netwatch","instance":"netwatch","event":"host.new_outbound","msg":"host new_outbound","process":"python3","dstip":"203.0.113.50","dstport":4444,"hier_id":"pt.porto.st-003"}
+{"_session":"reset"}
+{"ts":"2026-11-06T10:00:25.000Z","level":"warning","service":"netwatch","instance":"netwatch","event":"host.new_outbound","msg":"host new_outbound","process":"python3","dstip":"203.0.113.51","dstport":4444,"hier_id":"pt.porto.st-001"}
+{"ts":"2026-11-06T10:00:26.000Z","level":"warning","service":"netwatch","instance":"netwatch","event":"host.new_outbound","msg":"host new_outbound","process":"python3","dstip":"203.0.113.52","dstport":4444,"hier_id":"pt.porto.st-001"}
+{"ts":"2026-11-06T10:00:27.000Z","level":"warning","service":"netwatch","instance":"netwatch","event":"host.new_outbound","msg":"host new_outbound","process":"python3","dstip":"203.0.113.53","dstport":4444,"hier_id":"pt.porto.st-001"}
+{"_session":"reset"}
+ossec: output: 'station-sockets': ESTAB 0 0 10.31.0.16:41000 10.31.0.2:443 users:(("python3",pid=210,fd=5))
+ossec: output: 'station-sockets': ESTAB 0 0 10.31.0.16:41000 10.31.0.2:443 users:(("python3",pid=210,fd=5)) | ESTAB 0 0 10.31.0.16:41022 203.0.113.50:4444 users:(("nc",pid=300,fd=3))
+ossec: output: 'station-sockets': ESTAB 0 0 10.31.0.16:41000 10.31.0.2:443 users:(("python3",pid=210,fd=5)) | ESTAB 0 0 10.31.0.16:41022 203.0.113.50:4444 users:(("nc",pid=300,fd=3))
+{"_session":"reset"}
+2026/11/06 10:02:41 [error] 812#812: *4410 limiting requests, excess: 5.540 by zone "evc_req", client: 198.51.100.10, server: _, request: "GET /ocpp/pt.porto.st-001.cp-1 HTTP/1.1", host: "edge"
+2026/11/06 10:02:41 [error] 812#812: *4411 limiting connections by zone "evc_conn", client: 198.51.100.10, server: _, request: "GET /ocpp/pt.porto.st-001.cp-1 HTTP/1.1", host: "edge"
+2026/11/06 10:02:41 [error] 812#812: *4412 open() "/usr/share/nginx/html/x" failed (2: No such file or directory), client: 198.51.100.10, server: _, request: "GET /x HTTP/1.1", host: "edge"
+{"_session":"reset"}
+2026/11/06 10:02:41 [error] 812#812: *4401 limiting requests, excess: 5.540 by zone "evc_req", client: 198.51.100.10, server: _, request: "GET /ocpp/pt.porto.st-001.cp-1 HTTP/1.1", host: "edge"
+2026/11/06 10:02:41 [error] 812#812: *4402 limiting requests, excess: 5.540 by zone "evc_req", client: 198.51.100.10, server: _, request: "GET /ocpp/pt.porto.st-001.cp-1 HTTP/1.1", host: "edge"
+2026/11/06 10:02:41 [error] 812#812: *4403 limiting requests, excess: 5.540 by zone "evc_req", client: 198.51.100.10, server: _, request: "GET /ocpp/pt.porto.st-001.cp-1 HTTP/1.1", host: "edge"
+2026/11/06 10:02:41 [error] 812#812: *4404 limiting requests, excess: 5.540 by zone "evc_req", client: 198.51.100.10, server: _, request: "GET /ocpp/pt.porto.st-001.cp-1 HTTP/1.1", host: "edge"
+2026/11/06 10:02:41 [error] 812#812: *4405 limiting requests, excess: 5.540 by zone "evc_req", client: 198.51.100.10, server: _, request: "GET /ocpp/pt.porto.st-001.cp-1 HTTP/1.1", host: "edge"
+2026/11/06 10:02:41 [error] 812#812: *4406 limiting requests, excess: 5.540 by zone "evc_req", client: 198.51.100.10, server: _, request: "GET /ocpp/pt.porto.st-001.cp-1 HTTP/1.1", host: "edge"
+2026/11/06 10:02:41 [error] 812#812: *4407 limiting requests, excess: 5.540 by zone "evc_req", client: 198.51.100.10, server: _, request: "GET /ocpp/pt.porto.st-001.cp-1 HTTP/1.1", host: "edge"
+2026/11/06 10:02:41 [error] 812#812: *4408 limiting requests, excess: 5.540 by zone "evc_req", client: 198.51.100.10, server: _, request: "GET /ocpp/pt.porto.st-001.cp-1 HTTP/1.1", host: "edge"
+2026/11/06 10:02:41 [error] 812#812: *4409 limiting requests, excess: 5.540 by zone "evc_req", client: 198.51.100.10, server: _, request: "GET /ocpp/pt.porto.st-001.cp-1 HTTP/1.1", host: "edge"
+2026/11/06 10:02:41 [error] 812#812: *4410 limiting requests, excess: 5.540 by zone "evc_req", client: 198.51.100.10, server: _, request: "GET /ocpp/pt.porto.st-001.cp-1 HTTP/1.1", host: "edge"
+{"_session":"reset"}
+2026/11/06 10:02:41 [error] 812#812: *4401 limiting requests, excess: 5.540 by zone "evc_req", client: 198.51.100.61, server: _, request: "GET /ocpp/pt.porto.st-001.cp-1 HTTP/1.1", host: "edge"
+2026/11/06 10:02:41 [error] 812#812: *4402 limiting requests, excess: 5.540 by zone "evc_req", client: 198.51.100.62, server: _, request: "GET /ocpp/pt.porto.st-001.cp-1 HTTP/1.1", host: "edge"
+2026/11/06 10:02:41 [error] 812#812: *4403 limiting requests, excess: 5.540 by zone "evc_req", client: 198.51.100.63, server: _, request: "GET /ocpp/pt.porto.st-001.cp-1 HTTP/1.1", host: "edge"
+2026/11/06 10:02:41 [error] 812#812: *4404 limiting requests, excess: 5.540 by zone "evc_req", client: 198.51.100.64, server: _, request: "GET /ocpp/pt.porto.st-001.cp-1 HTTP/1.1", host: "edge"
+2026/11/06 10:02:41 [error] 812#812: *4405 limiting requests, excess: 5.540 by zone "evc_req", client: 198.51.100.65, server: _, request: "GET /ocpp/pt.porto.st-001.cp-1 HTTP/1.1", host: "edge"
+2026/11/06 10:02:41 [error] 812#812: *4406 limiting requests, excess: 5.540 by zone "evc_req", client: 198.51.100.66, server: _, request: "GET /ocpp/pt.porto.st-001.cp-1 HTTP/1.1", host: "edge"
+2026/11/06 10:02:41 [error] 812#812: *4407 limiting requests, excess: 5.540 by zone "evc_req", client: 198.51.100.67, server: _, request: "GET /ocpp/pt.porto.st-001.cp-1 HTTP/1.1", host: "edge"
+2026/11/06 10:02:41 [error] 812#812: *4408 limiting requests, excess: 5.540 by zone "evc_req", client: 198.51.100.68, server: _, request: "GET /ocpp/pt.porto.st-001.cp-1 HTTP/1.1", host: "edge"
+2026/11/06 10:02:41 [error] 812#812: *4409 limiting requests, excess: 5.540 by zone "evc_req", client: 198.51.100.69, server: _, request: "GET /ocpp/pt.porto.st-001.cp-1 HTTP/1.1", host: "edge"
+2026/11/06 10:02:41 [error] 812#812: *4410 limiting requests, excess: 5.540 by zone "evc_req", client: 198.51.100.70, server: _, request: "GET /ocpp/pt.porto.st-001.cp-1 HTTP/1.1", host: "edge"
+{"_session":"reset"}
+{"ts":"2026-11-06T10:00:59.000Z","level":"info","service":"csms","instance":"csms-7d9f5-abcde","event":"session.start","msg":"session start","hier_id":"pt.porto.st-001.cp-1","card":"04A000000001","city":"porto","transaction_id":1}
+{"ts":"2026-11-06T10:01:00.000Z","level":"info","service":"csms","instance":"csms-7d9f5-abcde","event":"session.start","msg":"session start","hier_id":"pt.porto.st-002.cp-1","card":"04A000000002","city":"porto","transaction_id":2}
+{"ts":"2026-11-06T10:01:01.000Z","level":"info","service":"csms","instance":"csms-7d9f5-abcde","event":"session.start","msg":"session start","hier_id":"pt.porto.st-003.cp-1","card":"04A000000003","city":"porto","transaction_id":3}
+{"ts":"2026-11-06T10:01:02.000Z","level":"info","service":"csms","instance":"csms-7d9f5-abcde","event":"session.start","msg":"session start","hier_id":"pt.porto.st-004.cp-1","card":"04A000000004","city":"porto","transaction_id":4}
+{"ts":"2026-11-06T10:01:03.000Z","level":"info","service":"csms","instance":"csms-7d9f5-abcde","event":"session.start","msg":"session start","hier_id":"pt.porto.st-005.cp-1","card":"04A000000005","city":"porto","transaction_id":5}
+{"ts":"2026-11-06T10:01:04.000Z","level":"info","service":"csms","instance":"csms-7d9f5-abcde","event":"session.start","msg":"session start","hier_id":"pt.porto.st-006.cp-1","card":"04A000000006","city":"porto","transaction_id":6}
+{"ts":"2026-11-06T10:01:05.000Z","level":"info","service":"csms","instance":"csms-7d9f5-abcde","event":"session.start","msg":"session start","hier_id":"pt.porto.st-007.cp-1","card":"04A000000007","city":"porto","transaction_id":7}
+{"ts":"2026-11-06T10:01:06.000Z","level":"info","service":"csms","instance":"csms-7d9f5-abcde","event":"session.start","msg":"session start","hier_id":"pt.porto.st-008.cp-1","card":"04A000000008","city":"porto","transaction_id":8}
+{"ts":"2026-11-06T10:01:07.000Z","level":"info","service":"csms","instance":"csms-7d9f5-abcde","event":"session.start","msg":"session start","hier_id":"pt.porto.st-009.cp-1","card":"04A000000009","city":"porto","transaction_id":9}
+{"ts":"2026-11-06T10:01:08.000Z","level":"info","service":"csms","instance":"csms-7d9f5-abcde","event":"session.start","msg":"session start","hier_id":"pt.porto.st-010.cp-1","card":"04A000000010","city":"porto","transaction_id":10}
+{"_session":"reset"}
+{"ts":"2026-11-06T10:01:10.000Z","level":"info","service":"csms","instance":"csms-7d9f5-abcde","event":"session.start","msg":"session start","hier_id":"pt.lisboa.st-001.cp-1","card":"04A000000001","city":"lisboa","transaction_id":1}
+{"ts":"2026-11-06T10:01:11.000Z","level":"info","service":"csms","instance":"csms-7d9f5-abcde","event":"session.start","msg":"session start","hier_id":"pt.aveiro.st-001.cp-1","card":"04A000000002","city":"aveiro","transaction_id":2}
+{"ts":"2026-11-06T10:01:12.000Z","level":"info","service":"csms","instance":"csms-7d9f5-abcde","event":"session.start","msg":"session start","hier_id":"pt.porto.st-001.cp-1","card":"04A000000003","city":"porto","transaction_id":3}
+{"ts":"2026-11-06T10:01:13.000Z","level":"info","service":"csms","instance":"csms-7d9f5-abcde","event":"session.start","msg":"session start","hier_id":"pt.lisboa.st-001.cp-1","card":"04A000000004","city":"lisboa","transaction_id":4}
+{"ts":"2026-11-06T10:01:14.000Z","level":"info","service":"csms","instance":"csms-7d9f5-abcde","event":"session.start","msg":"session start","hier_id":"pt.aveiro.st-001.cp-1","card":"04A000000005","city":"aveiro","transaction_id":5}
+{"ts":"2026-11-06T10:01:15.000Z","level":"info","service":"csms","instance":"csms-7d9f5-abcde","event":"session.start","msg":"session start","hier_id":"pt.porto.st-001.cp-1","card":"04A000000006","city":"porto","transaction_id":6}
+{"ts":"2026-11-06T10:01:16.000Z","level":"info","service":"csms","instance":"csms-7d9f5-abcde","event":"session.start","msg":"session start","hier_id":"pt.lisboa.st-001.cp-1","card":"04A000000007","city":"lisboa","transaction_id":7}
+{"ts":"2026-11-06T10:01:17.000Z","level":"info","service":"csms","instance":"csms-7d9f5-abcde","event":"session.start","msg":"session start","hier_id":"pt.aveiro.st-001.cp-1","card":"04A000000008","city":"aveiro","transaction_id":8}
+{"ts":"2026-11-06T10:01:18.000Z","level":"info","service":"csms","instance":"csms-7d9f5-abcde","event":"session.start","msg":"session start","hier_id":"pt.porto.st-001.cp-1","card":"04A000000009","city":"porto","transaction_id":9}
+{"ts":"2026-11-06T10:01:19.000Z","level":"info","service":"csms","instance":"csms-7d9f5-abcde","event":"session.start","msg":"session start","hier_id":"pt.lisboa.st-001.cp-1","card":"04A000000010","city":"lisboa","transaction_id":10}

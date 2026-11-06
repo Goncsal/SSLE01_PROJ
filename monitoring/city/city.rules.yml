@@ -1,0 +1,43 @@
+# City recording rules (contract 7.3). STATION(e) is written out in full in each rule.
+# Two expressions carry an added group_left () so the result keeps its labels (city, station,
+# hier_id; city); without it `on (...)` leaves only the on() labels. See README.
+groups:
+  - name: city
+    interval: 5s
+    rules:
+      - record: city:chargers_connected:sum
+        expr: 'sum by (city) (evcharge_sim_charger_connected)'
+      - record: city:station_chargers:count
+        expr: 'label_replace(label_join(count by (city, station) (evcharge_sim_charger_connected), "hier_id", ".", "city", "station"), "hier_id", "pt.$1", "hier_id", "(.+)")'
+      - record: city:station_chargers_connected:sum
+        expr: 'label_replace(label_join(sum by (city, station) (evcharge_sim_charger_connected), "hier_id", ".", "city", "station"), "hier_id", "pt.$1", "hier_id", "(.+)")'
+      - record: city:station_chargers_charging:sum
+        expr: 'label_replace(label_join(sum by (city, station) (evcharge_sim_charger_status == bool 2), "hier_id", ".", "city", "station"), "hier_id", "pt.$1", "hier_id", "(.+)")'
+      - record: city:station_chargers_faulted:sum
+        expr: 'label_replace(label_join(sum by (city, station) (evcharge_sim_charger_status == bool 8), "hier_id", ".", "city", "station"), "hier_id", "pt.$1", "hier_id", "(.+)")'
+      - record: city:power_watts:sum
+        expr: 'sum by (city) (evcharge_sim_power_watts)'
+      - record: city:grid_power_watts:sum
+        expr: 'sum by (city) (evcharge_sim_station_grid_power_watts)'
+      - record: city:station_power_watts:sum
+        expr: 'label_replace(label_join(sum by (city, station) (evcharge_sim_power_watts), "hier_id", ".", "city", "station"), "hier_id", "pt.$1", "hier_id", "(.+)")'
+      - record: city:station_grid_power_watts:sum
+        expr: 'sum by (city, station, hier_id) (evcharge_sim_station_grid_power_watts)'
+      - record: city:station_power_gap_watts
+        expr: 'city:station_grid_power_watts:sum - on (hier_id) group_left () city:station_power_watts:sum'
+      - record: city:ocpp_messages_sent:rate1m
+        expr: 'sum by (city) (rate(evcharge_sim_ocpp_messages_sent_total[1m]))'
+      - record: city:station_ocpp_messages_sent:rate1m
+        expr: 'label_replace(label_join(sum by (city, station) (rate(evcharge_sim_ocpp_messages_sent_total[1m])), "hier_id", ".", "city", "station"), "hier_id", "pt.$1", "hier_id", "(.+)")'
+      - record: city:charger_msg_rate:max1m
+        expr: 'max by (city) (sum by (city, hier_id) (rate(evcharge_sim_ocpp_messages_sent_total[1m])))'
+      - record: city:reconnects:rate5m
+        expr: 'sum by (city) (rate(evcharge_sim_reconnects_total[5m]))'
+      - record: city:station_up:min
+        expr: 'min by (city, station, hier_id) (up{job="stations"})'
+      - record: city:edge_up:min
+        expr: 'min by (city) ((up{job="edge-nginx"} * on (instance) group_left () nginx_up) or up{job="edge-nginx"})'
+      - record: city:edge_ws_connections:sum
+        expr: 'sum by (city) (nginx_connections_active)'
+      - record: city:edge_requests:rate1m
+        expr: 'sum by (city) (rate(nginx_http_requests_total[1m]))'

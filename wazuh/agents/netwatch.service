@@ -1,0 +1,13 @@
+[Unit]
+Description=Station outbound connection watcher @STATION@
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /opt/evcharge/netwatch.py --hier-id @STATION@
+Nice=10
+NoNewPrivileges=yes
+ProtectSystem=strict
+ReadWritePaths=/var/log/evcharge /var/lib/evcharge-netwatch
+StateDirectory=evcharge-netwatch
+PrivateTmp=yes

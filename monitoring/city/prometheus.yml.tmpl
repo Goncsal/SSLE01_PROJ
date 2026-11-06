@@ -1,0 +1,39 @@
+# City Prometheus (contract 14.1). Rendered by deploy_city_prom.sh: @CITY@, @REGISTRY@.
+global:
+  scrape_interval: 5s
+  scrape_timeout: 4s
+  evaluation_interval: 5s
+  external_labels:
+    site: pt.@CITY@
+
+rule_files:
+  - city.rules.yml
+
+scrape_configs:
+  # stations come from the registry (HTTP service discovery); the sim's own labels win
+  - job_name: stations
+    honor_labels: true
+    http_sd_configs:
+      - url: http://@REGISTRY@/sd/prometheus?city=@CITY@&kind=station
+        refresh_interval: 60s
+
+  - job_name: edge-nginx
+    static_configs:
+      - targets: ["127.0.0.1:9113"]
+        labels:
+          city: "@CITY@"
+          hier_id: "pt.@CITY@.edge"
+
+  - job_name: edge-node
+    static_configs:
+      - targets: ["127.0.0.1:9100"]
+        labels:
+          city: "@CITY@"
+          hier_id: "pt.@CITY@.edge"
+
+  - job_name: prometheus
+    static_configs:
+      - targets: ["127.0.0.1:9090"]
+        labels:
+          city: "@CITY@"
+          hier_id: "pt.@CITY@.edge"

@@ -1,0 +1,136 @@
+#!/var/ossec/framework/python/bin/python3
+"""custom-correlator: forward Wazuh alerts to the correlator (Wazuh integration).
+
+Called by wazuh-integratord as:  custom-correlator <alert_file> <api_key> <hook_url>
+Only alerts of level 7 or more in group evcharge reach it (see the <integration> block).
+Each alert is POSTed unchanged as JSON to the correlator's /signals/wazuh with the bearer
+CORRELATOR_API_TOKEN, 2 s timeout. Target and token come from
+/var/ossec/etc/evcharge/ar.env:
+
+    CORRELATOR_URL=http://k3s-master.incus:30804/signals/wazuh   (optional; else hook_url)
+    CORRELATOR_API_TOKEN=...                                     (never printed or logged)
+
+If the correlator does not answer, the alert is appended to
+/var/ossec/logs/evcharge-correlator-outbox.json (capped at 10 MB). Replay what is waiting
+there, oldest first, with:  custom-correlator --replay
+
+Runs on the manager's framework interpreter: standard library only.
+"""
+import json
+import os
+import sys
+import urllib.error
+import urllib.request
+
+ETC = os.environ.get("EVCHARGE_AR_ETC", "/var/ossec/etc/evcharge")
+OUTBOX = os.environ.get(
+    "EVCHARGE_OUTBOX", "/var/ossec/logs/evcharge-correlator-outbox.json")
+DEFAULT_URL = "http://k3s-master.incus:30804/signals/wazuh"
+OUTBOX_MAX = 10 * 1024 * 1024
+TIMEOUT = 2
+
+
+def read_env():
+    """The KEY=value lines of ar.env (quotes stripped); empty if unreadable."""
+    values = {}
+    try:
+        with open(os.path.join(ETC, "ar.env")) as fh:
+            for line in fh:
+                line = line.strip()
+                if line and not line.startswith("#") and "=" in line:
+                    key, _, value = line.partition("=")
+                    values[key.strip()] = value.strip().strip("'\"")
+    except OSError:
+        pass
+    return values
+
+
+def target_url(hook_url, env):
+    """ar.env wins, then the <hook_url> of the integration block, then the default."""
+    if env.get("CORRELATOR_URL", "").startswith("http"):
+        return env["CORRELATOR_URL"]
+    if hook_url and hook_url.startswith("http"):
+        return hook_url
+    return DEFAULT_URL
+
+
+def build_request(url, alert, token):
+    """The HTTP request for one alert: JSON body unchanged, bearer token when there is one."""
+    headers = {"Content-Type": "application/json"}
+    if token:
+        headers["Authorization"] = "Bearer " + token
+    body = json.dumps(alert, separators=(",", ":")).encode()
+    return urllib.request.Request(url, data=body, headers=headers, method="POST")
+
+
+def post(url, alert, token):
+    with urllib.request.urlopen(build_request(url, alert, token), timeout=TIMEOUT) as resp:
+        return resp.status
+
+
+def to_outbox(alert):
+    try:
+        if os.path.exists(OUTBOX) and os.path.getsize(OUTBOX) >= OUTBOX_MAX:
+            return
+        with open(OUTBOX, "a") as fh:
+            fh.write(json.dumps(alert, separators=(",", ":")) + "\n")
+    except OSError:
+        pass
+
+
+def forward(alerts, url, token):
+    """Post each alert; the ones that fail go to the outbox. Returns the number sent."""
+    sent = 0
+    for alert in alerts:
+        try:
+            post(url, alert, token)
+            sent += 1
+        except (urllib.error.URLError, OSError, ValueError):
+            to_outbox(alert)
+    return sent
+
+
+def replay(url, token):
+    """Send the outbox oldest first; keep what still fails. Stops at the first failure."""
+    try:
+        with open(OUTBOX) as fh:
+            lines = [x for x in fh.read().splitlines() if x.strip()]
+    except OSError:
+        return 0
+    sent = 0
+    for line in lines:
+        try:
+            post(url, json.loads(line), token)
+        except (urllib.error.URLError, OSError, ValueError):
+            break
+        sent += 1
+    try:
+        with open(OUTBOX, "w") as fh:
+            fh.write("".join(x + "\n" for x in lines[sent:]))
+    except OSError:
+        pass
+    return sent
+
+
+def main(argv):
+    if len(argv) < 2:
+        print("usage: custom-correlator <alert_file> [api_key] [hook_url] | --replay", file=sys.stderr)
+        return 1
+    env = read_env()
+    token = env.get("CORRELATOR_API_TOKEN", "")
+    if argv[1] == "--replay":
+        print("replayed %d" % replay(target_url(None, env), token))
+        return 0
+    url = target_url(argv[3] if len(argv) > 3 else None, env)
+    try:
+        with open(argv[1]) as fh:
+            alerts = [json.loads(line) for line in fh if line.strip()]
+    except (OSError, ValueError) as exc:
+        print("cannot read alert: %s" % exc, file=sys.stderr)
+        return 1
+    forward(alerts, url, token)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv))

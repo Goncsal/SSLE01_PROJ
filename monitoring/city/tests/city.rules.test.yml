@@ -1,0 +1,202 @@
+# promtool test rules: one city (porto), 2 stations x 2 chargers.
+# Run on an edge after deployment: the rules are read from the installed file.
+rule_files:
+  - /etc/prometheus/city.rules.yml
+
+evaluation_interval: 5s
+
+tests:
+  - name: station rules from charger series
+    interval: 5s
+    input_series:
+      - series: 'evcharge_sim_charger_connected{city="porto",station="st-001",charger="cp-1",hier_id="pt.porto.st-001.cp-1"}'
+        values: '1x24'
+      - series: 'evcharge_sim_charger_connected{city="porto",station="st-001",charger="cp-2",hier_id="pt.porto.st-001.cp-2"}'
+        values: '1x24'
+      - series: 'evcharge_sim_charger_connected{city="porto",station="st-002",charger="cp-1",hier_id="pt.porto.st-002.cp-1"}'
+        values: '1x24'
+      - series: 'evcharge_sim_charger_connected{city="porto",station="st-002",charger="cp-2",hier_id="pt.porto.st-002.cp-2"}'
+        values: '0x24'
+      - series: 'evcharge_sim_charger_status{city="porto",station="st-001",charger="cp-1",hier_id="pt.porto.st-001.cp-1"}'
+        values: '2x24'
+      - series: 'evcharge_sim_charger_status{city="porto",station="st-001",charger="cp-2",hier_id="pt.porto.st-001.cp-2"}'
+        values: '2x24'
+      - series: 'evcharge_sim_charger_status{city="porto",station="st-002",charger="cp-1",hier_id="pt.porto.st-002.cp-1"}'
+        values: '8x24'
+      - series: 'evcharge_sim_charger_status{city="porto",station="st-002",charger="cp-2",hier_id="pt.porto.st-002.cp-2"}'
+        values: '0x24'
+      - series: 'evcharge_sim_power_watts{city="porto",station="st-001",charger="cp-1",hier_id="pt.porto.st-001.cp-1"}'
+        values: '7000x24'
+      - series: 'evcharge_sim_power_watts{city="porto",station="st-001",charger="cp-2",hier_id="pt.porto.st-001.cp-2"}'
+        values: '3000x24'
+      - series: 'evcharge_sim_power_watts{city="porto",station="st-002",charger="cp-1",hier_id="pt.porto.st-002.cp-1"}'
+        values: '0x24'
+      - series: 'evcharge_sim_power_watts{city="porto",station="st-002",charger="cp-2",hier_id="pt.porto.st-002.cp-2"}'
+        values: '0x24'
+      - series: 'evcharge_sim_station_grid_power_watts{city="porto",station="st-001",hier_id="pt.porto.st-001"}'
+        values: '11500x24'
+      - series: 'evcharge_sim_station_grid_power_watts{city="porto",station="st-002",hier_id="pt.porto.st-002"}'
+        values: '100x24'
+    promql_expr_test:
+      - expr: 'city:station_chargers:count'
+        eval_time: 30s
+        exp_samples:
+          - labels: 'city:station_chargers:count{city="porto",station="st-001",hier_id="pt.porto.st-001"}'
+            value: 2
+          - labels: 'city:station_chargers:count{city="porto",station="st-002",hier_id="pt.porto.st-002"}'
+            value: 2
+      - expr: 'city:station_chargers_connected:sum'
+        eval_time: 30s
+        exp_samples:
+          - labels: 'city:station_chargers_connected:sum{city="porto",station="st-001",hier_id="pt.porto.st-001"}'
+            value: 2
+          - labels: 'city:station_chargers_connected:sum{city="porto",station="st-002",hier_id="pt.porto.st-002"}'
+            value: 1
+      - expr: 'city:chargers_connected:sum'
+        eval_time: 30s
+        exp_samples:
+          - labels: 'city:chargers_connected:sum{city="porto"}'
+            value: 3
+      - expr: 'city:station_chargers_charging:sum'
+        eval_time: 30s
+        exp_samples:
+          - labels: 'city:station_chargers_charging:sum{city="porto",station="st-001",hier_id="pt.porto.st-001"}'
+            value: 2
+          - labels: 'city:station_chargers_charging:sum{city="porto",station="st-002",hier_id="pt.porto.st-002"}'
+            value: 0
+      - expr: 'city:station_chargers_faulted:sum'
+        eval_time: 30s
+        exp_samples:
+          - labels: 'city:station_chargers_faulted:sum{city="porto",station="st-001",hier_id="pt.porto.st-001"}'
+            value: 0
+          - labels: 'city:station_chargers_faulted:sum{city="porto",station="st-002",hier_id="pt.porto.st-002"}'
+            value: 1
+      - expr: 'city:power_watts:sum'
+        eval_time: 30s
+        exp_samples:
+          - labels: 'city:power_watts:sum{city="porto"}'
+            value: 10000
+      - expr: 'city:grid_power_watts:sum'
+        eval_time: 30s
+        exp_samples:
+          - labels: 'city:grid_power_watts:sum{city="porto"}'
+            value: 11600
+      - expr: 'city:station_power_watts:sum'
+        eval_time: 30s
+        exp_samples:
+          - labels: 'city:station_power_watts:sum{city="porto",station="st-001",hier_id="pt.porto.st-001"}'
+            value: 10000
+          - labels: 'city:station_power_watts:sum{city="porto",station="st-002",hier_id="pt.porto.st-002"}'
+            value: 0
+      - expr: 'city:station_power_gap_watts'
+        eval_time: 30s
+        exp_samples:
+          - labels: 'city:station_power_gap_watts{city="porto",station="st-001",hier_id="pt.porto.st-001"}'
+            value: 1500
+          - labels: 'city:station_power_gap_watts{city="porto",station="st-002",hier_id="pt.porto.st-002"}'
+            value: 100
+
+  - name: message rates, the busiest charger is the max
+    interval: 5s
+    input_series:
+      # +5 per 5 s = 1 msg/s
+      - series: 'evcharge_sim_ocpp_messages_sent_total{city="porto",station="st-001",charger="cp-1",hier_id="pt.porto.st-001.cp-1",action="Heartbeat"}'
+        values: '0+5x24'
+      # +1 per 5 s = 0.2 msg/s
+      - series: 'evcharge_sim_ocpp_messages_sent_total{city="porto",station="st-001",charger="cp-2",hier_id="pt.porto.st-001.cp-2",action="Heartbeat"}'
+        values: '0+1x24'
+      - series: 'evcharge_sim_ocpp_messages_sent_total{city="porto",station="st-002",charger="cp-1",hier_id="pt.porto.st-002.cp-1",action="Heartbeat"}'
+        values: '0+1x24'
+    promql_expr_test:
+      - expr: 'city:charger_msg_rate:max1m'
+        eval_time: 90s
+        exp_samples:
+          - labels: 'city:charger_msg_rate:max1m{city="porto"}'
+            value: 1
+      - expr: 'city:ocpp_messages_sent:rate1m'
+        eval_time: 90s
+        exp_samples:
+          - labels: 'city:ocpp_messages_sent:rate1m{city="porto"}'
+            value: 1.4
+      - expr: 'city:station_ocpp_messages_sent:rate1m'
+        eval_time: 90s
+        exp_samples:
+          - labels: 'city:station_ocpp_messages_sent:rate1m{city="porto",station="st-001",hier_id="pt.porto.st-001"}'
+            value: 1.2
+          - labels: 'city:station_ocpp_messages_sent:rate1m{city="porto",station="st-002",hier_id="pt.porto.st-002"}'
+            value: 0.2
+
+  - name: station up, one station down
+    interval: 5s
+    input_series:
+      - series: 'up{job="stations",city="porto",station="st-001",hier_id="pt.porto.st-001",instance="st-001.porto.pt.lab:9300"}'
+        values: '1x12'
+      - series: 'up{job="stations",city="porto",station="st-002",hier_id="pt.porto.st-002",instance="st-002.porto.pt.lab:9300"}'
+        values: '0x12'
+    promql_expr_test:
+      - expr: 'city:station_up:min'
+        eval_time: 30s
+        exp_samples:
+          - labels: 'city:station_up:min{city="porto",station="st-001",hier_id="pt.porto.st-001"}'
+            value: 1
+          - labels: 'city:station_up:min{city="porto",station="st-002",hier_id="pt.porto.st-002"}'
+            value: 0
+
+  - name: edge up, exporter and nginx up
+    interval: 5s
+    input_series:
+      - series: 'up{job="edge-nginx",city="porto",instance="127.0.0.1:9113"}'
+        values: '1x12'
+      - series: 'nginx_up{job="edge-nginx",city="porto",instance="127.0.0.1:9113"}'
+        values: '1x12'
+    promql_expr_test:
+      - expr: 'city:edge_up:min'
+        eval_time: 30s
+        exp_samples:
+          - labels: 'city:edge_up:min{city="porto"}'
+            value: 1
+
+  - name: edge up, exporter up but nginx down
+    interval: 5s
+    input_series:
+      - series: 'up{job="edge-nginx",city="porto",instance="127.0.0.1:9113"}'
+        values: '1x12'
+      - series: 'nginx_up{job="edge-nginx",city="porto",instance="127.0.0.1:9113"}'
+        values: '0x12'
+    promql_expr_test:
+      - expr: 'city:edge_up:min'
+        eval_time: 30s
+        exp_samples:
+          - labels: 'city:edge_up:min{city="porto"}'
+            value: 0
+
+  - name: edge up, exporter down
+    interval: 5s
+    input_series:
+      - series: 'up{job="edge-nginx",city="porto",instance="127.0.0.1:9113"}'
+        values: '0x12'
+    promql_expr_test:
+      - expr: 'city:edge_up:min'
+        eval_time: 30s
+        exp_samples:
+          - labels: 'city:edge_up:min{city="porto"}'
+            value: 0
+
+  - name: edge connections and request rate
+    interval: 5s
+    input_series:
+      - series: 'nginx_connections_active{job="edge-nginx",city="porto",instance="127.0.0.1:9113"}'
+        values: '10x24'
+      - series: 'nginx_http_requests_total{job="edge-nginx",city="porto",instance="127.0.0.1:9113"}'
+        values: '0+10x24'
+    promql_expr_test:
+      - expr: 'city:edge_ws_connections:sum'
+        eval_time: 90s
+        exp_samples:
+          - labels: 'city:edge_ws_connections:sum{city="porto"}'
+            value: 10
+      - expr: 'city:edge_requests:rate1m'
+        eval_time: 90s
+        exp_samples:
+          - labels: 'city:edge_requests:rate1m{city="porto"}'
+            value: 2

@@ -1,0 +1,114 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: registry
+  labels:
+    app.kubernetes.io/name: registry
+    app.kubernetes.io/part-of: evcharge
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8001"
+    prometheus.io/path: /metrics
+spec:
+  type: NodePort
+  selector:
+    app.kubernetes.io/name: registry
+  ports:
+    - name: http
+      port: 8001
+      targetPort: http
+      nodePort: 30801
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: registry
+  labels:
+    app.kubernetes.io/name: registry
+    app.kubernetes.io/part-of: evcharge
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: registry
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: registry
+        app.kubernetes.io/part-of: evcharge
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8001"
+        prometheus.io/path: /metrics
+    spec:
+      enableServiceLinks: false
+      initContainers:
+        - name: fix-log-dir
+          image: docker.incus:5000/evcharge-registry
+          imagePullPolicy: Always
+          command: ["chown", "10001", "/var/log/evcharge"]
+          securityContext:
+            runAsUser: 0
+            runAsNonRoot: false
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+              add: ["CHOWN"]
+          volumeMounts:
+            - name: logs
+              mountPath: /var/log/evcharge
+      containers:
+        - name: registry
+          image: docker.incus:5000/evcharge-registry
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 8001
+          envFrom:
+            - secretRef:
+                name: registry-env
+          env:
+            - name: BIND_HOST
+              value: "0.0.0.0"
+            - name: LOG_DIR
+              value: /var/log/evcharge
+            - name: INSTANCE_ID
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: REGISTRY_LISTEN_PORT
+              value: "8001"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            failureThreshold: 6
+          resources:
+            requests:
+              cpu: 50m
+              memory: 96Mi
+            limits:
+              memory: 256Mi
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: logs
+              mountPath: /var/log/evcharge
+      volumes:
+        - name: logs
+          hostPath:
+            path: /var/log/evcharge
+            type: DirectoryOrCreate

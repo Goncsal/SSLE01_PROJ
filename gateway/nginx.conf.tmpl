@@ -1,0 +1,110 @@
+# EV charging edge gateway for @CITY@ (mode @MODE@). Rendered by gateway/render.sh,
+# installed as /etc/nginx/conf.d/evcharge.conf. Do not edit on the instance.
+# Lines between "#if tls|plain" and "#endif" are kept only in that mode.
+
+# --- access log (contract 11.4) ---------------------------------------------
+map $status $edge_level {
+    default  info;
+    ~^4      warning;
+    ~^5      error;
+}
+map $uri $edge_hier_id {
+    default "";
+    "~^/ocpp/(?<hid>pt\.[a-z0-9-]+\.st-[0-9]{3}\.cp-[0-9]{1,2})$" $hid;
+}
+log_format edge_json escape=json
+    '{"ts":"$time_iso8601","level":"$edge_level","service":"edge",'
+    '"instance":"pt.@CITY@.edge","event":"edge.access",'
+    '"msg":"$status $request_method $uri","hier_id":"$edge_hier_id",'
+    '"srcip":"$remote_addr","http_status":$status,"tls":@TLS_BOOL@,'
+    '"cert_verify":"$ssl_client_verify","cert_dn":"$ssl_client_s_dn",'
+    '"cert_serial":"$ssl_client_serial","upstream":"$upstream_addr",'
+    '"upstream_status":"$upstream_status","duration_s":$request_time,'
+    '"bytes_out":$bytes_sent}';
+access_log /var/log/evcharge/edge-pt.@CITY@.edge.json edge_json;
+
+# --- handshake limits per source address (contract 11.2) ----------------------
+limit_req_zone  $binary_remote_addr zone=ocpp_hs:1m   rate=@RATE@;
+limit_conn_zone $binary_remote_addr zone=ocpp_conn:1m;
+limit_req_status  429;
+limit_conn_status 429;
+
+# --- CSMS NodePort on every K3s node (contract 11.3) --------------------------
+upstream csms_ocpp {
+@UPSTREAMS@
+}
+
+# --- charger listener -----------------------------------------------------------
+server {
+    server_tokens off;
+#if tls
+    listen 443 ssl default_server;
+    server_name edge.@CITY@.pt.lab @CITY@-edge.@CITY@.pt.lab;
+
+    ssl_certificate         /etc/evcharge/pki/pt.@CITY@.edge.crt;
+    ssl_certificate_key     /etc/evcharge/pki/pt.@CITY@.edge.key;
+    ssl_client_certificate  /etc/evcharge/pki/ca.crt;
+    ssl_verify_client optional;
+    ssl_verify_depth        1;
+    ssl_crl                 /etc/evcharge/pki/crl.pem;
+    ssl_protocols           TLSv1.2 TLSv1.3;
+#endif
+#if plain
+    listen 80 default_server;
+    server_name edge.@CITY@.pt.lab @CITY@-edge.@CITY@.pt.lab;
+#endif
+
+    location ~ "^/ocpp/pt\.[a-z0-9-]+\.st-[0-9]{3}\.cp-[0-9]{1,2}$" {
+        if ($http_upgrade !~* "^websocket$") { return 426; }
+
+        limit_req  zone=ocpp_hs burst=@BURST@ nodelay;
+        limit_conn ocpp_conn @CONN@;
+
+        proxy_pass http://csms_ocpp;
+        proxy_http_version 1.1;
+        proxy_set_header Host               $host;
+        proxy_set_header Upgrade            $http_upgrade;
+        proxy_set_header Connection         "upgrade";
+        proxy_set_header X-Real-IP          $remote_addr;
+#if tls
+        proxy_set_header X-Client-Cert-DN     $ssl_client_s_dn;
+        proxy_set_header X-Client-Cert-Serial $ssl_client_serial;
+        proxy_set_header X-Client-Cert-Verify $ssl_client_verify;
+#endif
+#if plain
+        proxy_set_header X-Client-Cert-DN     "";
+        proxy_set_header X-Client-Cert-Serial "";
+        proxy_set_header X-Client-Cert-Verify "";
+#endif
+        proxy_set_header X-Edge-Id pt.@CITY@.edge;
+
+        proxy_connect_timeout 2s;
+        proxy_read_timeout    3600s;
+        proxy_send_timeout    3600s;
+        proxy_next_upstream error timeout;
+        proxy_next_upstream_tries 2;
+        proxy_buffering off;
+    }
+
+    location / { return 404; }
+}
+
+#if tls
+# plain HTTP in a TLS city: refused and logged
+server {
+    server_tokens off;
+    listen 80 default_server;
+    server_name _;
+    location / { return 426 "use wss\n"; }
+}
+#endif
+
+# --- metrics source for prometheus-nginx-exporter -------------------------------
+server {
+    server_tokens off;
+    listen 127.0.0.1:8080;
+    server_name _;
+    access_log off;
+    location = /stub_status { stub_status; }
+    location / { return 404; }
+}

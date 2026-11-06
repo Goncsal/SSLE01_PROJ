@@ -1,0 +1,139 @@
+# Central alert rules (contract 14.3). Evaluated by the central Prometheus every 15 s.
+# Inputs: the federated city:* recording rules (7.3), the CSMS/registry/billing scrapes
+# and the baseline:* series of baseline.yml. Threshold alerts never carry a literal
+# number, except the absolute ones of 14.3 (ChargerFlapping, ChargerMsgFlood,
+# MeterUnderReporting, "any occurrence" alerts).
+groups:
+  - name: infrastructure
+    rules:
+      - alert: CSMSDown
+        expr: up{job="csms"} == 0 or absent(up{job="csms"})
+        for: 1m
+        labels: {severity: critical, city: central, hier_id: pt.central.csms, threat: infra}
+        annotations:
+          summary: "CSMS is down"
+          description: "Scrape of the CSMS (pod {{ $labels.pod }}) fails, or no CSMS target exists (up={{ $value }})."
+      - alert: RegistryDown
+        expr: up{job="registry"} == 0
+        for: 1m
+        labels: {severity: critical, city: central, hier_id: pt.central.registry, threat: infra}
+        annotations:
+          summary: "Registry is down"
+          description: "Scrape of the registry (pod {{ $labels.pod }}) fails (up={{ $value }})."
+      - alert: BillingDown
+        expr: up{job="billing"} == 0
+        for: 1m
+        labels: {severity: critical, city: central, hier_id: pt.central.billing, threat: infra}
+        annotations:
+          summary: "Billing is down"
+          description: "Scrape of billing (pod {{ $labels.pod }}) fails (up={{ $value }})."
+      - alert: EdgeDown
+        expr: min by (city) (up{job=~"federate-.+"}) == 0 or min by (city) (city:edge_up:min) == 0
+        for: 1m
+        labels: {severity: critical, hier_id: "pt.{{ $labels.city }}.edge", threat: infra}
+        annotations:
+          summary: "Edge of {{ $labels.city }} is down or unreachable"
+          description: "The edge pt.{{ $labels.city }}.edge does not answer the federation or its nginx is down (value {{ $value }}); its stations and chargers are inhibited."
+      - alert: StationDown
+        expr: city:station_up:min == 0
+        for: 1m
+        labels: {severity: warning, threat: infra}
+        annotations:
+          summary: "Station {{ $labels.hier_id }} is down"
+          description: "The simulator endpoint of {{ $labels.hier_id }} in {{ $labels.city }} is not scraped by the city Prometheus (up={{ $value }})."
+      # A station whose CSMS gauge is absent on every replica counts as 0 connected:
+      # the right-hand `or` builds a zero for every station the city knows.
+      - alert: ChargerOffline
+        expr: |
+          (
+            max by (hier_id, city, station) (city:station_chargers:count)
+            - on (hier_id) group_left ()
+            (
+              sum by (hier_id) (evcharge_csms_connected_chargers)
+              or on (hier_id)
+              (0 * max by (hier_id) (city:station_chargers:count))
+            )
+          ) > 0
+        for: 2m
+        labels: {severity: warning, threat: infra}
+        annotations:
+          summary: "Chargers of {{ $labels.hier_id }} are not connected to the CSMS"
+          description: "{{ $value }} charger(s) of {{ $labels.hier_id }} ({{ $labels.city }}) are missing from the CSMS view."
+      - alert: ChargerFlapping
+        expr: city:reconnects:rate5m * 300 > 5
+        for: 5m
+        labels: {severity: warning, hier_id: "pt.{{ $labels.city }}", threat: infra}
+        annotations:
+          summary: "Chargers of {{ $labels.city }} keep reconnecting"
+          description: "{{ $value | printf \"%.1f\" }} reconnects in 5 min in {{ $labels.city }} (limit 5). Known false positive: a CSMS rollout restart."
+
+  - name: hijack
+    rules:
+      # The CSMS creates these counters at their first event, so increase() never sees the first
+      # incident (the series is born at 1). `m - (m offset 5m or 0 * m)` is the 5 min growth, counting
+      # a series that did not exist 5 min ago from zero.
+      - alert: DuplicateChargerID
+        expr: sum by (city) (evcharge_csms_duplicate_id_total{outcome="rejected"} - (evcharge_csms_duplicate_id_total{outcome="rejected"} offset 5m or 0 * evcharge_csms_duplicate_id_total{outcome="rejected"})) > 0
+        for: 0m
+        labels: {severity: critical, hier_id: "pt.{{ $labels.city }}", threat: hijack}
+        annotations:
+          summary: "Duplicate charger identity refused in {{ $labels.city }}"
+          description: "{{ $value | printf \"%.0f\" }} connection(s) in 5 min presented an identity that is already connected in {{ $labels.city }}."
+      - alert: IdentityRejections
+        expr: sum by (city, reason) (evcharge_csms_identity_rejections_total{reason!="duplicate_id"} - (evcharge_csms_identity_rejections_total{reason!="duplicate_id"} offset 5m or 0 * evcharge_csms_identity_rejections_total{reason!="duplicate_id"})) > 0
+        for: 0m
+        labels: {severity: warning, hier_id: "pt.{{ $labels.city }}", threat: hijack}
+        annotations:
+          summary: "Identity rejections ({{ $labels.reason }}) in {{ $labels.city }}"
+          description: "{{ $value | printf \"%.0f\" }} handshake(s) in 5 min were rejected with reason {{ $labels.reason }} in {{ $labels.city }}."
+
+  - name: fraud
+    rules:
+      # ConcurrentTx is normal simulator noise (4.4): deliberately not in the regex.
+      - alert: AuthFailureBurst
+        expr: |
+          sum by (city) (increase(evcharge_csms_card_auth_total{result=~"Blocked|Invalid|Expired"}[10m]))
+          > on (city) baseline:city_auth_failures_10m:upper
+        for: 0m
+        labels: {severity: warning, hier_id: "pt.{{ $labels.city }}", threat: fraud}
+        annotations:
+          summary: "Card authorisation failures above baseline in {{ $labels.city }}"
+          description: "{{ $value | printf \"%.0f\" }} refused authorisations in 10 min in {{ $labels.city }}, above the baseline upper bound."
+      - alert: MeterUnderReporting
+        expr: city:station_power_gap_watts > 1000
+        for: 5m
+        labels: {severity: critical, threat: fraud}
+        annotations:
+          summary: "Meter of {{ $labels.hier_id }} reports less than the feeder"
+          description: "The feeder meter of {{ $labels.hier_id }} ({{ $labels.city }}) exceeds the reported power by {{ $value | printf \"%.0f\" }} W."
+      - alert: MeterAnomalies
+        expr: sum by (city, reason) (evcharge_csms_meter_anomalies_total - (evcharge_csms_meter_anomalies_total offset 5m or 0 * evcharge_csms_meter_anomalies_total)) > 0
+        for: 0m
+        labels: {severity: warning, hier_id: "pt.{{ $labels.city }}", threat: fraud}
+        annotations:
+          summary: "Meter anomalies ({{ $labels.reason }}) in {{ $labels.city }}"
+          description: "{{ $value | printf \"%.0f\" }} meter anomaly(ies) of kind {{ $labels.reason }} in 5 min in {{ $labels.city }}."
+
+  - name: botnet
+    rules:
+      - alert: MsgRateAnomaly
+        expr: city:ocpp_messages_sent:rate1m > on (city) baseline:city_msgs_rate:upper
+        for: 2m
+        labels: {severity: warning, hier_id: "pt.{{ $labels.city }}", threat: botnet}
+        annotations:
+          summary: "OCPP message rate of {{ $labels.city }} above baseline"
+          description: "{{ $labels.city }} sends {{ $value | printf \"%.2f\" }} msg/s, above the baseline upper bound."
+      - alert: ChargerMsgFlood
+        expr: city:charger_msg_rate:max1m > 1
+        for: 1m
+        labels: {severity: critical, hier_id: "pt.{{ $labels.city }}", threat: botnet}
+        annotations:
+          summary: "A charger in {{ $labels.city }} floods the CSMS"
+          description: "The busiest charger of {{ $labels.city }} sends {{ $value | printf \"%.2f\" }} msg/s (sustained CSMS limit: 1)."
+      - alert: CityLoadSpike
+        expr: city:grid_power_watts:sum > on (city) baseline:city_grid_power_watts:upper
+        for: 2m
+        labels: {severity: critical, hier_id: "pt.{{ $labels.city }}", threat: botnet}
+        annotations:
+          summary: "Grid load of {{ $labels.city }} above baseline"
+          description: "Feeder meters of {{ $labels.city }} read {{ $value | printf \"%.0f\" }} W, above the baseline upper bound."

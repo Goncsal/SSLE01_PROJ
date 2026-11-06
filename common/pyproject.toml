@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "evcommon"
+version = "0.1.0"
+description = "Shared glue for the EV charging network services: hierarchical ids, JSON event logs, config, metric names, API models and the roster format."
+requires-python = ">=3.13"
+dependencies = [
+    "pydantic>=2.6,<3",
+    "pyyaml>=6,<7",
+]
+
+[project.optional-dependencies]
+metrics = ["prometheus-client>=0.20,<1"]
+db = ["sqlalchemy>=2,<3"]
+test = ["pytest>=8", "prometheus-client>=0.20,<1", "sqlalchemy>=2,<3"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+evcommon = ["py.typed"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

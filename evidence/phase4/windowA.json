@@ -1,0 +1,32 @@
+{
+ "bytes_min": {
+  "lisboa": 15806.633333333333,
+  "aveiro": 15818.666666666666,
+  "porto": 15574.866666666667
+ },
+ "samples_min": {
+  "lisboa": 108.0,
+  "aveiro": 108.0,
+  "porto": 108.0
+ },
+ "scrapes_30m": {
+  "lisboa": 60.0,
+  "aveiro": 60.0,
+  "porto": 60.0
+ },
+ "prom_rss_mib_avg": {
+  "all": 131.8029296875
+ },
+ "prom_workingset_mib_avg": {
+  "all": 105.50006510416667
+ },
+ "head_series_avg": {
+  "all": 8951.666666666666
+ },
+ "prom_cpu_cores_avg": {
+  "all": 0.0068222222222222234
+ },
+ "samples_ingested_per_s_avg": {
+  "all": 0.0
+ }
+}

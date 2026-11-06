@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "evsim"
+version = "0.1.0"
+description = "Station simulator for the EV charging network: OCPP 1.6J chargers, driver sessions and attack modes."
+requires-python = ">=3.13"
+dependencies = [
+    "evcommon",
+    "ocpp",
+    "websockets",
+    "httpx",
+    "prometheus-client",
+    "pyyaml",
+]
+
+[project.optional-dependencies]
+test = ["pytest"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -1,0 +1,189 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: csms
+  labels:
+    app.kubernetes.io/name: csms
+    app.kubernetes.io/part-of: evcharge
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8000"
+    prometheus.io/path: /metrics
+spec:
+  type: NodePort
+  selector:
+    app.kubernetes.io/name: csms
+  ports:
+    - name: http
+      port: 8000
+      targetPort: http
+      nodePort: 30800
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: csms
+  labels:
+    app.kubernetes.io/name: csms
+    app.kubernetes.io/part-of: evcharge
+spec:
+  replicas: 2
+  # Placement (docs/interfaces.md 2.2): HPA 2-4, topologySpreadConstraints (maxSkew 1 per
+  # hostname, DoNotSchedule) and maxSurge 0 keep one replica on each of the two nodes at all
+  # times. A surge pod would be scheduled next to the old ones and could leave both on one
+  # node, and a node without a CSMS pod refuses its chargers (externalTrafficPolicy: Local).
+  # The replacement takes the node just freed; during the few seconds of a rollout the
+  # edges fail over to the other node's NodePort.
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: csms
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: csms
+        app.kubernetes.io/part-of: evcharge
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: /metrics
+    spec:
+      enableServiceLinks: false
+      terminationGracePeriodSeconds: 20
+      # maxSkew 1 with two nodes: one replica per node (2 replicas) or 2+1 (3); a replica
+      # that cannot be placed stays Pending rather than doubling up.
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: csms
+      initContainers:
+        - name: fix-log-dir
+          image: docker.incus:5000/evcharge-csms
+          imagePullPolicy: Always
+          command: ["chown", "10001", "/var/log/evcharge"]
+          securityContext:
+            runAsUser: 0
+            runAsNonRoot: false
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+              add: ["CHOWN"]
+          volumeMounts:
+            - name: logs
+              mountPath: /var/log/evcharge
+      containers:
+        - name: csms
+          image: docker.incus:5000/evcharge-csms
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 8000
+            - name: ocpp
+              containerPort: 9000
+          envFrom:
+            - secretRef:
+                name: csms-env
+            # Edge settings (direct connections allowed, trusted proxies): created by
+            # infra/05_deploy.sh (direct allowed, no proxies); the city setup rewrites it.
+            - configMapRef:
+                name: csms-edge
+          env:
+            - name: BIND_HOST
+              value: "0.0.0.0"
+            - name: LOG_DIR
+              value: /var/log/evcharge
+            - name: INSTANCE_ID
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: CSMS_API_LISTEN_PORT
+              value: "8000"
+            - name: CSMS_OCPP_LISTEN_PORT
+              value: "9000"
+            - name: REGISTRY_URL
+              value: http://registry:8001
+            - name: BILLING_URL
+              value: http://billing:8002
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            failureThreshold: 6
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              memory: 384Mi
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: logs
+              mountPath: /var/log/evcharge
+      volumes:
+        - name: logs
+          hostPath:
+            path: /var/log/evcharge
+            type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: csms-ocpp
+  labels:
+    app.kubernetes.io/name: csms
+    app.kubernetes.io/part-of: evcharge
+spec:
+  type: NodePort
+  # Local keeps the edge's source address visible to the CSMS (trust check) and
+  # makes a node without a CSMS pod refuse, so nginx moves to the next upstream.
+  externalTrafficPolicy: Local
+  selector:
+    app.kubernetes.io/name: csms
+  ports:
+    - name: ocpp
+      port: 9000
+      targetPort: ocpp
+      nodePort: 30900
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: csms
+  labels:
+    app.kubernetes.io/name: csms
+    app.kubernetes.io/part-of: evcharge
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: csms
+  minReplicas: 2
+  maxReplicas: 4
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70

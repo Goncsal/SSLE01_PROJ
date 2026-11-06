@@ -1,0 +1,8 @@
+deployment "csms" successfully rolled out
+restart 1:
+csms-7ff4bcb548-427p8 Running k3s-master
+csms-7ff4bcb548-4mw69 Running k3s-node1
+deployment "csms" successfully rolled out
+restart 2:
+csms-5b57bf5f7f-6lrkr Running k3s-master
+csms-5b57bf5f7f-kmqcr Running k3s-node1

@@ -1,0 +1,131 @@
+# Fraud service (section 4.4). Not in k8s/kustomization.yaml yet: the W7 RUN card enables it.
+# fraud-env holds FRAUD_API_TOKEN, DATABASE_URL (Postgres database and role `fraud`),
+# BILLING_RESPONDER_TOKEN, REGISTRY_RESPONDER_TOKEN, CSMS_RESPONDER_TOKEN and
+# CORRELATOR_API_TOKEN. Never an admin token.
+apiVersion: v1
+kind: Service
+metadata:
+  name: fraud
+  labels:
+    app.kubernetes.io/name: fraud
+    app.kubernetes.io/part-of: evcharge
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8003"
+    prometheus.io/path: /metrics
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: fraud
+  ports:
+    - name: http
+      port: 8003
+      targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fraud
+  labels:
+    app.kubernetes.io/name: fraud
+    app.kubernetes.io/part-of: evcharge
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: fraud
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: fraud
+        app.kubernetes.io/part-of: evcharge
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8003"
+        prometheus.io/path: /metrics
+    spec:
+      enableServiceLinks: false
+      initContainers:
+        - name: fix-log-dir
+          image: docker.incus:5000/evcharge-fraud
+          imagePullPolicy: Always
+          command: ["chown", "10001", "/var/log/evcharge"]
+          securityContext:
+            runAsUser: 0
+            runAsNonRoot: false
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+              add: ["CHOWN"]
+          volumeMounts:
+            - name: logs
+              mountPath: /var/log/evcharge
+      containers:
+        - name: fraud
+          image: docker.incus:5000/evcharge-fraud
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 8003
+          envFrom:
+            - secretRef:
+                name: fraud-env
+          env:
+            - name: BIND_HOST
+              value: "0.0.0.0"
+            - name: LOG_DIR
+              value: /var/log/evcharge
+            - name: INSTANCE_ID
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: FRAUD_LISTEN_PORT
+              value: "8003"
+            # dry run until the RUN card flips it: log alerts and intended actions, call no API
+            - name: FRAUD_DRY_RUN
+              value: "true"
+            - name: BILLING_URL
+              value: http://billing:8002
+            - name: REGISTRY_URL
+              value: http://registry:8001
+            - name: CSMS_API_URL
+              value: http://csms:8000
+            - name: CORRELATOR_URL
+              value: http://correlator:8004
+            # feeder-meter source for grid_gap (central Prometheus, federated recording rule)
+            - name: FRAUD_PROMETHEUS_URL
+              value: http://prometheus.monitoring:9090
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            failureThreshold: 6
+          resources:
+            requests:
+              cpu: 50m
+              memory: 96Mi
+            limits:
+              memory: 256Mi
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: logs
+              mountPath: /var/log/evcharge
+      volumes:
+        - name: logs
+          hostPath:
+            path: /var/log/evcharge
+            type: DirectoryOrCreate

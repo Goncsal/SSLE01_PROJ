@@ -1,0 +1,203 @@
+<!--
+  EV charging network: hijacking (IDs 110100-110199).
+  Enterprise ATT&CK IDs in <mitre>; the matching ATT&CK for ICS technique is the
+  group mitre_ics_T0xxx and is named in the description.
+-->
+<group name="evcharge,hijack,">
+
+  <rule id="110100" level="10">
+    <if_sid>110000</if_sid>
+    <field name="event">^charger\.duplicate_id$</field>
+    <description>Hijack: $(hier_id) already connected, second connection from $(srcip) (T0849 masquerading).</description>
+    <mitre><id>T1036</id></mitre>
+    <group>mitre_ics_T0849,</group>
+  </rule>
+
+  <rule id="110101" level="10">
+    <if_sid>110000</if_sid>
+    <field name="event">^ident\.cert_mismatch$</field>
+    <description>Hijack: certificate CN $(cert_cn) does not match $(hier_id) from $(srcip) (T0849 masquerading).</description>
+    <mitre><id>T1036</id></mitre>
+    <group>mitre_ics_T0849,</group>
+  </rule>
+
+  <rule id="110102" level="8">
+    <if_sid>110000</if_sid>
+    <field name="event">^ident\.cert_serial_mismatch$</field>
+    <description>Hijack: certificate serial of $(hier_id) from $(srcip) is not the registered one (T0849).</description>
+    <mitre><id>T1552.004</id></mitre>
+    <group>mitre_ics_T0849,</group>
+  </rule>
+
+  <rule id="110103" level="10">
+    <if_sid>110000</if_sid>
+    <field name="event">^ident\.city_mismatch$</field>
+    <description>Hijack: $(hier_id) presented from another city's network ($(srcip), edge $(edge)) (T0849 masquerading).</description>
+    <mitre><id>T1036</id></mitre>
+    <group>mitre_ics_T0849,</group>
+  </rule>
+
+  <rule id="110104" level="7">
+    <if_sid>110000</if_sid>
+    <field name="event">^ident\.ip_mismatch$</field>
+    <description>Hijack: $(hier_id) connects from $(srcip), registry expects another address (T0859 valid accounts).</description>
+    <mitre><id>T1078</id></mitre>
+    <group>mitre_ics_T0859,</group>
+  </rule>
+
+  <rule id="110105" level="6">
+    <if_sid>110000</if_sid>
+    <field name="event">^ident\.no_cert$</field>
+    <description>Hijack: $(hier_id) from $(srcip) without a client certificate in a TLS city.</description>
+    <mitre><id>T1078</id></mitre>
+  </rule>
+
+  <rule id="110106" level="8">
+    <if_sid>110000</if_sid>
+    <field name="event">^ident\.untrusted_peer$</field>
+    <description>Hijack: connection from $(srcip) that bypasses the edge.</description>
+    <mitre><id>T1599</id></mitre>
+  </rule>
+
+  <rule id="110107" level="9">
+    <if_sid>110000</if_sid>
+    <field name="event">^ident\.spoofed_header$</field>
+    <description>Hijack: forged identity header $(reason) from $(srcip) (T0830 man in the middle).</description>
+    <mitre><id>T1557</id></mitre>
+    <group>mitre_ics_T0830,</group>
+  </rule>
+
+  <rule id="110108" level="5">
+    <if_sid>110000</if_sid>
+    <field name="event">^ident\.unknown$</field>
+    <description>Scan: unknown charger id $(hier_id) from $(srcip) (T0846 remote system discovery).</description>
+    <mitre><id>T1595</id></mitre>
+    <group>evcharge_scan,mitre_ics_T0846,</group>
+  </rule>
+
+  <rule id="110109" level="5">
+    <if_sid>110000</if_sid>
+    <field name="event">^ident\.bad_id$</field>
+    <description>Scan: malformed charger id in the path from $(srcip) (T0846 remote system discovery).</description>
+    <mitre><id>T1595</id></mitre>
+    <group>evcharge_scan,mitre_ics_T0846,</group>
+  </rule>
+
+  <!-- Wazuh counts a frequency rule per agent, and the two CSMS pods are two agents: a scan of
+       10 ids that the edge spreads over both pods reaches 5 per agent, not 10 -->
+  <rule id="110110" level="10" frequency="5" timeframe="60">
+    <if_matched_group>evcharge_scan</if_matched_group>
+    <if_sid>110108, 110109</if_sid>
+    <same_source_ip />
+    <description>Scan: unknown or malformed charger ids repeated by $(srcip) within 60 s (T0846).</description>
+    <mitre><id>T1595</id></mitre>
+    <group>mitre_ics_T0846,</group>
+  </rule>
+
+  <rule id="110111" level="7">
+    <if_sid>110000</if_sid>
+    <field name="event">^ident\.quarantined$</field>
+    <description>Hijack: quarantined charger $(hier_id) tried to connect from $(srcip).</description>
+    <mitre><id>T1078</id></mitre>
+  </rule>
+
+  <rule id="110112" level="10" frequency="5" timeframe="300">
+    <if_matched_sid>110111</if_matched_sid>
+    <same_field>hier_id</same_field>
+    <description>Hijack: quarantined charger $(hier_id) keeps retrying (5 in 300 s).</description>
+    <mitre><id>T1078</id></mitre>
+  </rule>
+
+  <rule id="110113" level="7">
+    <if_sid>110000</if_sid>
+    <field name="event">^charger\.boot_mismatch$</field>
+    <description>Hijack: BootNotification of $(hier_id) with serial $(serial) instead of the registered one (T0849).</description>
+    <mitre><id>T1036</id></mitre>
+    <group>mitre_ics_T0849,</group>
+  </rule>
+
+  <rule id="110114" level="6">
+    <if_sid>110000</if_sid>
+    <field name="event">^ocpp\.invalid$</field>
+    <description>Protocol abuse: invalid OCPP message from $(hier_id) at $(srcip).</description>
+    <mitre><id>T1499</id></mitre>
+  </rule>
+
+  <rule id="110115" level="9" frequency="20" timeframe="60">
+    <if_matched_sid>110114</if_matched_sid>
+    <same_field>hier_id</same_field>
+    <description>Protocol abuse: 20 invalid OCPP messages from $(hier_id) within 60 s (T0814 denial of service).</description>
+    <mitre><id>T1499</id></mitre>
+    <group>mitre_ics_T0814,</group>
+  </rule>
+
+  <!-- MitM indicator in the city without TLS: a meter reading rewritten on the wire -->
+  <rule id="110116" level="10">
+    <if_sid>110000</if_sid>
+    <field name="event">^meter\.anomaly$</field>
+    <list field="city" lookup="match_key">etc/lists/evcharge-plain-cities</list>
+    <description>Hijack: meter anomaly at $(hier_id) in a city without TLS, possible man in the middle (T0830, T0856).</description>
+    <mitre>
+      <id>T1557</id>
+      <id>T1565.002</id>
+    </mitre>
+    <group>mitre_ics_T0830,mitre_ics_T0856,</group>
+  </rule>
+
+  <rule id="110120" level="8">
+    <if_sid>110000</if_sid>
+    <field name="event">^edge\.access$</field>
+    <field name="http_status">^400$</field>
+    <field name="cert_verify">^FAILED</field>
+    <description>Edge: client certificate rejected ($(cert_verify)) from $(srcip) (T0849).</description>
+    <mitre><id>T1552.004</id></mitre>
+    <group>mitre_ics_T0849,</group>
+  </rule>
+
+  <rule id="110121" level="11" frequency="5" timeframe="120">
+    <if_matched_sid>110120</if_matched_sid>
+    <same_source_ip />
+    <description>Edge: 5 rejected client certificates from $(srcip) within 120 s (stolen or revoked credentials).</description>
+    <mitre><id>T1552.004</id></mitre>
+  </rule>
+
+  <rule id="110122" level="5">
+    <if_sid>110000</if_sid>
+    <field name="event">^edge\.access$</field>
+    <field name="http_status">^404$</field>
+    <description>Edge: request for an unknown path from $(srcip) (T0846 remote system discovery).</description>
+    <mitre><id>T1595</id></mitre>
+    <group>mitre_ics_T0846,</group>
+  </rule>
+
+  <rule id="110123" level="9" frequency="20" timeframe="60">
+    <if_matched_sid>110122</if_matched_sid>
+    <same_source_ip />
+    <description>Edge: 20 unknown-path requests from $(srcip) within 60 s (scanning, T0846).</description>
+    <mitre><id>T1595</id></mitre>
+    <group>mitre_ics_T0846,</group>
+  </rule>
+
+  <!-- composites: ip_mismatch and duplicate_id for one id, in either order -->
+  <rule id="110130" level="12" frequency="2" timeframe="300">
+    <if_sid>110104</if_sid>
+    <if_matched_sid>110100</if_matched_sid>
+    <same_field>hier_id</same_field>
+    <description>Hijack confirmed: $(hier_id) duplicate connection then IP mismatch from $(srcip), a second host holds the identity (T0849).</description>
+    <mitre>
+      <id>T1036</id>
+      <id>T1552.004</id>
+    </mitre>
+    <group>mitre_ics_T0849,</group>
+  </rule>
+
+  <rule id="110131" level="12" frequency="2" timeframe="300">
+    <if_sid>110100</if_sid>
+    <if_matched_sid>110104</if_matched_sid>
+    <same_field>hier_id</same_field>
+    <description>Hijack confirmed: $(hier_id) IP mismatch then duplicate connection, a second host holds the identity (T0849).</description>
+    <mitre><id>T1036</id></mitre>
+    <group>mitre_ics_T0849,</group>
+  </rule>
+
+</group>

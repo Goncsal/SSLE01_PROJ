@@ -1,0 +1,993 @@
+{
+  "uid": "evcharge-city",
+  "title": "EV charging: city detail",
+  "description": "Per charger drill-down from the city Prometheus, and the CSMS view of the same city.",
+  "tags": [
+    "evcharge"
+  ],
+  "timezone": "browser",
+  "editable": true,
+  "graphTooltip": 1,
+  "refresh": "10s",
+  "schemaVersion": 39,
+  "version": 1,
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": [
+      "5s",
+      "10s",
+      "30s",
+      "1m"
+    ]
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "city",
+        "label": "City",
+        "type": "custom",
+        "query": "porto,lisboa,aveiro",
+        "current": {
+          "text": "porto",
+          "value": "porto"
+        },
+        "options": [],
+        "includeAll": false,
+        "multi": false,
+        "hide": 0
+      }
+    ]
+  },
+  "annotations": {
+    "list": []
+  },
+  "links": [],
+  "panels": [
+    {
+      "type": "table",
+      "title": "Chargers: status, link and power",
+      "description": "Status is the OCPP connector status reported by each charger. Link is its own view of the CSMS connection.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "city-${city}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "evcharge_sim_charger_status",
+          "legendFormat": "",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "table"
+        },
+        {
+          "refId": "B",
+          "expr": "evcharge_sim_charger_connected",
+          "legendFormat": "",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "table"
+        },
+        {
+          "refId": "C",
+          "expr": "evcharge_sim_power_watts",
+          "legendFormat": "",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "format": "table"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "joinByField",
+          "options": {
+            "byField": "hier_id",
+            "mode": "outer"
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "Time 1": true,
+              "Time 2": true,
+              "Time 3": true,
+              "__name__": true,
+              "__name__ 1": true,
+              "__name__ 2": true,
+              "__name__ 3": true,
+              "job": true,
+              "job 1": true,
+              "job 2": true,
+              "job 3": true,
+              "instance": true,
+              "instance 1": true,
+              "instance 2": true,
+              "instance 3": true,
+              "city": true,
+              "city 1": true,
+              "city 2": true,
+              "city 3": true,
+              "station 2": true,
+              "station 3": true,
+              "charger 2": true,
+              "charger 3": true
+            },
+            "indexByName": {
+              "Station": 0,
+              "Charger": 1,
+              "Status": 2,
+              "Link": 3,
+              "Power (W)": 4,
+              "Element": 5
+            },
+            "renameByName": {
+              "hier_id": "Element",
+              "station": "Station",
+              "station 1": "Station",
+              "charger": "Charger",
+              "charger 1": "Charger",
+              "Value #A": "Status",
+              "Value #B": "Link",
+              "Value #C": "Power (W)"
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "filterable": true
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Status"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "0": {
+                        "text": "Available",
+                        "color": "green",
+                        "index": 0
+                      },
+                      "1": {
+                        "text": "Preparing",
+                        "color": "yellow",
+                        "index": 1
+                      },
+                      "2": {
+                        "text": "Charging",
+                        "color": "blue",
+                        "index": 2
+                      },
+                      "3": {
+                        "text": "SuspendedEV",
+                        "color": "orange",
+                        "index": 3
+                      },
+                      "4": {
+                        "text": "SuspendedEVSE",
+                        "color": "orange",
+                        "index": 4
+                      },
+                      "5": {
+                        "text": "Finishing",
+                        "color": "light-blue",
+                        "index": 5
+                      },
+                      "6": {
+                        "text": "Reserved",
+                        "color": "purple",
+                        "index": 6
+                      },
+                      "7": {
+                        "text": "Unavailable",
+                        "color": "text",
+                        "index": 7
+                      },
+                      "8": {
+                        "text": "Faulted",
+                        "color": "red",
+                        "index": 8
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Link"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "0": {
+                        "text": "Down",
+                        "color": "red",
+                        "index": 0
+                      },
+                      "1": {
+                        "text": "Up",
+                        "color": "green",
+                        "index": 1
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Power (W)"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "watt"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm"
+      },
+      "id": 1,
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 14,
+        "h": 10
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Station power: feeder meter vs reported (kW)",
+      "description": "Solid: feeder meter at the grid connection. Dashed: sum of what the chargers report. They should overlap.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "city-${city}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "city:station_grid_power_watts:sum / 1000",
+          "legendFormat": "{{station}} grid",
+          "editorMode": "code",
+          "range": true,
+          "instant": false
+        },
+        {
+          "refId": "B",
+          "expr": "city:station_power_watts:sum / 1000",
+          "legendFormat": "{{station}} reported",
+          "editorMode": "code",
+          "range": true,
+          "instant": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "kwatt",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": true,
+            "lineInterpolation": "linear"
+          },
+          "min": 0,
+          "decimals": 1
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*reported"
+            },
+            "properties": [
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "fill": "dash",
+                  "dash": [
+                    10,
+                    10
+                  ]
+                }
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "text"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "id": 2,
+      "gridPos": {
+        "x": 14,
+        "y": 0,
+        "w": 10,
+        "h": 10
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Power per charger (kW)",
+      "description": "Power each charger reports to the CSMS.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "city-${city}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "evcharge_sim_power_watts / 1000",
+          "legendFormat": "{{station}} {{charger}}",
+          "editorMode": "code",
+          "range": true,
+          "instant": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "kwatt",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": true,
+            "lineInterpolation": "linear"
+          },
+          "min": 0,
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "id": 3,
+      "gridPos": {
+        "x": 0,
+        "y": 10,
+        "w": 8,
+        "h": 8
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Energy register per charger (kWh)",
+      "description": "Cumulative energy register of each charger.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "city-${city}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "evcharge_sim_energy_register_wh / 1000",
+          "legendFormat": "{{station}} {{charger}}",
+          "editorMode": "code",
+          "range": true,
+          "instant": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "kwatth",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 0,
+            "showPoints": "never",
+            "spanNulls": true,
+            "lineInterpolation": "linear"
+          },
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "id": 4,
+      "gridPos": {
+        "x": 8,
+        "y": 10,
+        "w": 8,
+        "h": 8
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "OCPP messages sent per charger (per second)",
+      "description": "A charger far above the others is a flooding candidate.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "city-${city}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (station, charger) (rate(evcharge_sim_ocpp_messages_sent_total[1m]))",
+          "legendFormat": "{{station}} {{charger}}",
+          "editorMode": "code",
+          "range": true,
+          "instant": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": true,
+            "lineInterpolation": "linear"
+          },
+          "min": 0,
+          "decimals": 2
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "id": 5,
+      "gridPos": {
+        "x": 16,
+        "y": 10,
+        "w": 8,
+        "h": 8
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Reconnects per charger (last 5 min)",
+      "description": "Connection attempts after the first; many in a short time means flapping.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "city-${city}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (station, charger) (increase(evcharge_sim_reconnects_total[5m]))",
+          "legendFormat": "{{station}} {{charger}}",
+          "editorMode": "code",
+          "range": true,
+          "instant": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": true,
+            "lineInterpolation": "linear"
+          },
+          "min": 0,
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "id": 6,
+      "gridPos": {
+        "x": 0,
+        "y": 18,
+        "w": 8,
+        "h": 7
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Station power gap: feeder minus reported (kW)",
+      "description": "Above 1 kW for 5 minutes raises MeterUnderReporting.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "city-${city}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "city:station_power_gap_watts / 1000",
+          "legendFormat": "{{station}}",
+          "editorMode": "code",
+          "range": true,
+          "instant": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "kwatt",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": true,
+            "lineInterpolation": "linear"
+          },
+          "decimals": 2
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "id": 7,
+      "gridPos": {
+        "x": 8,
+        "y": 18,
+        "w": 8,
+        "h": 7
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Edge: websocket connections and requests",
+      "description": "Connections held by the city edge proxy and requests per second through it.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "city-${city}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "city:edge_ws_connections:sum",
+          "legendFormat": "connections",
+          "editorMode": "code",
+          "range": true,
+          "instant": false
+        },
+        {
+          "refId": "B",
+          "expr": "city:edge_requests:rate1m",
+          "legendFormat": "requests per second",
+          "editorMode": "code",
+          "range": true,
+          "instant": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": true,
+            "lineInterpolation": "linear"
+          },
+          "min": 0,
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "id": 8,
+      "gridPos": {
+        "x": 16,
+        "y": 18,
+        "w": 8,
+        "h": 7
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "CSMS view: grid power (kW) and baseline",
+      "description": "City load as seen centrally, with the learned mean and upper limit.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "central"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "city:grid_power_watts:sum{city=\"$city\"} / 1000",
+          "legendFormat": "load",
+          "editorMode": "code",
+          "range": true,
+          "instant": false
+        },
+        {
+          "refId": "B",
+          "expr": "baseline:city_grid_power_watts:upper{city=\"$city\"} / 1000",
+          "legendFormat": "upper limit",
+          "editorMode": "code",
+          "range": true,
+          "instant": false
+        },
+        {
+          "refId": "C",
+          "expr": "baseline:city_grid_power_watts:mean{city=\"$city\"} / 1000",
+          "legendFormat": "mean",
+          "editorMode": "code",
+          "range": true,
+          "instant": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "kwatt",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": true,
+            "lineInterpolation": "linear"
+          },
+          "min": 0,
+          "decimals": 1
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "upper limit"
+            },
+            "properties": [
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "fill": "dash",
+                  "dash": [
+                    10,
+                    10
+                  ]
+                }
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "red"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "mean"
+            },
+            "properties": [
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "fill": "dash",
+                  "dash": [
+                    10,
+                    10
+                  ]
+                }
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "text"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "id": 9,
+      "gridPos": {
+        "x": 0,
+        "y": 25,
+        "w": 24,
+        "h": 8
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "CSMS: identity rejections by reason (per 5 min)",
+      "description": "Handshakes refused by identity checks.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "central"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (reason) (increase(evcharge_csms_identity_rejections_total{city=\"$city\"}[5m]))",
+          "legendFormat": "{{reason}}",
+          "editorMode": "code",
+          "range": true,
+          "instant": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": true,
+            "lineInterpolation": "linear",
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            }
+          },
+          "min": 0,
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "id": 10,
+      "gridPos": {
+        "x": 0,
+        "y": 33,
+        "w": 8,
+        "h": 7
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "CSMS: card authorisation by result (per 5 min)",
+      "description": "Authorize answers by OCPP status.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "central"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (result) (increase(evcharge_csms_card_auth_total{city=\"$city\"}[5m]))",
+          "legendFormat": "{{result}}",
+          "editorMode": "code",
+          "range": true,
+          "instant": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": true,
+            "lineInterpolation": "linear",
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            }
+          },
+          "min": 0,
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "id": 11,
+      "gridPos": {
+        "x": 8,
+        "y": 33,
+        "w": 8,
+        "h": 7
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "CSMS: meter anomalies by reason (per 5 min)",
+      "description": "meter.anomaly events detected by the CSMS.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "central"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (reason) (increase(evcharge_csms_meter_anomalies_total{city=\"$city\"}[5m]))",
+          "legendFormat": "{{reason}}",
+          "editorMode": "code",
+          "range": true,
+          "instant": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": true,
+            "lineInterpolation": "linear",
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            }
+          },
+          "min": 0,
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "id": 12,
+      "gridPos": {
+        "x": 16,
+        "y": 33,
+        "w": 8,
+        "h": 7
+      }
+    }
+  ]
+}

@@ -1,0 +1,78 @@
+# Wazuh agent on every K3s node (contract 15.1): reads the service logs the pods write to
+# /var/log/evcharge on the node and ships them to the manager as pt.central.<node>, group central.
+# The Secret wazuh-enroll (key password) is created by infra/07_wazuh_agents.sh from
+# secrets/platform.env; it is optional so the agent also enrols while the manager does not
+# require a password.
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: wazuh-agent
+  namespace: wazuh
+  labels:
+    app.kubernetes.io/name: wazuh-agent
+    app.kubernetes.io/part-of: evcharge
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: wazuh-agent
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: wazuh-agent
+        app.kubernetes.io/part-of: evcharge
+    spec:
+      enableServiceLinks: false
+      terminationGracePeriodSeconds: 20
+      tolerations:
+        - key: node-role.kubernetes.io/control-plane
+          operator: Exists
+          effect: NoSchedule
+        - key: node-role.kubernetes.io/master
+          operator: Exists
+          effect: NoSchedule
+      containers:
+        - name: wazuh-agent
+          image: docker.incus:5000/evcharge-wazuh-agent:4.14.9
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: WAZUH_MANAGER
+              value: wazuh-container.incus
+            - name: WAZUH_GROUP
+              value: central
+            - name: WAZUH_AGENT_STATE
+              value: /agent-state
+            - name: WAZUH_REGISTRATION_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: wazuh-enroll
+                  key: password
+                  optional: true
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              memory: 192Mi
+          volumeMounts:
+            - name: evcharge-logs
+              mountPath: /var/log/evcharge
+              readOnly: true
+            - name: agent-state
+              mountPath: /agent-state
+      volumes:
+        - name: evcharge-logs
+          hostPath:
+            path: /var/log/evcharge
+            type: DirectoryOrCreate
+        - name: agent-state
+          hostPath:
+            path: /var/lib/evcharge-wazuh/agent
+            type: DirectoryOrCreate

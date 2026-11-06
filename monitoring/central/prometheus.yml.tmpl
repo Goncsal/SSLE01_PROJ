@@ -1,0 +1,117 @@
+# Central Prometheus (contract 14.2). Rendered by infra/06_monitoring.sh.
+# The blocks between "@@BEGIN name@@" and "@@END name@@" are repeated once per city
+# (CITY_NET in infra/env.sh) with @CITY@ replaced; the "direct" block is rendered only with
+# --direct-scrape on (bandwidth counterfactual, contract 14.6).
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    site: pt.central
+
+rule_files:
+  - /etc/prometheus/rules/*.yml
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ["alertmanager.monitoring.svc:9093"]
+
+scrape_configs:
+  # platform services: every pod of namespace evcharge annotated prometheus.io/scrape=true.
+  # job = app.kubernetes.io/name (csms, registry, billing, later fraud, correlator)
+  - job_name: platform-pods
+    kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names: [evcharge]
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+        regex: "true"
+        action: keep
+      - source_labels: [__meta_kubernetes_pod_phase]
+        regex: Running
+        action: keep
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+        regex: (.+)
+        target_label: __metrics_path__
+      - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+        regex: ([^:]+)(?::\d+)?;(\d+)
+        replacement: $1:$2
+        target_label: __address__
+      - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_name]
+        target_label: job
+      - source_labels: [__meta_kubernetes_pod_name]
+        target_label: pod
+      - source_labels: [__meta_kubernetes_pod_node_name]
+        target_label: node
+
+  # container CPU and memory through the API server proxy (no kubelet certificates needed)
+  - job_name: cadvisor
+    scrape_interval: 30s
+    scheme: https
+    tls_config:
+      ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+    authorization:
+      credentials_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+    kubernetes_sd_configs:
+      - role: node
+    relabel_configs:
+      - target_label: __address__
+        replacement: kubernetes.default.svc:443
+      - source_labels: [__meta_kubernetes_node_name]
+        regex: (.+)
+        target_label: __metrics_path__
+        replacement: /api/v1/nodes/$1/proxy/metrics/cadvisor
+      - source_labels: [__meta_kubernetes_node_name]
+        target_label: node
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: container_cpu_usage_seconds_total|container_memory_working_set_bytes
+        action: keep
+      - source_labels: [namespace]
+        regex: evcharge|monitoring
+        action: keep
+
+  - job_name: prometheus
+    scrape_interval: 30s
+    static_configs:
+      - targets: ["prometheus.monitoring.svc:9090"]
+  - job_name: alertmanager
+    scrape_interval: 30s
+    static_configs:
+      - targets: ["alertmanager.monitoring.svc:9093"]
+  - job_name: grafana
+    scrape_interval: 30s
+    static_configs:
+      - targets: ["grafana.monitoring.svc:3000"]
+
+  # aggregates of each city, from the city Prometheus on the edge (contract 14.1, 7.3)
+# @@BEGIN federate@@
+  - job_name: federate-@CITY@
+    scrape_interval: 30s
+    scrape_timeout: 10s
+    honor_labels: true
+    metrics_path: /federate
+    params:
+      "match[]": ['{__name__=~"city:.*"}']
+    static_configs:
+      - targets: ["edge.@CITY@.pt.lab:9090"]
+        labels:
+          city: "@CITY@"
+          hier_id: "pt.@CITY@.edge"
+# @@END federate@@
+# @@BEGIN direct@@
+  # counterfactual: what central would pull without the city Prometheus (stations at 5 s, edge exporters)
+  - job_name: direct-@CITY@
+    scrape_interval: 5s
+    scrape_timeout: 4s
+    honor_labels: true
+    http_sd_configs:
+      - url: http://registry.evcharge.svc:8001/sd/prometheus?city=@CITY@&kind=station
+        refresh_interval: 60s
+    static_configs:
+      - targets: ["edge.@CITY@.pt.lab:9113", "edge.@CITY@.pt.lab:9100"]
+        labels:
+          city: "@CITY@"
+          hier_id: "pt.@CITY@.edge"
+# @@END direct@@

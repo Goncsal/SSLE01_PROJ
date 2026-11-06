@@ -1,0 +1,6 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: evcharge
+  labels:
+    app.kubernetes.io/part-of: evcharge

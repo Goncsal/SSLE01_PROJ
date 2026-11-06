@@ -1,0 +1,20 @@
+{"ts":"2026-11-06T10:00:00.000Z","level":"info","service":"csms","instance":"csms-7d9f5-abcde","event":"conn.open","msg":"conn open","hier_id":"pt.porto.st-003.cp-1","srcip":"198.51.100.10"}
+{"ts":"2026-11-06T10:00:01.000Z","level":"notice","service":"csms","instance":"csms-7d9f5-abcde","event":"x.y","msg":"x y"}
+{"ts":"x","level":"info","service":"other","event":"conn.open"}
+Nov  6 10:00:00 host sshd[1]: Accepted publickey for root
+{"ts":"2026-11-06T10:00:04.000Z","level":"info","service":"edge","instance":"edge","event":"edge.access","msg":"edge access","http_status":101,"srcip":"198.51.100.10"}
+{"ts":"2026-11-06T10:00:05.000Z","level":"info","service":"edge","instance":"edge","event":"edge.access","msg":"edge access","http_status":200,"srcip":"198.51.100.10"}
+{"ts":"2026-11-06T10:00:06.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"auth.reject","msg":"auth reject","result":"ConcurrentTx","card":"04A1B2C3D4","hier_id":"pt.porto.st-003.cp-1","city":"porto"}
+{"ts":"2026-11-06T10:00:07.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"auth.reject","msg":"auth reject","result":"Blocked","card":"04A1B2C3D4","hier_id":"pt.porto.st-003.cp-1","city":"porto"}
+{"ts":"2026-11-06T10:00:08.000Z","level":"warning","service":"netwatch","instance":"netwatch","event":"host.new_outbound","msg":"host new_outbound","process":"apt","dstip":"203.0.113.5","dstport":443,"hier_id":"pt.porto.st-001"}
+{"ts":"2026-11-06T10:00:09.000Z","level":"warning","service":"netwatch","instance":"netwatch","event":"host.new_outbound","msg":"host new_outbound","process":"nc","dstip":"203.0.113.5","dstport":4444,"hier_id":"pt.porto.st-001"}
+{"ts":"2026-11-06T10:00:10.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"ident.ip_mismatch","msg":"ident ip_mismatch","hier_id":"pt.spare.st-999.cp-1","srcip":"198.51.100.10","expected":"x"}
+{"ts":"2026-11-06T10:00:11.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"ident.ip_mismatch","msg":"ident ip_mismatch","hier_id":"pt.porto.st-004.cp-2","srcip":"198.51.100.11","expected":"x"}
+{"ts":"2026-11-06T10:00:12.000Z","level":"info","service":"sim","instance":"sim","event":"sim.connect","msg":"sim connect","hier_id":"pt.porto.st-001"}
+{"ts":"2026-11-06T10:00:13.000Z","level":"warning","service":"sim","instance":"sim","event":"sim.rejected","msg":"sim rejected","hier_id":"pt.porto.st-001","http_status":403}
+{"ts":"2026-11-06T10:00:14.000Z","level":"info","service":"csms","instance":"csms-7d9f5-abcde","event":"session.start","msg":"session start","hier_id":"pt.porto.st-003.cp-1","card":"04A1B2C3D4","city":"porto","transaction_id":1}
+{"ts":"2026-11-06T10:00:15.000Z","level":"info","service":"csms","instance":"csms-7d9f5-abcde","event":"session.stop","msg":"session stop","hier_id":"pt.porto.st-003.cp-1","card":"04A1B2C3D4","city":"porto","transaction_id":1}
+{"ts":"2026-11-06T10:00:16.000Z","level":"warning","service":"registry","instance":"registry","event":"service.log","msg":"service log","logger":"x"}
+{"ts":"2026-11-06T10:00:17.000Z","level":"info","service":"registry","instance":"registry","event":"service.log","msg":"service log"}
+{"ts":"2026-11-06T10:00:18.000Z","level":"error","service":"registry","instance":"registry","event":"service.log","msg":"service log","logger":"x"}
+{"ts":"2026-11-06T10:00:19.000Z","level":"warning","service":"registry","instance":"registry","event":"service.log","msg":"service log"}

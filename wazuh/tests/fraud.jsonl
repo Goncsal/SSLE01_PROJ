@@ -1,0 +1,59 @@
+{"ts":"2026-11-06T10:00:00.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"auth.reject","msg":"auth reject","result":"Blocked","card":"04A1B2C3D4E5F6","hier_id":"pt.porto.st-003.cp-1","city":"porto"}
+{"_session":"reset"}
+{"ts":"2026-11-06T10:00:02.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"auth.reject","msg":"auth reject","result":"Invalid","card":"04A1B2C3D4E5F6","hier_id":"pt.porto.st-003.cp-1","city":"porto"}
+{"_session":"reset"}
+{"ts":"2026-11-06T10:00:04.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"auth.reject","msg":"auth reject","result":"Expired","card":"04A1B2C3D4E5F6","hier_id":"pt.porto.st-003.cp-1","city":"porto"}
+{"_session":"reset"}
+{"ts":"2026-11-06T10:00:06.000Z","level":"info","service":"csms","instance":"csms-7d9f5-abcde","event":"auth.accept","msg":"auth accept","result":"Accepted","card":"04A1B2C3D4E5F6","hier_id":"pt.porto.st-003.cp-1","city":"porto"}
+{"_session":"reset"}
+{"ts":"2026-11-06T10:00:08.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"auth.reject","msg":"auth reject","result":"Blocked","card":"04A1B2C3D4E5F6","hier_id":"pt.porto.st-003.cp-1","city":"porto"}
+{"ts":"2026-11-06T10:00:09.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"auth.reject","msg":"auth reject","result":"Blocked","card":"04A1B2C3D4E5F6","hier_id":"pt.porto.st-003.cp-1","city":"porto"}
+{"ts":"2026-11-06T10:00:10.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"auth.reject","msg":"auth reject","result":"Blocked","card":"04A1B2C3D4E5F6","hier_id":"pt.porto.st-003.cp-1","city":"porto"}
+{"ts":"2026-11-06T10:00:11.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"auth.reject","msg":"auth reject","result":"Blocked","card":"04A1B2C3D4E5F6","hier_id":"pt.porto.st-003.cp-1","city":"porto"}
+{"ts":"2026-11-06T10:00:12.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"auth.reject","msg":"auth reject","result":"Blocked","card":"04A1B2C3D4E5F6","hier_id":"pt.porto.st-003.cp-1","city":"porto"}
+{"_session":"reset"}
+{"ts":"2026-11-06T10:00:14.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"auth.reject","msg":"auth reject","result":"Blocked","card":"04A1B2C3D4E5F1","hier_id":"pt.porto.st-003.cp-1","city":"porto"}
+{"ts":"2026-11-06T10:00:15.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"auth.reject","msg":"auth reject","result":"Blocked","card":"04A1B2C3D4E5F2","hier_id":"pt.porto.st-003.cp-1","city":"porto"}
+{"ts":"2026-11-06T10:00:16.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"auth.reject","msg":"auth reject","result":"Blocked","card":"04A1B2C3D4E5F3","hier_id":"pt.porto.st-003.cp-1","city":"porto"}
+{"ts":"2026-11-06T10:00:17.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"auth.reject","msg":"auth reject","result":"Blocked","card":"04A1B2C3D4E5F4","hier_id":"pt.porto.st-003.cp-1","city":"porto"}
+{"ts":"2026-11-06T10:00:18.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"auth.reject","msg":"auth reject","result":"Blocked","card":"04A1B2C3D4E5F5","hier_id":"pt.porto.st-003.cp-1","city":"porto"}
+{"_session":"reset"}
+{"ts":"2026-11-06T10:00:20.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"auth.reject","msg":"auth reject","result":"ConcurrentTx","card":"04A1B2C3D4E5F6","hier_id":"pt.porto.st-003.cp-1","city":"porto"}
+{"ts":"2026-11-06T10:00:21.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"auth.reject","msg":"auth reject","result":"ConcurrentTx","card":"04A1B2C3D4E5F6","hier_id":"pt.lisboa.st-001.cp-1","city":"lisboa"}
+{"_session":"reset"}
+{"ts":"2026-11-06T10:00:23.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"auth.reject","msg":"auth reject","result":"ConcurrentTx","card":"04A1B2C3D4E5F6","hier_id":"pt.porto.st-003.cp-1","city":"porto"}
+{"ts":"2026-11-06T10:00:24.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"auth.reject","msg":"auth reject","result":"ConcurrentTx","card":"04A1B2C3D4E5F6","hier_id":"pt.porto.st-004.cp-2","city":"porto"}
+{"_session":"reset"}
+{"ts":"2026-11-06T10:00:26.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"auth.reject","msg":"auth reject","result":"ConcurrentTx","card":"04A1B2C3D4E5F6","hier_id":"pt.porto.st-003.cp-1","city":"porto"}
+{"ts":"2026-11-06T10:00:27.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"auth.reject","msg":"auth reject","result":"ConcurrentTx","card":"04FFFFFFFFFF","hier_id":"pt.lisboa.st-001.cp-1","city":"lisboa"}
+{"_session":"reset"}
+{"ts":"2026-11-06T10:00:29.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"meter.anomaly","msg":"meter anomaly","hier_id":"pt.porto.st-003.cp-1","city":"porto","card":"04A1B2C3D4E5F6","reason":"decrease","meter_wh":1,"prev_meter_wh":9}
+{"ts":"2026-11-06T10:00:30.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"charger.fault","msg":"charger fault","hier_id":"pt.porto.st-003.cp-1","city":"porto","error_code":"GroundFailure"}
+{"_session":"reset"}
+{"ts":"2026-11-06T10:00:32.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"meter.anomaly","msg":"meter anomaly","hier_id":"pt.porto.st-003.cp-1","city":"porto","card":"04A1B2C3D4E5F6","reason":"decrease","meter_wh":1,"prev_meter_wh":9}
+{"ts":"2026-11-06T10:00:33.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"meter.anomaly","msg":"meter anomaly","hier_id":"pt.porto.st-003.cp-1","city":"porto","card":"04A1B2C3D4E5F6","reason":"decrease","meter_wh":1,"prev_meter_wh":9}
+{"ts":"2026-11-06T10:00:34.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"meter.anomaly","msg":"meter anomaly","hier_id":"pt.porto.st-003.cp-1","city":"porto","card":"04A1B2C3D4E5F6","reason":"decrease","meter_wh":1,"prev_meter_wh":9}
+{"_session":"reset"}
+{"ts":"2026-11-06T10:00:36.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"meter.anomaly","msg":"meter anomaly","hier_id":"pt.porto.st-001.cp-1","city":"porto","card":"04A1B2C3D4E5F6","reason":"decrease","meter_wh":1,"prev_meter_wh":9}
+{"ts":"2026-11-06T10:00:37.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"meter.anomaly","msg":"meter anomaly","hier_id":"pt.porto.st-002.cp-1","city":"porto","card":"04A1B2C3D4E5F6","reason":"decrease","meter_wh":1,"prev_meter_wh":9}
+{"ts":"2026-11-06T10:00:38.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"meter.anomaly","msg":"meter anomaly","hier_id":"pt.porto.st-003.cp-1","city":"porto","card":"04A1B2C3D4E5F6","reason":"decrease","meter_wh":1,"prev_meter_wh":9}
+{"_session":"reset"}
+{"ts":"2026-11-06T10:00:40.000Z","level":"info","service":"csms","instance":"csms-7d9f5-abcde","event":"session.start","msg":"session start","hier_id":"pt.porto.st-003.cp-1","card":"04A1B2C3D4E5F6","city":"porto","transaction_id":1}
+{"ts":"2026-11-06T10:00:41.000Z","level":"info","service":"csms","instance":"csms-7d9f5-abcde","event":"session.start","msg":"session start","hier_id":"pt.lisboa.st-001.cp-1","card":"04A1B2C3D4E5F6","city":"lisboa","transaction_id":2}
+{"_session":"reset"}
+{"ts":"2026-11-06T10:00:43.000Z","level":"info","service":"csms","instance":"csms-7d9f5-abcde","event":"session.start","msg":"session start","hier_id":"pt.porto.st-003.cp-1","card":"04A1B2C3D4E5F6","city":"porto","transaction_id":1}
+{"ts":"2026-11-06T10:00:44.000Z","level":"info","service":"csms","instance":"csms-7d9f5-abcde","event":"session.start","msg":"session start","hier_id":"pt.porto.st-004.cp-2","card":"04A1B2C3D4E5F6","city":"porto","transaction_id":2}
+{"_session":"reset"}
+{"ts":"2026-11-06T10:00:46.000Z","level":"info","service":"csms","instance":"csms-7d9f5-abcde","event":"session.start","msg":"session start","hier_id":"pt.porto.st-003.cp-1","card":"04A1B2C3D4E5F6","city":"porto","transaction_id":1}
+{"ts":"2026-11-06T10:00:47.000Z","level":"info","service":"csms","instance":"csms-7d9f5-abcde","event":"session.start","msg":"session start","hier_id":"pt.lisboa.st-001.cp-1","card":"04FFFFFFFFFF","city":"lisboa","transaction_id":2}
+{"_session":"reset"}
+{"ts":"2026-11-06T10:00:49.000Z","level":"warning","service":"fraud","instance":"fraud","event":"fraud.alert","msg":"fraud alert","rule":"impossible_travel","score":0.9,"card":"04A1B2C3D4E5F6","hier_id":"pt.porto.st-003.cp-1","other_hier_id":"pt.lisboa.st-001.cp-1"}
+{"ts":"2026-11-06T10:00:50.000Z","level":"warning","service":"fraud","instance":"fraud","event":"fraud.alert","msg":"fraud alert","rule":"energy_cap","score":0.8,"card":"04A1B2C3D4E5F6","hier_id":"pt.porto.st-003.cp-1"}
+{"_session":"reset"}
+{"ts":"2026-11-06T10:00:52.000Z","level":"warning","service":"fraud","instance":"fraud","event":"fraud.alert","msg":"fraud alert","rule":"energy_cap","score":0.8,"card":"04A1B2C3D4E5F6","hier_id":"pt.porto.st-003.cp-1"}
+{"ts":"2026-11-06T10:00:53.000Z","level":"warning","service":"fraud","instance":"fraud","event":"fraud.action","msg":"fraud action","rule":"energy_cap","target":"04A1B2C3D4E5F6","result":"ok"}
+{"_session":"reset"}
+{"ts":"2026-11-06T10:00:55.000Z","level":"warning","service":"billing","instance":"billing","event":"billing.card_blocked","msg":"billing card_blocked","card":"04A1B2C3D4E5F6","reason":"x","source":"wazuh"}
+{"ts":"2026-11-06T10:00:56.000Z","level":"info","service":"billing","instance":"billing","event":"billing.card_unblocked","msg":"billing card_unblocked","card":"04A1B2C3D4E5F6","reason":"x","source":"wazuh"}
+{"ts":"2026-11-06T10:00:57.000Z","level":"warning","service":"billing","instance":"billing","event":"billing.session_flagged","msg":"billing session_flagged","card":"04A1B2C3D4E5F6","reason":"x","source":"wazuh"}
+{"ts":"2026-11-06T10:00:58.000Z","level":"info","service":"billing","instance":"billing","event":"billing.session_closed","msg":"billing session_closed","card":"04A1B2C3D4E5F6","transaction_id":1,"energy_wh":1000,"cost_eur":0.5,"hier_id":"pt.porto.st-003.cp-1"}

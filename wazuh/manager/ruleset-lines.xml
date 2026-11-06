@@ -1,0 +1,4 @@
+<decoder_exclude>ruleset/decoders/0170-nginx_decoders.xml</decoder_exclude>
+<list>etc/lists/evcharge-plain-cities</list>
+<list>etc/lists/evcharge-ip-exceptions</list>
+<list>etc/lists/evcharge-card-allowlist</list>

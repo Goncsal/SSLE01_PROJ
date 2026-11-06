@@ -1,0 +1,144 @@
+# Incident correlator (docs/interfaces.md, section 4.5). NOT in k8s/kustomization.yaml yet:
+# the Phase 9 run enables it (add `- correlator.yaml` to resources, and an `images:` entry
+# for docker.incus:5000/evcharge-correlator) after the monitoring baseline.
+#
+# Secret `correlator-env` is created by the deploy script from secrets/platform.env, never
+# from this repo:
+#   CORRELATOR_API_TOKEN, REGISTRY_URL, CSMS_API_URL, CSMS_API_TOKEN
+# REGISTRY_URL is the in-cluster registry Service (http://registry.evcharge:8001).
+apiVersion: v1
+kind: Service
+metadata:
+  name: correlator
+  labels:
+    app.kubernetes.io/name: correlator
+    app.kubernetes.io/part-of: evcharge
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8004"
+    prometheus.io/path: /metrics
+spec:
+  type: NodePort
+  selector:
+    app.kubernetes.io/name: correlator
+  ports:
+    - name: http
+      port: 8004
+      targetPort: http
+      nodePort: 30804
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: correlator
+  labels:
+    app.kubernetes.io/name: correlator
+    app.kubernetes.io/part-of: evcharge
+spec:
+  replicas: 1          # incident state is in memory: one replica
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: correlator
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: correlator
+        app.kubernetes.io/part-of: evcharge
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8004"
+        prometheus.io/path: /metrics
+    spec:
+      enableServiceLinks: false
+      securityContext:
+        fsGroup: 10001
+      initContainers:
+        - name: fix-log-dir
+          image: docker.incus:5000/evcharge-correlator
+          imagePullPolicy: Always
+          command: ["chown", "10001", "/var/log/evcharge"]
+          securityContext:
+            runAsUser: 0
+            runAsNonRoot: false
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+              add: ["CHOWN"]
+          volumeMounts:
+            - name: logs
+              mountPath: /var/log/evcharge
+      containers:
+        - name: correlator
+          image: docker.incus:5000/evcharge-correlator
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 8004
+          envFrom:
+            - secretRef:
+                name: correlator-env
+          env:
+            - name: BIND_HOST
+              value: "0.0.0.0"
+            - name: LOG_DIR
+              value: /var/log/evcharge
+            - name: INSTANCE_ID
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: CORRELATOR_LISTEN_PORT
+              value: "8004"
+            # closed-incident history; lives as long as the pod (open incidents are memory only)
+            - name: DATABASE_URL
+              value: sqlite:////data/correlator.db
+            - name: CORRELATOR_WINDOW_S
+              value: "120"
+            - name: CORRELATOR_SKEW_S
+              value: "3"
+            - name: CORRELATOR_CLOSE_S
+              value: "600"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            failureThreshold: 6
+          resources:
+            requests:
+              cpu: 50m
+              memory: 96Mi
+            limits:
+              memory: 256Mi
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: logs
+              mountPath: /var/log/evcharge
+            - name: data
+              mountPath: /data
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: logs
+          hostPath:
+            path: /var/log/evcharge
+            type: DirectoryOrCreate
+        - name: data
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}

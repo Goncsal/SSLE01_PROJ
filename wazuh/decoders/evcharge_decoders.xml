@@ -1,0 +1,32 @@
+<!--
+  Decoders for the EV charging network.
+
+  The services and the edge access log are JSON and use the built-in json decoder.
+  This file covers the edge's nginx error.log lines written by limit_req / limit_conn:
+
+  2026/11/06 10:02:41 [error] 812#812: *4410 limiting requests, excess: 5.540 by zone "evc_req", client: CLIENT, server: _, request: "GET /ocpp/pt.porto.st-001.cp-1 HTTP/1.1", host: "edge"
+  2026/11/06 10:02:41 [error] 812#812: *4411 limiting connections by zone "evc_conn", client: CLIENT, server: _, request: "GET /ocpp/pt.porto.st-001.cp-1 HTTP/1.1", host: "edge"
+
+  evcharge-nginx-limit is a child of nginx-errorlog. The stock child
+  nginx-errorlog-ip matches the same lines first (children are tried in load order, and
+  the stock file loads before etc/decoders), so the manager configuration excludes the
+  stock ruleset/decoders/0170-nginx_decoders.xml and this file carries its parent and IP decoders
+  unchanged (the NAXSI decoder is dropped, no WAF is used), with the evcharge child first. The stock nginx rules keep working.
+-->
+<decoder name="nginx-errorlog">
+  <prematch>^20\d\d/\d\d/\d\d \d\d:\d\d:\d\d [</prematch>
+</decoder>
+
+<decoder name="evcharge-nginx-limit">
+  <parent>nginx-errorlog</parent>
+  <prematch offset="after_parent"> limiting </prematch>
+  <regex offset="after_parent">limiting (\w+)\p* \.*by zone "(\S+)", client: (\S+), server: (\S*), request: "\S+ (\S+) </regex>
+  <order>limit_kind,zone,srcip,server,url</order>
+</decoder>
+
+<decoder name="nginx-errorlog-ip">
+  <parent>nginx-errorlog</parent>
+  <prematch offset="after_parent">, client: \S+, server: \S*, request: "\S+ </prematch>
+  <regex offset="after_parent">, client: (\S+), </regex>
+  <order>srcip</order>
+</decoder>

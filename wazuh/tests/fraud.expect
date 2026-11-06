@@ -1,0 +1,59 @@
+1 110200  # 110200 auth.reject Blocked
+2 reset  # new session
+3 110200  # 110200 auth.reject Invalid
+4 reset  # new session
+5 110200  # 110200 auth.reject Expired
+6 reset  # new session
+7 110090  # 110200 negative: auth.accept
+8 reset  # 110201 positive: 5 refusals of one card
+9 110200  # refused (1 of 5)
+10 110200  # refused (2 of 5)
+11 110200  # refused (3 of 5)
+12 110200  # refused (4 of 5)
+13 110201  # refused (5 of 5)
+14 reset  # 110201 negative: 5 refusals of five cards
+15 110200  # refused (1 of 5)
+16 110200  # refused (2 of 5)
+17 110200  # refused (3 of 5)
+18 110200  # refused (4 of 5)
+19 110200  # refused (5 of 5)
+20 reset  # 110203 positive: ConcurrentTx for one card in two cities
+21 110011  # 110203 step 1 porto
+22 110203  # 110203 step 2 lisboa
+23 reset  # 110203 negative: both in the same city
+24 110011  # 110203 neg step 1 porto
+25 110011  # 110203 neg step 2 porto again
+26 reset  # 110203 negative: two cities, two cards
+27 110011  # 110203 neg step 1 card A
+28 110011  # 110203 neg step 2 card B
+29 reset  # 110204 meter anomaly outside the plain city
+30 110204  # 110204 meter.anomaly porto
+31 110091  # 110204 negative: charger.fault
+32 reset  # 110205 positive: 3 anomalies at one charger
+33 110204  # anomaly (1 of 3)
+34 110204  # anomaly (2 of 3)
+35 110205  # anomaly (3 of 3)
+36 reset  # 110205 negative: 3 anomalies at three chargers
+37 110204  # anomaly (1 of 3)
+38 110204  # anomaly (2 of 3)
+39 110204  # anomaly (3 of 3)
+40 reset  # 110206 positive: session.start in two cities
+41 110015  # 110206 step 1 porto
+42 110206  # 110206 step 2 lisboa
+43 reset  # 110206 negative: same city
+44 110015  # 110206 neg step 1 porto
+45 110015  # 110206 neg step 2 porto
+46 reset  # 110206 negative: different cards
+47 110015  # 110206 neg step 1 card A
+48 110015  # 110206 neg step 2 card B
+49 reset  # new session
+50 110207  # 110207 impossible_travel
+51 110208  # 110207 negative: other rule is 110208
+52 reset  # new session
+53 110208  # 110208 other fraud.alert
+54 110091  # 110208 negative: fraud.action is not an alert
+55 reset  # new session
+56 110209  # 110209 billing.card_blocked
+57 110209  # 110209 billing.card_unblocked
+58 110209  # 110209 billing.session_flagged
+59 110090  # 110209 negative: billing.session_closed

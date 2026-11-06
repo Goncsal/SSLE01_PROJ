@@ -1,0 +1,64 @@
+<!--
+  EV charging network: parent rules, whitelists and catch-alls (IDs 110000-110099).
+  Services and the edge write one flat JSON object per line (interfaces section 6);
+  the built-in json decoder turns every key into a field, and "srcip" is the static
+  field, so same_source_ip and the firewall responses work on these logs.
+  Wazuh tries sibling rules from the highest level down, so the catch-alls
+  110090-110092 (in evcharge_infra.xml) exclude the events of the level 2 rules here.
+-->
+<group name="evcharge,">
+
+  <!-- parent of every project rule -->
+  <rule id="110000" level="0">
+    <decoded_as>json</decoded_as>
+    <field name="service" type="pcre2">^(csms|registry|billing|fraud|correlator|sim|edge|netwatch|ar)$</field>
+    <description>EV charging network log line.</description>
+  </rule>
+
+  <!-- a WebSocket that ended normally -->
+  <rule id="110010" level="0">
+    <if_sid>110000</if_sid>
+    <field name="event">^edge\.access$</field>
+    <field name="http_status">^101$</field>
+    <description>Edge: WebSocket session ended normally.</description>
+  </rule>
+
+  <!-- normal traffic, counted by 110203 -->
+  <rule id="110011" level="2">
+    <if_sid>110000</if_sid>
+    <field name="event">^auth\.reject$</field>
+    <field name="result" type="pcre2">^ConcurrentTx$</field>
+    <description>Authorize refused, card already in a transaction: $(card) at $(hier_id).</description>
+  </rule>
+
+  <!-- maintenance traffic on the stations -->
+  <rule id="110012" level="0">
+    <if_sid>110000</if_sid>
+    <field name="event">^host\.new_outbound$</field>
+    <field name="process" type="pcre2">^(apt|apt-get|http|https|gpgv)$</field>
+    <description>Station: outbound connection of a package manager, ignored.</description>
+  </rule>
+
+  <!-- known exceptions to the IP check -->
+  <rule id="110013" level="0">
+    <if_sid>110000</if_sid>
+    <field name="event">^ident\.ip_mismatch$</field>
+    <list field="hier_id" lookup="match_key">etc/lists/evcharge-ip-exceptions</list>
+    <description>CSMS: IP mismatch of $(hier_id) is a known exception.</description>
+  </rule>
+
+  <!-- station controller chatter (sim.rejected stays visible) -->
+  <rule id="110014" level="0">
+    <if_sid>110000</if_sid>
+    <field name="event" type="pcre2">^sim\.(?!rejected$)</field>
+    <description>Station controller event, ignored.</description>
+  </rule>
+
+  <!-- counted by 110206 and 110308 -->
+  <rule id="110015" level="2">
+    <if_sid>110000</if_sid>
+    <field name="event">^session\.start$</field>
+    <description>Session started: $(card) at $(hier_id).</description>
+  </rule>
+
+</group>

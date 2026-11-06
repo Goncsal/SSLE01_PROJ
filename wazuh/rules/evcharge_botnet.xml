@@ -1,0 +1,83 @@
+<!-- EV charging network: botnet (IDs 110300-110399). -->
+<group name="evcharge,botnet,">
+
+  <rule id="110300" level="6">
+    <if_sid>110000</if_sid>
+    <field name="event">^ocpp\.rate_limited$</field>
+    <description>Botnet: $(hier_id) over its message budget ($(msg_rate) msg/s, $(dropped) dropped) (T0814).</description>
+    <mitre><id>T1499</id></mitre>
+    <group>mitre_ics_T0814,</group>
+  </rule>
+
+  <rule id="110301" level="10">
+    <if_sid>110000</if_sid>
+    <field name="event">^conn\.kicked$</field>
+    <field name="reason">^rate_limit$</field>
+    <description>Botnet: $(hier_id) disconnected for flooding (T0814).</description>
+    <mitre><id>T1499</id></mitre>
+    <group>mitre_ics_T0814,</group>
+  </rule>
+
+  <rule id="110302" level="12" frequency="3" timeframe="60">
+    <if_matched_sid>110300</if_matched_sid>
+    <same_field>city</same_field>
+    <different_field>hier_id</different_field>
+    <description>Botnet: 3 chargers of $(city) flooding within 60 s, coordinated fleet (T0814).</description>
+    <mitre><id>T1498</id></mitre>
+    <group>mitre_ics_T0814,</group>
+  </rule>
+
+  <rule id="110303" level="8">
+    <if_sid>110000</if_sid>
+    <field name="event">^host\.new_outbound$</field>
+    <description>Botnet: $(hier_id) opened a new outbound connection to $(dstip):$(dstport) by $(process) (T0869).</description>
+    <mitre><id>T1071</id></mitre>
+    <group>mitre_ics_T0869,</group>
+  </rule>
+
+  <rule id="110304" level="12" frequency="3" timeframe="300">
+    <if_matched_sid>110303</if_matched_sid>
+    <same_dstip />
+    <different_field>hier_id</different_field>
+    <description>Botnet: 3 stations contacting $(dstip) within 5 minutes, command and control (T0869).</description>
+    <mitre><id>T1071.001</id></mitre>
+    <group>mitre_ics_T0869,</group>
+  </rule>
+
+  <!-- station socket table changed between two runs of the full_command -->
+  <rule id="110305" level="7">
+    <if_sid>530</if_sid>
+    <match>^ossec: output: 'station-sockets'</match>
+    <check_diff />
+    <description>Botnet: established connections of a station changed (T0869).</description>
+    <mitre><id>T1071</id></mitre>
+    <group>mitre_ics_T0869,</group>
+  </rule>
+
+  <rule id="110306" level="6">
+    <!-- decoded_as reports the parent decoder (nginx-errorlog), so the rule hangs under the stock
+         nginx error-log parent 31300 (level 0 siblings are tried first) and tests the fields that
+         exist only when the evcharge-nginx-limit child decoder matched -->
+    <if_sid>31300</if_sid>
+    <field name="limit_kind" type="pcre2">^(requests|connections)$</field>
+    <description>Edge: handshake refused by nginx $(limit_kind) limit (zone $(zone)) for $(srcip).</description>
+    <mitre><id>T1498</id></mitre>
+  </rule>
+
+  <rule id="110307" level="10" frequency="10" timeframe="60">
+    <if_matched_sid>110306</if_matched_sid>
+    <same_source_ip />
+    <description>Botnet: 10 refused handshakes from $(srcip) within 60 s, connection flood (T0814).</description>
+    <mitre><id>T1498</id></mitre>
+    <group>mitre_ics_T0814,</group>
+  </rule>
+
+  <rule id="110308" level="10" frequency="10" timeframe="60">
+    <if_matched_sid>110015</if_matched_sid>
+    <same_field>city</same_field>
+    <description>Botnet: 10 sessions started in $(city) within 60 s, load surge (T0831 manipulation of control).</description>
+    <mitre><id>T1498</id></mitre>
+    <group>mitre_ics_T0831,</group>
+  </rule>
+
+</group>

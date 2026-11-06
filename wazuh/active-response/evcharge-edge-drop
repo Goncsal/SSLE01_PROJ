@@ -1,0 +1,289 @@
+#!/usr/bin/env python3
+"""evcharge-edge-drop: drop an address at a city edge with iptables (agents, location all).
+
+The manager sends the alert to every agent. The script acts only where
+  * /etc/evcharge/role is "edge", and
+  * the alert's srcip lies inside this edge's city network (/etc/evcharge/city-net,
+    one CIDR per line, written when the agent is installed),
+and does nothing (exit 0, no output) everywhere else. Then:
+  * the address must be private, and not white-listed: /etc/evcharge/ar-whitelist (optional,
+    one address or CIDR per line), the edge's own addresses and its default gateway;
+  * add: iptables -I INPUT/FORWARD -s <ip> -j DROP (skipped if the rule is already there);
+  * delete (sent by execd after the 600 s timeout): the same rules are removed.
+Every action appends an ar.action line to /var/log/evcharge/ar-edge.json.
+
+Wazuh 4.x protocol: one JSON message on stdin ({"command":"add"|"delete","parameters":{"alert":...}});
+on add the script answers the check_keys handshake so a repeated alert for the same address
+does not stack rules.
+
+Manual use:  evcharge-edge-drop --self-test [FILE]   parse a sample alert, print the commands
+             evcharge-edge-drop --dry-run [FILE]     real guards (role, city-net), no iptables, no log
+"""
+import fcntl
+import ipaddress
+import json
+import os
+import re
+import shutil
+import socket
+import subprocess
+import sys
+from datetime import datetime, timezone
+
+NAME = "evcharge-edge-drop"
+ETC = os.environ.get("EVCHARGE_EDGE_ETC", "/etc/evcharge")
+AR_LOG = os.environ.get("EVCHARGE_EDGE_LOG", "/var/log/evcharge/ar-edge.json")
+CHAINS = ("INPUT", "FORWARD")
+
+
+def now_iso():
+    t = datetime.now(timezone.utc)
+    return t.strftime("%Y-%m-%dT%H:%M:%S.") + "%03dZ" % (t.microsecond // 1000)
+
+
+def clean(value, limit=64):
+    return re.sub(r"[^A-Za-z0-9._:@/ -]", "?", str(value))[:limit]
+
+
+def read_lines(path):
+    out = []
+    try:
+        with open(path, encoding="utf-8") as fh:
+            for line in fh:
+                line = line.split("#", 1)[0].strip()
+                if line:
+                    out.append(line)
+    except OSError:
+        pass
+    return out
+
+
+def networks(lines):
+    nets = []
+    for line in lines:
+        try:
+            nets.append(ipaddress.ip_network(line, strict=False))
+        except ValueError:
+            pass
+    return nets
+
+
+def tool_path():
+    return os.environ.get("PATH", "") + ":/usr/local/sbin:/usr/sbin:/sbin:/usr/bin:/bin"
+
+
+def find(binary):
+    return shutil.which(binary, path=tool_path())
+
+
+def own_addresses():
+    """Edge's own IPv4 addresses and default gateway (never dropped)."""
+    found = set()
+    ip = find("ip")
+    if not ip:
+        return found
+    for args, pattern in ((["-4", "-o", "addr", "show"], r"inet ([0-9.]+)"),
+                          (["-4", "route", "show", "default"], r"via ([0-9.]+)")):
+        try:
+            res = subprocess.run([ip] + args, capture_output=True, text=True, timeout=5)
+        except (OSError, subprocess.SubprocessError):
+            continue
+        for m in re.finditer(pattern, res.stdout):
+            try:
+                found.add(ipaddress.ip_address(m.group(1)))
+            except ValueError:
+                pass
+    return found
+
+
+class Ctx:
+    def __init__(self, alert):
+        data = alert.get("data") if isinstance(alert.get("data"), dict) else {}
+        rule = alert.get("rule") if isinstance(alert.get("rule"), dict) else {}
+        self.raw = data.get("srcip", "")
+        self.ip = None
+        try:
+            ip = ipaddress.ip_address(str(self.raw))
+            if ip.version == 4:
+                self.ip = ip
+        except ValueError:
+            pass
+        self.rule_id = clean(rule.get("id", ""), 16)
+        self.alert_id = clean(alert.get("id", ""), 64)
+        self.instance = socket.gethostname()
+
+
+def log_action(ctx, result, reason):
+    rec = {"ts": now_iso(), "level": {"ok": "info", "refused": "warning"}.get(result, "error"),
+           "service": "ar", "instance": ctx.instance, "event": "ar.action",
+           "msg": "%s %s: %s" % (NAME, result, reason),
+           "ar_command": NAME, "target": str(ctx.ip) if ctx.ip else clean(ctx.raw)}
+    if ctx.ip:
+        rec["srcip"] = str(ctx.ip)
+    if ctx.rule_id:
+        rec["rule_id"] = ctx.rule_id
+    if ctx.alert_id:
+        rec["alert_id"] = ctx.alert_id
+    rec["result"] = result
+    rec["reason"] = reason[:300]
+    try:
+        os.makedirs(os.path.dirname(AR_LOG), exist_ok=True)
+        fd = os.open(AR_LOG, os.O_WRONLY | os.O_APPEND | os.O_CREAT, 0o640)
+        try:
+            fcntl.flock(fd, fcntl.LOCK_EX)
+            os.write(fd, (json.dumps(rec, separators=(",", ":")) + "\n").encode())
+        finally:
+            os.close(fd)
+    except OSError as exc:
+        print("%s: cannot write %s: %s" % (NAME, AR_LOG, exc), file=sys.stderr)
+
+
+def rule_args(op, chain, ip):
+    return ["-w", "5", op, chain, "-s", str(ip), "-j", "DROP"]
+
+
+def apply_drop(ip, delete):
+    """Add or remove the DROP rules. Returns (result, reason)."""
+    ipt = find("iptables")
+    if not ipt:
+        return "error", "iptables_not_found"
+    done = 0
+    for chain in CHAINS:
+        present = subprocess.run([ipt] + rule_args("-C", chain, ip), capture_output=True).returncode == 0
+        if delete and present:
+            op = "-D"
+        elif not delete and not present:
+            op = "-I"
+        else:
+            continue
+        res = subprocess.run([ipt] + rule_args(op, chain, ip), capture_output=True, text=True)
+        if res.returncode != 0:
+            return "error", "iptables_failed: %s %s: %s" % (op, chain, clean(res.stderr.strip(), 100))
+        done += 1
+    if delete:
+        return "ok", "drop_removed" if done else "drop_not_present"
+    return "ok", "drop_added" if done else "already_dropped"
+
+
+def planned(ip, delete):
+    return ["iptables %s" % " ".join(rule_args("-D" if delete else "-I", c, ip)) for c in CHAINS]
+
+
+def gate(ctx):
+    """None if this agent must stay silent, else (ok, result, reason) about the address."""
+    if (read_lines(os.path.join(ETC, "role")) or [""])[0] != "edge":
+        return None
+    nets = networks(read_lines(os.path.join(ETC, "city-net")))
+    if ctx.ip is None:
+        return False, "refused", "invalid_srcip"
+    if not nets:
+        return False, "error", "city_net_missing"
+    if not any(ctx.ip in n for n in nets if n.version == 4):
+        return None
+    return True, "ok", ""
+
+
+def address_guards(ctx):
+    ip = ctx.ip
+    if not ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_multicast or ip.is_unspecified:
+        return "refused", "not_private"
+    if ip in own_addresses():
+        return "refused", "own_or_gateway_address"
+    for net in networks(read_lines(os.path.join(ETC, "ar-whitelist"))):
+        if net.version == 4 and ip in net:
+            return "refused", "whitelisted"
+    return None
+
+
+def extract(msg):
+    if isinstance(msg, dict) and isinstance(msg.get("parameters"), dict):
+        return msg.get("command", "add"), msg["parameters"].get("alert") or {}
+    return "add", msg if isinstance(msg, dict) else {}
+
+
+def manual(mode, path):
+    try:
+        if path:
+            with open(path, encoding="utf-8") as fh:
+                msg = json.load(fh)
+        elif mode == "--self-test":
+            # documentation sample: a private address built from its integer value
+            msg = {"id": "1730000000.1", "rule": {"id": "110110"},
+                   "data": {"srcip": str(ipaddress.ip_address(0x0A000063))}}
+        else:
+            msg = json.load(sys.stdin)
+    except (OSError, ValueError) as exc:
+        print("cannot read alert: %s" % exc, file=sys.stderr)
+        return 2
+    command, alert = extract(msg)
+    ctx = Ctx(alert)
+    if ctx.ip is None:
+        print("%s: no valid IPv4 srcip in the alert: would refuse" % NAME)
+        return 1 if mode == "--self-test" else 0
+    delete = command == "delete"
+    print("%s %s: %s srcip %s rule %s" % (NAME, mode[2:], command, ctx.ip, ctx.rule_id))
+    if mode == "--dry-run":
+        g = gate(ctx)
+        if g is None:
+            print("  not an edge, or srcip outside the city network: no-op")
+            return 0
+        if not g[0]:
+            print("  would %s: %s" % (g[1], g[2]))
+            return 0
+        guard = address_guards(ctx) if not delete else None
+        if guard:
+            print("  would %s: %s" % guard)
+            return 0
+    for line in planned(ctx.ip, delete):
+        print("  " + line)
+    print("%s ok" % mode[2:])
+    return 0
+
+
+def main():
+    args = sys.argv[1:]
+    if args and args[0] in ("--self-test", "--dry-run"):
+        return manual(args[0], args[1] if len(args) > 1 else None)
+    if args:
+        print(__doc__, file=sys.stderr)
+        return 2
+    try:
+        msg = json.loads(sys.stdin.readline())
+    except ValueError:
+        print("%s: invalid input" % NAME, file=sys.stderr)
+        return 0
+    command, alert = extract(msg)
+    if command not in ("add", "delete"):
+        return 0
+    ctx = Ctx(alert)
+    try:
+        g = gate(ctx)
+        if g is None:
+            return 0
+        if not g[0]:
+            log_action(ctx, g[1], g[2])
+            return 0
+        delete = command == "delete"
+        if not delete:
+            out = {"version": 1, "origin": {"name": NAME, "module": "active-response"},
+                   "command": "check_keys", "parameters": {"keys": [str(ctx.ip)]}}
+            sys.stdout.write(json.dumps(out) + "\n")
+            sys.stdout.flush()
+            try:
+                reply = json.loads(sys.stdin.readline())
+            except ValueError:
+                reply = {}
+            if reply.get("command") == "abort":
+                return 0
+            guard = address_guards(ctx)
+            if guard:
+                log_action(ctx, *guard)
+                return 0
+        log_action(ctx, *apply_drop(ctx.ip, delete))
+    except Exception as exc:
+        log_action(ctx, "error", "internal: %s" % clean(exc, 120))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

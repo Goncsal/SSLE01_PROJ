@@ -1,0 +1,74 @@
+[
+ {
+  "job": "alertmanager",
+  "instance": "alertmanager.monitoring.svc:9093",
+  "health": "up",
+  "scrapeUrl": "http://alertmanager.monitoring.svc:9093/metrics"
+ },
+ {
+  "job": "billing",
+  "instance": "10.42.1.31:8002",
+  "health": "up",
+  "scrapeUrl": "http://10.42.1.31:8002/metrics"
+ },
+ {
+  "job": "cadvisor",
+  "instance": "k3s-master",
+  "health": "up",
+  "scrapeUrl": "https://kubernetes.default.svc:443/api/v1/nodes/k3s-master/proxy/metrics/cadvisor"
+ },
+ {
+  "job": "cadvisor",
+  "instance": "k3s-node1",
+  "health": "up",
+  "scrapeUrl": "https://kubernetes.default.svc:443/api/v1/nodes/k3s-node1/proxy/metrics/cadvisor"
+ },
+ {
+  "job": "csms",
+  "instance": "10.42.0.41:8000",
+  "health": "up",
+  "scrapeUrl": "http://10.42.0.41:8000/metrics"
+ },
+ {
+  "job": "csms",
+  "instance": "10.42.1.36:8000",
+  "health": "up",
+  "scrapeUrl": "http://10.42.1.36:8000/metrics"
+ },
+ {
+  "job": "federate-aveiro",
+  "instance": "edge.aveiro.pt.lab:9090",
+  "health": "up",
+  "scrapeUrl": "http://edge.aveiro.pt.lab:9090/federate"
+ },
+ {
+  "job": "federate-lisboa",
+  "instance": "edge.lisboa.pt.lab:9090",
+  "health": "up",
+  "scrapeUrl": "http://edge.lisboa.pt.lab:9090/federate"
+ },
+ {
+  "job": "federate-porto",
+  "instance": "edge.porto.pt.lab:9090",
+  "health": "up",
+  "scrapeUrl": "http://edge.porto.pt.lab:9090/federate"
+ },
+ {
+  "job": "grafana",
+  "instance": "grafana.monitoring.svc:3000",
+  "health": "up",
+  "scrapeUrl": "http://grafana.monitoring.svc:3000/metrics"
+ },
+ {
+  "job": "prometheus",
+  "instance": "prometheus.monitoring.svc:9090",
+  "health": "up",
+  "scrapeUrl": "http://prometheus.monitoring.svc:9090/metrics"
+ },
+ {
+  "job": "registry",
+  "instance": "10.42.1.30:8001",
+  "health": "up",
+  "scrapeUrl": "http://10.42.1.30:8001/metrics"
+ }
+]
