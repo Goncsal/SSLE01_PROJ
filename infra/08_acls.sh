@@ -121,8 +121,17 @@ build_city() {
 }
 
 acl_yaml() { # acl
+  # No "name:" field: the ACL's name is already given positionally to both `incus network
+  # acl create <name>` and `... edit <name>`, and on incus 7.5.1 a "name:" field in the
+  # piped body makes `create` fail ("yaml: construct errors: ... field name not found in
+  # type api.NetworkACLPut") even though `edit` silently tolerates it -- confirmed by
+  # reproducing both ways against a throwaway test ACL, read-only to anything evcharge
+  # uses. Previously this made every first-time `apply` fail outright (the ACL objects were
+  # never created) while still setting the network's default-drop actions -- effectively a
+  # believed-applied-but-actually-absent ACL with the drop actions (harmlessly) orphaned,
+  # since incus does not enforce default actions without at least one ACL attached.
   local acl="$1" e="${YAML["$1|egress"]:-}" i="${YAML["$1|ingress"]:-}"
-  printf 'name: %s\ndescription: "evcharge city ACL (managed by infra/08_acls.sh)"\n' "$acl"
+  printf 'description: "evcharge city ACL (managed by infra/08_acls.sh)"\n'
   if [ -n "$e" ]; then printf 'egress:\n%s' "$e"; else printf 'egress: []\n'; fi
   if [ -n "$i" ]; then printf 'ingress:\n%s' "$i"; else printf 'ingress: []\n'; fi
 }

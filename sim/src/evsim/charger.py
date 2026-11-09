@@ -117,6 +117,7 @@ class ChargerSim:
         self.reset_type: str | None = None
         self.cp: _ClientCP | None = None
         self.heartbeat_interval = 30
+        self._connect_failing = False  # state-transition flag, see run()'s except Exception
 
     # ---- CSMS-initiated commands (called from the OCPP handler) -----------
     def request_remote_stop(self, transaction_id: int) -> bool:
@@ -151,6 +152,10 @@ class ChargerSim:
             try:
                 reset = await self._session(stopping)
                 backoff = 1.0  # the session was established: the next retry starts from one second
+                if self._connect_failing:
+                    self.log.warning("sim.connect_recovered", "connection attempts succeeded again",
+                                     hier_id=self.hier_id, csms_url=self.opts.csms_url)
+                    self._connect_failing = False
             except InvalidStatus as e:
                 self.log.warning("sim.rejected", "CSMS refused the WebSocket handshake",
                                  hier_id=self.hier_id, http_status=e.response.status_code)
@@ -158,8 +163,17 @@ class ChargerSim:
                     break
                 await self._sleep_or(self.opts.reject_backoff, stopping)
                 continue
-            except Exception:
-                pass
+            except Exception as exc:
+                # Previously silent (bare `except Exception: pass`), which hid every DNS/
+                # routing/TLS failure from the operator. Log once on the first failure and
+                # once on recovery (above) rather than on every retry, so a PoC that never
+                # connects is visible without flooding the log; timing/backoff/reconnect
+                # behaviour below is unchanged.
+                if not self._connect_failing:
+                    self.log.warning("sim.connect_failed", "could not connect to the CSMS",
+                                     hier_id=self.hier_id, csms_url=self.opts.csms_url,
+                                     reason=f"{type(exc).__name__}: {exc}")
+                    self._connect_failing = True
             if stopping.is_set():
                 break
             if reset:

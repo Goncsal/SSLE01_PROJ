@@ -46,6 +46,9 @@ banner "1/3 rogue duplicate id (Porto, TLS city)" \
        "ident.no_cert (110105); ident.ip_mismatch (110104); charger.duplicate_id (110100)" \
        "composite 110130/110131 -> quarantine-charger (+ edge IP drop only for 110130)"
 "$HIJACK_DIR/rogue_dupe.sh" --duration "$DURATION" "$MODE_FLAG"
+# Read-only: report (not yet auto-reset) whether scenario 1 left the target quarantined
+# or edge-firewalled, so scenario 2's result stays interpretable.
+report_target_state "pt.porto.st-001.cp-1" "porto"
 pause_between
 
 banner "2/3 stolen certificate from another host (Porto)" \

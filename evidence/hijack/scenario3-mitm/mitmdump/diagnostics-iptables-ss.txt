@@ -1,0 +1,17 @@
+-- diagnostics: captured now, before cleanup deletes aveiro-interceptor --
+   iptables PREROUTING counters on aveiro-interceptor:
+     Chain PREROUTING (policy ACCEPT 3 packets, 139 bytes)
+      pkts bytes target     prot opt in     out     source               destination         
+         2   120 REDIRECT   tcp  --  eth1   *       10.240.50.10         0.0.0.0/0            tcp dpt:80 redir ports 8080
+   listening sockets on aveiro-interceptor:
+     State  Recv-Q Send-Q Local Address:Port Peer Address:PortProcess                                   
+     LISTEN 0      100          0.0.0.0:8080      0.0.0.0:*    users:(("mitmdump",pid=531,fd=6))        
+     LISTEN 0      4096         0.0.0.0:5355      0.0.0.0:*    users:(("systemd-resolve",pid=143,fd=12))
+     LISTEN 0      4096   127.0.0.53%lo:53        0.0.0.0:*    users:(("systemd-resolve",pid=143,fd=18))
+     LISTEN 0      4096      127.0.0.54:53        0.0.0.0:*    users:(("systemd-resolve",pid=143,fd=20))
+     LISTEN 0      100             [::]:8080         [::]:*    users:(("mitmdump",pid=531,fd=7))        
+     LISTEN 0      4096            [::]:5355         [::]:*    users:(("systemd-resolve",pid=143,fd=14))
+   pulling aveiro-interceptor:/root/mitm.log (mitmdump's own log: addon load, addon errors, rewrite confirmations) ...
+   saved: /tmp/mitm-aveiro-mitmdump.log -- read this next, it is the single most useful diagnostic for whether/why the rewrite did or didn't happen
+
+mitm_aveiro: done (interceptor, isolated network and the station's networking will be restored on exit)
