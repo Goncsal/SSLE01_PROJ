@@ -86,6 +86,23 @@ split from 110405 (registry quarantine/release); 110412 keeps `ar.evidence` line
 - The `station-sockets` command is `netwatch.py --sockets`: only destinations outside the
   allow file, so queue sizes, pids and ephemeral ports no longer change the output (the raw
   `ss` output made 110305 fire about 250 times per hour).
+- **110304 cross-agent fix (2026-11-10).** `analysisd.rule_matching_threads` defaults to one
+  thread per core; events are assigned to a thread by agent, and frequency/composite rule
+  state (the `if_matched_sid` counters) lives per thread, not globally. 110304 correlates
+  three *different* stations (three different agents) within one window, so it could silently
+  miss agents hashed to a different thread even though logtest (one pseudo-agent, no thread
+  split) always showed it firing. `deploy_manager.sh` now installs
+  `analysisd.rule_matching_threads=1` in `local_internal_options.conf` (single-threaded rule
+  matching; the lab's ~21 agents need none of the parallelism). `wazuh/tests/botnet.expect`
+  gained a cross-city positive case (porto+lisboa+aveiro stations, one dstip) alongside the
+  existing same-city one. Logtest cannot exercise the real multi-agent/multi-thread path
+  (it has no agent concept), so this remains unverified against genuinely concurrent agents;
+  watch 110304 the first time it must fire live in W8.
+- **Correlator outbox (2026-11-10).** `evcharge-correlator-outbox.json` grows unbounded
+  (capped only at 10 MB) while no correlator is deployed to receive the forwarded alerts.
+  Backed up to a timestamped `.bak-<UTC>` copy next to it and truncated to empty before the
+  W9 replay; `custom-correlator` always opens it in append mode per call, so truncating it
+  out of band is safe and does not race a concurrent writer.
 
 ## Roll back
 

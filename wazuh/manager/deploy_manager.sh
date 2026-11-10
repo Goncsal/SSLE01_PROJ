@@ -74,6 +74,20 @@ for f in evcharge-plain-cities evcharge-ip-exceptions evcharge-card-allowlist; d
   put "$OSSEC/etc/lists/$f" 660 wazuh:wazuh <"$WAZUH/lists/$f"
 done
 
+# analysisd partitions agents across analysisd.rule_matching_threads threads (default:
+# one per core) and keeps each thread's frequency/composite rule state separate, so a
+# cross-agent rule (110304: three stations, three different agents, same dstip) can miss
+# agents hashed to a different thread even though every single agent's own events are
+# still matched correctly (same root cause as the 110110 per-agent tuning). The lab's
+# ~21 agents need none of that parallelism, so force one rule-matching thread.
+put "$OSSEC/etc/local_internal_options.conf" 640 root:wazuh < <(
+  printf '%s\n' \
+    "# evcharge: force single-threaded rule matching so cross-agent frequency rules" \
+    "# (110304 and similar) correlate all agents instead of being split per worker" \
+    "# thread (see wazuh/manager/README.md, '110304 cross-agent fix')." \
+    "analysisd.rule_matching_threads=1"
+)
+
 # text export of the card allow-list for the active response (keys of the CDB list)
 put "$EVC/card-allowlist" 640 root:wazuh < <({ grep -vE '^\s*(#|$)' "$WAZUH/lists/evcharge-card-allowlist" || true; } | cut -d: -f1)
 

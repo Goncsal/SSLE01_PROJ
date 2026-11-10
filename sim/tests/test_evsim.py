@@ -548,3 +548,58 @@ def test_clone_pattern_stands_out_against_city_local_traffic():
     assert state.take() == victim                      # injected, bypasses honest selection
     seen_in = [c for c in cities if victim in honest[c]] + [cities[1]]  # clone used in city 2
     assert len(set(seen_in)) == 2                      # two cities, same card: impossible travel
+
+
+# ---- reconnect after the edge drops every connection ---------------------------
+def test_reconnects_after_server_restart(tmp_path):
+    asyncio.run(_reconnect_after_restart(tmp_path))
+
+
+async def _reconnect_after_restart(tmp_path):
+    roster = load_roster(FIXTURE_ROSTER)
+    entry = _entry(roster, "pt.porto.st-001.cp-1")
+    log = setup_logging("sim", instance="t-restart", log_dir=tmp_path, stdout=False)
+    grid = metrics.GridMeter(STATION_LABELS)
+    rec = Recorder()
+    server, port = await _serve(on_message=rec)
+    stopping = asyncio.Event()
+    sim = ChargerSim(entry, roster, _opts(f"ws://127.0.0.1:{port}/ocpp"), random.Random(5), log, grid)
+    task = asyncio.create_task(sim.run(stopping))
+    try:
+        assert await _wait_until(lambda: rec.count("StartTransaction") >= 1)
+        server.close(close_connections=True)
+        await server.wait_closed()
+        await asyncio.sleep(1.0)  # edge down: attempts fail and back off
+        assert not task.done()
+        server, _ = await _serve(port, on_message=rec)
+        assert await _wait_until(lambda: rec.count("BootNotification") >= 2, timeout=8.0)
+    finally:
+        stopping.set()
+        await asyncio.gather(task, return_exceptions=True)
+        await _close(server)
+
+
+def test_connects_when_server_comes_up_late(tmp_path):
+    asyncio.run(_connects_late(tmp_path))
+
+
+async def _connects_late(tmp_path):
+    roster = load_roster(FIXTURE_ROSTER)
+    entry = _entry(roster, "pt.porto.st-001.cp-1")
+    log = setup_logging("sim", instance="t-late", log_dir=tmp_path, stdout=False)
+    grid = metrics.GridMeter(STATION_LABELS)
+    rec = Recorder()
+    server, port = await _serve(on_message=rec)
+    await _close(server)  # nothing listens on `port`: the first attempts are refused
+    stopping = asyncio.Event()
+    sim = ChargerSim(entry, roster, _opts(f"ws://127.0.0.1:{port}/ocpp"), random.Random(5), log, grid)
+    task = asyncio.create_task(sim.run(stopping))
+    try:
+        await asyncio.sleep(1.5)
+        assert not task.done()
+        server, _ = await _serve(port, on_message=rec)
+        assert await _wait_until(lambda: rec.count("BootNotification") >= 1, timeout=8.0)
+    finally:
+        stopping.set()
+        await asyncio.gather(task, return_exceptions=True)
+        await _close(server)

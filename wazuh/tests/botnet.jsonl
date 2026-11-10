@@ -27,6 +27,10 @@
 {"ts":"2026-11-06T10:00:26.000Z","level":"warning","service":"netwatch","instance":"netwatch","event":"host.new_outbound","msg":"host new_outbound","process":"python3","dstip":"203.0.113.52","dstport":4444,"hier_id":"pt.porto.st-001"}
 {"ts":"2026-11-06T10:00:27.000Z","level":"warning","service":"netwatch","instance":"netwatch","event":"host.new_outbound","msg":"host new_outbound","process":"python3","dstip":"203.0.113.53","dstport":4444,"hier_id":"pt.porto.st-001"}
 {"_session":"reset"}
+{"ts":"2026-11-06T10:00:29.000Z","level":"warning","service":"netwatch","instance":"netwatch","event":"host.new_outbound","msg":"host new_outbound","process":"python3","dstip":"203.0.113.50","dstport":4444,"hier_id":"pt.porto.st-001"}
+{"ts":"2026-11-06T10:00:30.000Z","level":"warning","service":"netwatch","instance":"netwatch","event":"host.new_outbound","msg":"host new_outbound","process":"python3","dstip":"203.0.113.50","dstport":4444,"hier_id":"pt.lisboa.st-002"}
+{"ts":"2026-11-06T10:00:31.000Z","level":"warning","service":"netwatch","instance":"netwatch","event":"host.new_outbound","msg":"host new_outbound","process":"python3","dstip":"203.0.113.50","dstport":4444,"hier_id":"pt.aveiro.st-003"}
+{"_session":"reset"}
 ossec: output: 'station-sockets': ESTAB 0 0 10.31.0.16:41000 10.31.0.2:443 users:(("python3",pid=210,fd=5))
 ossec: output: 'station-sockets': ESTAB 0 0 10.31.0.16:41000 10.31.0.2:443 users:(("python3",pid=210,fd=5)) | ESTAB 0 0 10.31.0.16:41022 203.0.113.50:4444 users:(("nc",pid=300,fd=3))
 ossec: output: 'station-sockets': ESTAB 0 0 10.31.0.16:41000 10.31.0.2:443 users:(("python3",pid=210,fd=5)) | ESTAB 0 0 10.31.0.16:41022 203.0.113.50:4444 users:(("nc",pid=300,fd=3))

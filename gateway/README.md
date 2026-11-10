@@ -49,7 +49,7 @@ whole session in `duration_s`; refusals are logged at once.
 | Script | Purpose |
 |---|---|
 | `render.sh <city> --tls\|--plain [--upstreams "h:p ..."]` | prints the configuration from `nginx.conf.tmpl`; `EDGE_RATE`, `EDGE_BURST`, `EDGE_CONN` override the limits |
-| `deploy_edge.sh <city> [--tls\|--plain] [--instance N] [--pki-skip] [--upstreams ...]` | installs nginx and the exporters (nginx exporter on :9113, node exporter on :9100), exports certificates with `pki/export.sh` (TLS only), pushes the configuration to `/etc/nginx/conf.d/evcharge.conf`, `nginx -t` (rolls back on failure), reloads. Idempotent |
+| `deploy_edge.sh <city> [--tls\|--plain] [--instance N] [--pki-skip] [--upstreams ...]` | installs nginx and the exporters (nginx exporter on :9113, node exporter on :9100), exports certificates with `pki/export.sh` (TLS only), pushes the configuration to `/etc/nginx/conf.d/evcharge.conf`, `nginx -t` (rolls back on failure), installs a systemd drop-in (`Restart=on-failure`, `RestartSec=5`, after `network-online.target`) so nginx keeps retrying when the K3s names do not resolve yet after a host reboot, reloads. Idempotent |
 | `push_crl.sh [--instance N] [city ...]` | streams `/root/ca/crl.pem` from `lab-ca` to each edge's `/etc/evcharge/pki/crl.pem`, `nginx -t && systemctl reload nginx`; skips plain edges; exit 1 if any fails |
 | `tests/run_edgetest.sh` | acceptance test in a throwaway instance `edgetest` with its own CA (keys generated inside it, instance deleted afterwards) |
 

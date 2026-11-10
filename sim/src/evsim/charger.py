@@ -152,10 +152,7 @@ class ChargerSim:
             try:
                 reset = await self._session(stopping)
                 backoff = 1.0  # the session was established: the next retry starts from one second
-                if self._connect_failing:
-                    self.log.warning("sim.connect_recovered", "connection attempts succeeded again",
-                                     hier_id=self.hier_id, csms_url=self.opts.csms_url)
-                    self._connect_failing = False
+                self._connect_failing = False
             except InvalidStatus as e:
                 self.log.warning("sim.rejected", "CSMS refused the WebSocket handshake",
                                  hier_id=self.hier_id, http_status=e.response.status_code)
@@ -170,9 +167,12 @@ class ChargerSim:
                 # connects is visible without flooding the log; timing/backoff/reconnect
                 # behaviour below is unchanged.
                 if not self._connect_failing:
-                    self.log.warning("sim.connect_failed", "could not connect to the CSMS",
-                                     hier_id=self.hier_id, csms_url=self.opts.csms_url,
-                                     reason=f"{type(exc).__name__}: {exc}")
+                    # Only events of the log vocabulary are accepted (an unknown one raises
+                    # ValueError): reuse sim.disconnect, or this handler would end the
+                    # task and the charger would never reconnect.
+                    self.log.warning("sim.disconnect", "could not connect to the CSMS",
+                                     hier_id=self.hier_id,
+                                     reason=f"connect_failed: {type(exc).__name__}: {exc}")
                     self._connect_failing = True
             if stopping.is_set():
                 break

@@ -27,12 +27,22 @@ def build_parser() -> argparse.ArgumentParser:
 
 def make_handler(task: str, rate_hz: float, duration_s: float):
     class Handler(BaseHTTPRequestHandler):
+        # HTTP/1.1 so the bot's persistent client (httpx.AsyncClient, one connection for
+        # the whole beacon loop) keeps a single TCP connection open instead of
+        # reconnecting on every beacon (BaseHTTPRequestHandler defaults to HTTP/1.0,
+        # which closes the connection after each response) -- netwatch's periodic `ss`
+        # snapshot can only see the beacon as an established outbound connection while
+        # it stays open. Every response below sets Content-Length so keep-alive framing
+        # stays correct.
+        protocol_version = "HTTP/1.1"
+
         def log_message(self, fmt, *a):  # quieter stdout
             pass
 
         def do_POST(self) -> None:
             if self.path != "/beacon":
                 self.send_response(404)
+                self.send_header("Content-Length", "0")
                 self.end_headers()
                 return
             length = int(self.headers.get("Content-Length", 0))

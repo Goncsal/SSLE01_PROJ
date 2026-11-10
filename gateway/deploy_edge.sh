@@ -67,6 +67,20 @@ if ! ix nginx -t 2>&1; then
   echo "nginx -t failed, previous configuration restored" >&2; exit 1
 fi
 ix rm -f $conf.prev
+# Upstream names (<node>.incus) may not resolve yet when the edge boots before the K3s nodes
+# (host reboot): nginx then exits with "host not found in upstream". Retry until they do.
+ix mkdir -p /etc/systemd/system/nginx.service.d
+ix sh -c 'cat > /etc/systemd/system/nginx.service.d/retry.conf' <<'DROPIN'
+[Unit]
+Wants=network-online.target
+After=network-online.target
+StartLimitIntervalSec=0
+
+[Service]
+Restart=on-failure
+RestartSec=5
+DROPIN
+ix systemctl daemon-reload
 ix systemctl enable nginx prometheus-nginx-exporter prometheus-node-exporter >/dev/null 2>&1
 ix systemctl restart prometheus-nginx-exporter
 ix systemctl start prometheus-node-exporter
