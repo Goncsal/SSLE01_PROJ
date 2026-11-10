@@ -1,0 +1,216 @@
+{
+  "incident_id": "4936df6d-90f6-45c9-bd1a-7ec3604ddfa8",
+  "kind": "botnet",
+  "status": "closed",
+  "severity": "critical",
+  "root_cause": {
+    "key_type": "hier_id",
+    "key": "pt.aveiro",
+    "hier_id": "pt.aveiro",
+    "host": null,
+    "ip": null,
+    "city": "aveiro",
+    "edge": "pt.aveiro.edge",
+    "explanation": "3 signal(s) concern 3 elements; their lowest common element is pt.aveiro (city)"
+  },
+  "signals": [
+    {
+      "signal_id": "1794333951.177976",
+      "source": "wazuh",
+      "key_type": "hier_id",
+      "key": "pt.aveiro.st-001",
+      "hier_id": "pt.aveiro.st-001",
+      "other_hier_id": null,
+      "srcip": null,
+      "card": null,
+      "city": "aveiro",
+      "kind": "botnet",
+      "severity": "warning",
+      "name": "110303",
+      "ts": "2026-11-10T18:53:40.214000Z",
+      "last_ts": "2026-11-10T18:53:40.214000Z",
+      "count": 1,
+      "response": false,
+      "dedupe_key": "wazuh|110303|pt.aveiro.st-001|None|None",
+      "raw": {
+        "rule": {
+          "id": "110303",
+          "level": 8,
+          "description": "Botnet: pt.aveiro.st-001 opened a new outbound connection to 10.255.255.173:8099 by python (T0869).",
+          "groups": [
+            "evcharge",
+            "botnet",
+            "mitre_ics_T0869"
+          ]
+        },
+        "data": {
+          "dstip": "10.255.255.173",
+          "dstport": "8099",
+          "ts": "2026-11-10T18:53:40.214Z",
+          "level": "warning",
+          "service": "netwatch",
+          "instance": "pt.aveiro.st-001",
+          "event": "host.new_outbound",
+          "msg": "new outbound connection to 10.255.255.173:8099 by python",
+          "hier_id": "pt.aveiro.st-001",
+          "process": "python",
+          "city": "aveiro",
+          "station": "st-001"
+        },
+        "id": "1794333951.177976"
+      }
+    },
+    {
+      "signal_id": "1794333950.176608",
+      "source": "wazuh",
+      "key_type": "hier_id",
+      "key": "pt.aveiro.st-002",
+      "hier_id": "pt.aveiro.st-002",
+      "other_hier_id": null,
+      "srcip": null,
+      "card": null,
+      "city": "aveiro",
+      "kind": "botnet",
+      "severity": "warning",
+      "name": "110303",
+      "ts": "2026-11-10T18:53:40.769000Z",
+      "last_ts": "2026-11-10T18:53:40.769000Z",
+      "count": 1,
+      "response": false,
+      "dedupe_key": "wazuh|110303|pt.aveiro.st-002|None|None",
+      "raw": {
+        "rule": {
+          "id": "110303",
+          "level": 8,
+          "description": "Botnet: pt.aveiro.st-002 opened a new outbound connection to 10.255.255.173:8099 by python (T0869).",
+          "groups": [
+            "evcharge",
+            "botnet",
+            "mitre_ics_T0869"
+          ]
+        },
+        "data": {
+          "dstip": "10.255.255.173",
+          "dstport": "8099",
+          "ts": "2026-11-10T18:53:40.769Z",
+          "level": "warning",
+          "service": "netwatch",
+          "instance": "pt.aveiro.st-002",
+          "event": "host.new_outbound",
+          "msg": "new outbound connection to 10.255.255.173:8099 by python",
+          "hier_id": "pt.aveiro.st-002",
+          "process": "python",
+          "city": "aveiro",
+          "station": "st-002"
+        },
+        "id": "1794333950.176608"
+      }
+    },
+    {
+      "signal_id": "1794334015.1194030",
+      "source": "wazuh",
+      "key_type": "hier_id",
+      "key": "pt.aveiro.st-001.cp-2",
+      "hier_id": "pt.aveiro.st-001.cp-2",
+      "other_hier_id": null,
+      "srcip": "10.33.0.215",
+      "card": null,
+      "city": "aveiro",
+      "kind": "botnet",
+      "severity": "critical",
+      "name": "110301",
+      "ts": "2026-11-10T18:54:45.149000Z",
+      "last_ts": "2026-11-10T18:54:45.149000Z",
+      "count": 1,
+      "response": false,
+      "dedupe_key": "wazuh|110301|pt.aveiro.st-001.cp-2|10.33.0.215|None",
+      "raw": {
+        "rule": {
+          "id": "110301",
+          "level": 10,
+          "description": "Botnet: pt.aveiro.st-001.cp-2 disconnected for flooding (T0814).",
+          "groups": [
+            "evcharge",
+            "botnet",
+            "mitre_ics_T0814"
+          ]
+        },
+        "data": {
+          "srcip": "10.33.0.215",
+          "ts": "2026-11-10T18:54:45.149Z",
+          "level": "warning",
+          "service": "csms",
+          "instance": "csms-6d9bc957cf-8v5l8",
+          "event": "conn.kicked",
+          "msg": "connection closed by the CSMS: rate_limit",
+          "hier_id": "pt.aveiro.st-001.cp-2",
+          "reason": "rate_limit",
+          "city": "aveiro",
+          "station": "st-001",
+          "charger": "cp-2"
+        },
+        "id": "1794334015.1194030"
+      }
+    },
+    {
+      "signal_id": "1794334116.1240899",
+      "source": "wazuh",
+      "key_type": "hier_id",
+      "key": "pt.aveiro.st-001",
+      "hier_id": "pt.aveiro.st-001",
+      "other_hier_id": null,
+      "srcip": null,
+      "card": null,
+      "city": "aveiro",
+      "kind": "infra",
+      "severity": "info",
+      "name": "110405",
+      "ts": "2026-11-10T18:56:26.292000Z",
+      "last_ts": "2026-11-10T18:56:26.292000Z",
+      "count": 1,
+      "response": true,
+      "dedupe_key": "wazuh|110405|pt.aveiro.st-001|None|None",
+      "raw": {
+        "rule": {
+          "id": "110405",
+          "level": 4,
+          "description": "Response audit: registry registry.quarantine for pt.aveiro.st-001 (source wazuh).",
+          "groups": [
+            "evcharge",
+            "infra"
+          ]
+        },
+        "data": {
+          "ts": "2026-11-10T18:56:26.292Z",
+          "level": "warning",
+          "service": "registry",
+          "instance": "registry-5489694d8-hbdmd",
+          "event": "registry.quarantine",
+          "msg": "quarantine pt.aveiro.st-001",
+          "hier_id": "pt.aveiro.st-001",
+          "reason": "botnet C2 fleet (110303/110300 flood); bulk quarantine response",
+          "source": "wazuh",
+          "operator": "admin",
+          "city": "aveiro",
+          "station": "st-001"
+        },
+        "id": "1794334116.1240899"
+      }
+    }
+  ],
+  "keys": {
+    "hier_id": [
+      "pt.aveiro.st-002",
+      "pt.aveiro.st-001",
+      "pt.aveiro.st-001.cp-2"
+    ],
+    "srcip": [
+      "10.33.0.215"
+    ]
+  },
+  "t_first_signal": "2026-11-10T18:53:40.214000Z",
+  "t_located": "2026-11-10T18:53:40.962106Z",
+  "t_mitigated": "2026-11-10T18:56:26.292000Z",
+  "t_closed": "2026-11-10T18:58:01.715570Z",
+  "summary": "botnet at pt.aveiro: 4 alert(s) from wazuh"
+}

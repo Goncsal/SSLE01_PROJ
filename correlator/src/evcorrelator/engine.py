@@ -141,7 +141,9 @@ class Engine:
         ids_s, ids_m = s.hier_ids, m.hier_ids
         if set(ids_s) & set(ids_m):
             return True
-        if s.kind == m.kind and any(same_branch(a, b) for a in ids_s for b in ids_m):
+        # a response (quarantine of a station, block of a card) names an element above or below
+        # the charger the detections name, and has the kind of the audit rule, not of the threat
+        if (s.kind == m.kind or s.response) and any(same_branch(a, b) for a in ids_s for b in ids_m):
             return True
         return s.kind == "botnet" == m.kind and bool(s.city) and s.city == m.city
 

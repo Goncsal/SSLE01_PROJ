@@ -1,0 +1,61 @@
+{
+  "incident_id": "97c7beb4-8bbf-4552-ae8b-f28901ba9393",
+  "kind": "infra",
+  "status": "closed",
+  "severity": "critical",
+  "root_cause": {
+    "key_type": "hier_id",
+    "key": "pt.aveiro.edge",
+    "hier_id": "pt.aveiro.edge",
+    "host": "aveiro-edge",
+    "ip": "10.33.0.2",
+    "city": "aveiro",
+    "edge": "pt.aveiro.edge",
+    "explanation": "all 1 signal(s) concern pt.aveiro.edge (edge), host aveiro-edge"
+  },
+  "signals": [
+    {
+      "signal_id": "prom-0-1794337195",
+      "source": "prometheus",
+      "key_type": "hier_id",
+      "key": "pt.aveiro.edge",
+      "hier_id": "pt.aveiro.edge",
+      "other_hier_id": null,
+      "srcip": null,
+      "card": null,
+      "city": "aveiro",
+      "kind": "infra",
+      "severity": "critical",
+      "name": "EdgeDown",
+      "ts": "2026-11-10T18:59:55.927000Z",
+      "last_ts": "2026-11-10T18:59:55.927000Z",
+      "count": 1,
+      "response": false,
+      "dedupe_key": "prom|EdgeDown|alertname=EdgeDown|city=aveiro|hier_id=pt.aveiro.edge|severity=critical|site=pt.central|threat=infra",
+      "raw": {
+        "labels": {
+          "alertname": "EdgeDown",
+          "city": "aveiro",
+          "hier_id": "pt.aveiro.edge",
+          "severity": "critical",
+          "site": "pt.central",
+          "threat": "infra"
+        },
+        "annotations": {
+          "description": "The edge pt.aveiro.edge does not answer the federation or its nginx is down (value 0); its stations and chargers are inhibited.",
+          "summary": "Edge of aveiro is down or unreachable"
+        }
+      }
+    }
+  ],
+  "keys": {
+    "hier_id": [
+      "pt.aveiro.edge"
+    ]
+  },
+  "t_first_signal": "2026-11-10T18:59:55.927000Z",
+  "t_located": "2026-11-10T19:00:05.973777Z",
+  "t_mitigated": null,
+  "t_closed": "2026-11-10T19:02:32.806362Z",
+  "summary": "infra at pt.aveiro.edge: 1 alert(s) from prometheus"
+}

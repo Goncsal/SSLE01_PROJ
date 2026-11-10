@@ -1,0 +1,214 @@
+{
+  "incident_id": "14328f62-d7d7-4b83-af0e-8c3a1344dcb1",
+  "kind": "fraud",
+  "status": "closed",
+  "severity": "critical",
+  "root_cause": {
+    "key_type": "card",
+    "key": "E3EE5BE2ED4120",
+    "hier_id": null,
+    "host": null,
+    "ip": null,
+    "city": null,
+    "edge": null,
+    "explanation": "card E3EE5BE2ED4120 appears at 2 chargers that no single element contains (pt.lisboa.st-001.cp-2, pt.porto.st-002.cp-2); the card is the common cause"
+  },
+  "signals": [
+    {
+      "signal_id": "e6c325d5-d9e6-42f8-830e-2045ccfe7362",
+      "source": "fraud",
+      "key_type": "hier_id",
+      "key": "pt.lisboa.st-001.cp-2",
+      "hier_id": "pt.lisboa.st-001.cp-2",
+      "other_hier_id": "pt.porto.st-002.cp-2",
+      "srcip": null,
+      "card": "E3EE5BE2ED4120",
+      "city": "lisboa",
+      "kind": "fraud",
+      "severity": "critical",
+      "name": "impossible_travel",
+      "ts": "2026-11-10T18:53:43.351000Z",
+      "last_ts": "2026-11-10T18:53:43.351000Z",
+      "count": 1,
+      "response": false,
+      "dedupe_key": "fraud|impossible_travel|pt.lisboa.st-001.cp-2|pt.porto.st-002.cp-2|E3EE5BE2ED4120",
+      "raw": {
+        "rule": "impossible_travel",
+        "score": 0.95,
+        "detail": "card E3EE5BE2ED4120 started a session in porto and 26.3 min later in lisboa: 276 km at 629 km/h (alert above 200, block at 400 or overlap): 629 km/h >= 400",
+        "evidence": {
+          "distance_km": 275.5,
+          "speed_kmh": 629.1,
+          "minutes_apart": 26.28,
+          "max_kmh": 200.0,
+          "block_kmh": 400.0,
+          "concurrent": false,
+          "high_confidence": true,
+          "from_city": "porto",
+          "to_city": "lisboa",
+          "transaction_ids": [
+            4359,
+            4400
+          ]
+        }
+      }
+    },
+    {
+      "signal_id": "1794246519.884042",
+      "source": "wazuh",
+      "key_type": "hier_id",
+      "key": "pt.lisboa.st-001.cp-2",
+      "hier_id": "pt.lisboa.st-001.cp-2",
+      "other_hier_id": null,
+      "srcip": null,
+      "card": "E3EE5BE2ED4120",
+      "city": "lisboa",
+      "kind": "fraud",
+      "severity": "critical",
+      "name": "110210",
+      "ts": "2026-11-10T18:53:43.387000Z",
+      "last_ts": "2026-11-10T18:53:43.387000Z",
+      "count": 1,
+      "response": false,
+      "dedupe_key": "wazuh|110210|pt.lisboa.st-001.cp-2|None|E3EE5BE2ED4120",
+      "raw": {
+        "rule": {
+          "id": "110210",
+          "level": 12,
+          "description": "Fraud service: high-confidence cloned card E3EE5BE2ED4120 (pt.lisboa.st-001.cp-2 to pt.porto.st-002.cp-2), block.",
+          "groups": [
+            "evcharge",
+            "fraud",
+            "mitre_ics_T0859"
+          ]
+        },
+        "data": {
+          "ts": "2026-11-10T18:53:43.387Z",
+          "level": "warning",
+          "service": "fraud",
+          "instance": "fraud-87648b9f6-sbtjb",
+          "event": "fraud.alert",
+          "msg": "card E3EE5BE2ED4120 started a session in porto and 26.3 min later in lisboa: 276 km at 629 km/h (alert above 200, block at 400 or overlap): 629 km/h >= 400",
+          "rule": "impossible_travel",
+          "score": "0.950000",
+          "card": "E3EE5BE2ED4120",
+          "hier_id": "pt.lisboa.st-001.cp-2",
+          "other_hier_id": "pt.porto.st-002.cp-2",
+          "severity": "critical",
+          "distance_km": "275.500000",
+          "speed_kmh": "629.100000",
+          "alert_id": "e6c325d5-d9e6-42f8-830e-2045ccfe7362",
+          "auto_action": "block_card",
+          "dry_run": "false",
+          "city": "lisboa",
+          "station": "st-001",
+          "charger": "cp-2"
+        },
+        "id": "1794246519.884042"
+      }
+    },
+    {
+      "signal_id": "1794246519.876717",
+      "source": "wazuh",
+      "key_type": "card",
+      "key": "E3EE5BE2ED4120",
+      "hier_id": null,
+      "other_hier_id": null,
+      "srcip": null,
+      "card": "E3EE5BE2ED4120",
+      "city": null,
+      "kind": "fraud",
+      "severity": "info",
+      "name": "110209",
+      "ts": "2026-11-10T18:53:43.422000Z",
+      "last_ts": "2026-11-10T18:53:43.422000Z",
+      "count": 1,
+      "response": true,
+      "dedupe_key": "wazuh|110209|None|None|E3EE5BE2ED4120",
+      "raw": {
+        "rule": {
+          "id": "110209",
+          "level": 5,
+          "description": "Billing audit: billing.card_blocked for card E3EE5BE2ED4120.",
+          "groups": [
+            "evcharge",
+            "fraud"
+          ]
+        },
+        "data": {
+          "ts": "2026-11-10T18:53:43.422Z",
+          "level": "warning",
+          "service": "billing",
+          "instance": "billing-cfbdd7d65-whgp5",
+          "event": "billing.card_blocked",
+          "msg": "card E3EE5BE2ED4120 blocked",
+          "card": "E3EE5BE2ED4120",
+          "reason": "fraud rule impossible_travel: card E3EE5BE2ED4120 started a session in porto and 26.3 min later in lisboa: 276 km at 629 km/h (alert above 200, block at 400 or overlap): 629 km/h >= 400",
+          "source": "fraud"
+        },
+        "id": "1794246519.876717"
+      }
+    },
+    {
+      "signal_id": "1794246519.891653",
+      "source": "wazuh",
+      "key_type": "hier_id",
+      "key": "pt.lisboa.st-001.cp-2",
+      "hier_id": "pt.lisboa.st-001.cp-2",
+      "other_hier_id": null,
+      "srcip": null,
+      "card": "E3EE5BE2ED4120",
+      "city": null,
+      "kind": "infra",
+      "severity": "info",
+      "name": "110410",
+      "ts": "2026-11-10T18:53:44.445000Z",
+      "last_ts": "2026-11-10T18:53:44.445000Z",
+      "count": 1,
+      "response": true,
+      "dedupe_key": "wazuh|110410|pt.lisboa.st-001.cp-2|None|E3EE5BE2ED4120",
+      "raw": {
+        "rule": {
+          "id": "110410",
+          "level": 5,
+          "description": "Active response block-card done on E3EE5BE2ED4120 (rule 110210).",
+          "groups": [
+            "evcharge",
+            "infra"
+          ]
+        },
+        "data": {
+          "ts": "2026-11-10T18:53:44.445Z",
+          "level": "info",
+          "service": "ar",
+          "instance": "wazuh-container",
+          "event": "ar.action",
+          "msg": "block-card ok: card blocked",
+          "ar_command": "block-card",
+          "target": "E3EE5BE2ED4120",
+          "card": "E3EE5BE2ED4120",
+          "hier_id": "pt.lisboa.st-001.cp-2",
+          "rule_id": "110210",
+          "alert_id": "1794246519.886255",
+          "result": "ok",
+          "reason": "card blocked"
+        },
+        "id": "1794246519.891653"
+      }
+    }
+  ],
+  "keys": {
+    "hier_id": [
+      "pt.lisboa.st-001.cp-2",
+      "pt.porto.st-002.cp-2"
+    ],
+    "card": [
+      "E3EE5BE2ED4120"
+    ]
+  },
+  "t_first_signal": "2026-11-10T18:53:43.351000Z",
+  "t_located": "2026-11-10T18:53:43.448074Z",
+  "t_mitigated": "2026-11-10T18:53:43.422000Z",
+  "t_closed": "2026-11-10T18:58:01.698199Z",
+  "summary": "fraud at E3EE5BE2ED4120: 4 alert(s) from fraud, wazuh"
+}

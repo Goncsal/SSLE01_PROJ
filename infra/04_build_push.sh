@@ -7,7 +7,7 @@
 
 CTX=/root/evcharge-ctx
 TAG=${IMAGE_TAG:-$(date -u +%Y%m%d-%H%M)}
-CONTEXT_PATHS="constraints.txt common registry csms billing fraud sim wazuh .dockerignore"
+CONTEXT_PATHS="constraints.txt common registry csms billing fraud correlator sim wazuh .dockerignore"
 WAZUH_AGENT_TAG="${WAZUH_AGENT_TAG:-4.14.9}"
 
 # service name -> Dockerfile path (the Wazuh agent image lives under wazuh/agents)

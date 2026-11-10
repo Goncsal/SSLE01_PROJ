@@ -85,12 +85,21 @@ optional() { [ -n "$(val "$1")" ] && [ "$(val "$1")" != "change-me" ] && pair "$
 { pair BILLING_API_TOKEN; optional BILLING_RESPONDER_TOKEN; dburl billing PG_PASSWORD_BILLING; } > "$WORK/billing-env"
 { pair FRAUD_API_TOKEN; dburl fraud PG_PASSWORD_FRAUD; optional REGISTRY_RESPONDER_TOKEN; optional CSMS_RESPONDER_TOKEN
   optional BILLING_RESPONDER_TOKEN; optional CORRELATOR_API_TOKEN; } > "$WORK/fraud-env"
+# the correlator is optional until the Phase 9 run: its Secret is built only when the token is set
+HAVE_CORRELATOR=0
+if [ -n "$(val CORRELATOR_API_TOKEN)" ] && [ "$(val CORRELATOR_API_TOKEN)" != "change-me" ]; then
+  HAVE_CORRELATOR=1
+  { pair CORRELATOR_API_TOKEN; printf 'REGISTRY_URL=http://registry:8001\n'
+    printf 'CSMS_API_URL=http://csms:8000\n'; pair CSMS_API_TOKEN; } > "$WORK/correlator-env"
+fi
 
 log "applying Secrets in namespace evcharge"
 incus exec k3s-master -- sh -c 'rm -rf '"$REMOTE"' && mkdir -m 700 '"$REMOTE"
 incus exec k3s-master -- sh -c 'kubectl create namespace evcharge --dry-run=client -o yaml | kubectl apply -f -' >/dev/null
 
-for s in postgres registry csms billing fraud; do
+SECRET_SERVICES="postgres registry csms billing fraud"
+[ "$HAVE_CORRELATOR" = 1 ] && SECRET_SERVICES="$SECRET_SERVICES correlator"
+for s in $SECRET_SERVICES; do
   incus file push --mode 600 "$WORK/$s-env" "k3s-master$REMOTE/$s-env" >/dev/null
   incus exec k3s-master -- sh -c "kubectl -n evcharge create secret generic $s-env --from-env-file=$REMOTE/$s-env --dry-run=client -o yaml \
     | kubectl label --local -f - app.kubernetes.io/name=$s app.kubernetes.io/part-of=evcharge -o yaml \
@@ -117,3 +126,13 @@ incus exec k3s-master -- sh -c "kubectl -n monitoring create secret generic graf
   | kubectl label --local -f - app.kubernetes.io/name=grafana app.kubernetes.io/part-of=evcharge -o yaml \
   | kubectl apply -f -" >/dev/null
 ok "secret grafana-env (namespace monitoring)"
+
+# Alertmanager bearer for the correlator webhook (file mounted by k8s/monitoring/alertmanager.yaml)
+if [ "$HAVE_CORRELATOR" = 1 ]; then
+  printf '%s' "$(val CORRELATOR_API_TOKEN)" > "$WORK/correlator-token"
+  incus file push --mode 600 "$WORK/correlator-token" "k3s-master$REMOTE/correlator-token" >/dev/null
+  incus exec k3s-master -- sh -c "kubectl -n monitoring create secret generic correlator-token --from-file=token=$REMOTE/correlator-token --dry-run=client -o yaml \
+    | kubectl label --local -f - app.kubernetes.io/name=alertmanager app.kubernetes.io/part-of=evcharge -o yaml \
+    | kubectl apply -f -" >/dev/null
+  ok "secret correlator-token (namespace monitoring)"
+fi

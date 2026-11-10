@@ -159,6 +159,13 @@ def test_registry_quarantine_and_card_block_are_responses(api):
     assert len(api.incidents()) == 1
 
 
+def test_a_station_quarantine_joins_the_incident_of_one_of_its_chargers(api):
+    api.wazuh("conn.kicked", "110301", 10, "botnet", at=0, hier_id=CHARGER, srcip=ROGUE_IP)
+    api.wazuh("registry.quarantine", "110405", 4, "infra", at=100, hier_id=STATION)
+    (inc,) = api.incidents()
+    assert inc["t_mitigated"] == ts(100) and inc["kind"] == "botnet"
+
+
 def test_a_response_alone_opens_nothing_and_a_failed_one_is_not_a_mitigation(api):
     api.wazuh("ar.action", "110410", 5, "infra", at=0, hier_id=CHARGER, result="ok")
     assert api.incidents() == []

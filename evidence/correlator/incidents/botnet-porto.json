@@ -1,0 +1,121 @@
+{
+  "incident_id": "d9ad5395-86bf-4388-9e8a-f913b53357ef",
+  "kind": "botnet",
+  "status": "closed",
+  "severity": "warning",
+  "root_cause": {
+    "key_type": "hier_id",
+    "key": "pt.porto",
+    "hier_id": "pt.porto",
+    "host": null,
+    "ip": null,
+    "city": "porto",
+    "edge": "pt.porto.edge",
+    "explanation": "2 signal(s) concern 2 elements; their lowest common element is pt.porto (city)"
+  },
+  "signals": [
+    {
+      "signal_id": "1794333956.182559",
+      "source": "wazuh",
+      "key_type": "hier_id",
+      "key": "pt.porto.st-002",
+      "hier_id": "pt.porto.st-002",
+      "other_hier_id": null,
+      "srcip": null,
+      "card": null,
+      "city": "porto",
+      "kind": "botnet",
+      "severity": "warning",
+      "name": "110303",
+      "ts": "2026-11-10T18:53:46.090000Z",
+      "last_ts": "2026-11-10T18:53:46.090000Z",
+      "count": 1,
+      "response": false,
+      "dedupe_key": "wazuh|110303|pt.porto.st-002|None|None",
+      "raw": {
+        "rule": {
+          "id": "110303",
+          "level": 8,
+          "description": "Botnet: pt.porto.st-002 opened a new outbound connection to 10.255.255.173:8099 by python (T0869).",
+          "groups": [
+            "evcharge",
+            "botnet",
+            "mitre_ics_T0869"
+          ]
+        },
+        "data": {
+          "dstip": "10.255.255.173",
+          "dstport": "8099",
+          "ts": "2026-11-10T18:53:46.090Z",
+          "level": "warning",
+          "service": "netwatch",
+          "instance": "pt.porto.st-002",
+          "event": "host.new_outbound",
+          "msg": "new outbound connection to 10.255.255.173:8099 by python",
+          "hier_id": "pt.porto.st-002",
+          "process": "python",
+          "city": "porto",
+          "station": "st-002"
+        },
+        "id": "1794333956.182559"
+      }
+    },
+    {
+      "signal_id": "1794333958.183424",
+      "source": "wazuh",
+      "key_type": "hier_id",
+      "key": "pt.porto.st-001",
+      "hier_id": "pt.porto.st-001",
+      "other_hier_id": null,
+      "srcip": null,
+      "card": null,
+      "city": "porto",
+      "kind": "botnet",
+      "severity": "warning",
+      "name": "110303",
+      "ts": "2026-11-10T18:53:48.756000Z",
+      "last_ts": "2026-11-10T18:53:48.756000Z",
+      "count": 1,
+      "response": false,
+      "dedupe_key": "wazuh|110303|pt.porto.st-001|None|None",
+      "raw": {
+        "rule": {
+          "id": "110303",
+          "level": 8,
+          "description": "Botnet: pt.porto.st-001 opened a new outbound connection to 10.255.255.173:8099 by python (T0869).",
+          "groups": [
+            "evcharge",
+            "botnet",
+            "mitre_ics_T0869"
+          ]
+        },
+        "data": {
+          "dstip": "10.255.255.173",
+          "dstport": "8099",
+          "ts": "2026-11-10T18:53:48.756Z",
+          "level": "warning",
+          "service": "netwatch",
+          "instance": "pt.porto.st-001",
+          "event": "host.new_outbound",
+          "msg": "new outbound connection to 10.255.255.173:8099 by python",
+          "hier_id": "pt.porto.st-001",
+          "process": "python",
+          "city": "porto",
+          "station": "st-001"
+        },
+        "id": "1794333958.183424"
+      }
+    }
+  ],
+  "keys": {
+    "hier_id": [
+      "pt.porto.st-002",
+      "pt.porto.st-001"
+    ]
+  },
+  "t_first_signal": "2026-11-10T18:53:46.090000Z",
+  "t_located": "2026-11-10T18:53:47.209883Z",
+  "t_mitigated": null,
+  "t_closed": "2026-11-10T18:58:01.666648Z",
+  "summary": "botnet at pt.porto: 2 alert(s) from wazuh"
+}

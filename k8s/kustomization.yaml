@@ -8,6 +8,7 @@ resources:
   - billing.yaml
   - csms.yaml
   - fraud.yaml
+  - correlator.yaml
 # The roster ConfigMap is created by infra/05_deploy.sh from dev/roster.yaml.
 # infra/05_deploy.sh rewrites newTag in its pushed copy when IMAGE_TAG is set.
 images:
@@ -18,4 +19,6 @@ images:
   - name: docker.incus:5000/evcharge-csms
     newTag: latest
   - name: docker.incus:5000/evcharge-fraud
+    newTag: latest
+  - name: docker.incus:5000/evcharge-correlator
     newTag: latest

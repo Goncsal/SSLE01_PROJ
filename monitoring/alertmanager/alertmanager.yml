@@ -7,13 +7,12 @@ route:
   repeat_interval: 4h
 
 receivers:
-  # No integration yet. Phase 9 adds, to this receiver:
-  #   webhook_configs:
-  #     - url: http://correlator.evcharge:8004/signals/alertmanager
-  #       http_config:
-  #         authorization: {type: Bearer, credentials_file: /etc/alertmanager/correlator-token}
-  #       send_resolved: true
   - name: default
+    webhook_configs:
+      - url: http://correlator.evcharge:8004/signals/alertmanager
+        http_config:
+          authorization: {type: Bearer, credentials_file: /etc/correlator-token/token}
+        send_resolved: true
 
 # One EdgeDown instead of one alert per station and charger; a dead CSMS hides the
 # per-charger alerts it causes.

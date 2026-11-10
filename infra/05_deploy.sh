@@ -47,7 +47,7 @@ kc apply -k "$REMOTE_DIR"
 log "waiting for postgres"
 kc -n "$NS" rollout status statefulset/postgres --timeout=300s
 
-for d in registry billing csms; do
+for d in registry billing csms correlator; do
   if [ "$IMAGE_TAG" = latest ]; then
     kc -n "$NS" rollout restart deployment/"$d" >/dev/null
   fi

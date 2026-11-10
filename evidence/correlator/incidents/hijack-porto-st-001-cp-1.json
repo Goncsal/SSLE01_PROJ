@@ -1,0 +1,172 @@
+{
+  "incident_id": "eee549e3-5f85-4c64-91f1-34d6836bf9fb",
+  "kind": "hijack",
+  "status": "closed",
+  "severity": "critical",
+  "root_cause": {
+    "key_type": "hier_id",
+    "key": "pt.porto.st-001.cp-1",
+    "hier_id": "pt.porto.st-001.cp-1",
+    "host": "porto-st-001",
+    "ip": "10.31.0.16",
+    "city": "porto",
+    "edge": "pt.porto.edge",
+    "explanation": "all 2 signal(s) concern pt.porto.st-001.cp-1 (charger), host porto-st-001; source address(es) not in the registry: 10.31.0.32"
+  },
+  "signals": [
+    {
+      "signal_id": "1794053583.674281",
+      "source": "wazuh",
+      "key_type": "hier_id",
+      "key": "pt.porto.st-001.cp-1",
+      "hier_id": "pt.porto.st-001.cp-1",
+      "other_hier_id": null,
+      "srcip": "10.31.0.32",
+      "card": null,
+      "city": "porto",
+      "kind": "hijack",
+      "severity": "warning",
+      "name": "110104",
+      "ts": "2026-11-10T18:53:38.456000Z",
+      "last_ts": "2026-11-10T18:53:38.456000Z",
+      "count": 4,
+      "response": false,
+      "dedupe_key": "wazuh|110104|pt.porto.st-001.cp-1|10.31.0.32|None",
+      "raw": {
+        "rule": {
+          "id": "110104",
+          "level": 7,
+          "description": "Hijack: pt.porto.st-001.cp-1 connects from 10.31.0.32, registry expects another address (T0859 valid accounts).",
+          "groups": [
+            "evcharge",
+            "hijack",
+            "mitre_ics_T0859"
+          ]
+        },
+        "data": {
+          "srcip": "10.31.0.32",
+          "ts": "2026-11-10T18:53:38.456Z",
+          "level": "warning",
+          "service": "csms",
+          "instance": "csms-758cc9d947-pdpgp",
+          "event": "ident.ip_mismatch",
+          "msg": "charger connected from an unexpected address",
+          "expected": "10.31.0.16",
+          "hier_id": "pt.porto.st-001.cp-1",
+          "city": "porto",
+          "station": "st-001",
+          "charger": "cp-1"
+        },
+        "id": "1794053583.674281"
+      }
+    },
+    {
+      "signal_id": "1794053583.675175",
+      "source": "wazuh",
+      "key_type": "hier_id",
+      "key": "pt.porto.st-001.cp-1",
+      "hier_id": "pt.porto.st-001.cp-1",
+      "other_hier_id": null,
+      "srcip": "10.31.0.32",
+      "card": null,
+      "city": "porto",
+      "kind": "hijack",
+      "severity": "critical",
+      "name": "110131",
+      "ts": "2026-11-10T18:53:38.501000Z",
+      "last_ts": "2026-11-10T18:53:38.501000Z",
+      "count": 1,
+      "response": false,
+      "dedupe_key": "wazuh|110131|pt.porto.st-001.cp-1|10.31.0.32|None",
+      "raw": {
+        "rule": {
+          "id": "110131",
+          "level": 12,
+          "description": "Hijack confirmed: pt.porto.st-001.cp-1 IP mismatch then duplicate connection, a second host holds the identity (T0849).",
+          "groups": [
+            "evcharge",
+            "hijack",
+            "mitre_ics_T0849"
+          ]
+        },
+        "data": {
+          "srcip": "10.31.0.32",
+          "ts": "2026-11-10T18:53:38.501Z",
+          "level": "warning",
+          "service": "csms",
+          "instance": "csms-758cc9d947-pdpgp",
+          "event": "charger.duplicate_id",
+          "msg": "handshake refused: duplicate_id",
+          "http_status": "409",
+          "hier_id": "pt.porto.st-001.cp-1",
+          "other_srcip": "10.31.0.16",
+          "edge": "pt.porto.edge",
+          "city": "porto",
+          "station": "st-001",
+          "charger": "cp-1"
+        },
+        "id": "1794053583.675175"
+      }
+    },
+    {
+      "signal_id": "recorded-registry-quarantine",
+      "source": "wazuh",
+      "key_type": "hier_id",
+      "key": "pt.porto.st-001.cp-1",
+      "hier_id": "pt.porto.st-001.cp-1",
+      "other_hier_id": null,
+      "srcip": null,
+      "card": null,
+      "city": "porto",
+      "kind": "infra",
+      "severity": "info",
+      "name": "110405",
+      "ts": "2026-11-10T18:53:40.107000Z",
+      "last_ts": "2026-11-10T18:53:40.107000Z",
+      "count": 1,
+      "response": true,
+      "dedupe_key": "wazuh|110405|pt.porto.st-001.cp-1|None|None",
+      "raw": {
+        "rule": {
+          "id": "110405",
+          "level": 4,
+          "description": "Response audit: registry registry.quarantine for pt.porto.st-001.cp-1 (source wazuh).",
+          "groups": [
+            "evcharge",
+            "infra"
+          ]
+        },
+        "data": {
+          "ts": "2026-11-10T18:53:40.107Z",
+          "level": "warning",
+          "service": "registry",
+          "instance": "registry-768f5d8b7-s5nnz",
+          "event": "registry.quarantine",
+          "msg": "quarantine pt.porto.st-001.cp-1",
+          "hier_id": "pt.porto.st-001.cp-1",
+          "reason": "wazuh rule 110131: Hijack confirmed: pt.porto.st-001.cp-1 IP mismatch then duplicate connection? a second host holds the identity ?T0849?.",
+          "source": "wazuh",
+          "operator": "responder",
+          "incident_id": "1794053583.675175",
+          "city": "porto",
+          "station": "st-001",
+          "charger": "cp-1"
+        },
+        "id": "recorded-registry-quarantine"
+      }
+    }
+  ],
+  "keys": {
+    "hier_id": [
+      "pt.porto.st-001.cp-1"
+    ],
+    "srcip": [
+      "10.31.0.32"
+    ]
+  },
+  "t_first_signal": "2026-11-10T18:53:38.456000Z",
+  "t_located": "2026-11-10T18:53:42.007276Z",
+  "t_mitigated": "2026-11-10T18:53:40.107000Z",
+  "t_closed": "2026-11-10T18:58:01.735263Z",
+  "summary": "hijack at pt.porto.st-001.cp-1: 6 alert(s) from wazuh"
+}

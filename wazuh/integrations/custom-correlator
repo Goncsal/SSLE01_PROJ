@@ -2,7 +2,8 @@
 """custom-correlator: forward Wazuh alerts to the correlator (Wazuh integration).
 
 Called by wazuh-integratord as:  custom-correlator <alert_file> <api_key> <hook_url>
-Only alerts of level 7 or more in group evcharge reach it (see the <integration> block).
+Alerts of level 7 or more in group evcharge reach it, plus the response-audit rules by id
+(second <integration> block; see wanted()).
 Each alert is POSTed unchanged as JSON to the correlator's /signals/wazuh with the bearer
 CORRELATOR_API_TOKEN, 2 s timeout. Target and token come from
 /var/ossec/etc/evcharge/ar.env:
@@ -78,10 +79,28 @@ def to_outbox(alert):
         pass
 
 
+def wanted(alert):
+    """Level 7 and above always. Below that only a response signal (the correlator's
+    mitigation evidence): ar.action ok, registry.quarantine, billing.card_blocked. The second
+    <integration> block delivers rules of level 4-5 (110405, 110410, 110209); their release,
+    unblock and flag events are not forwarded."""
+    try:
+        rule = alert.get("rule") or {}
+        data = alert.get("data") or {}
+        if int(rule.get("level", 0)) >= 7:
+            return True
+        event, result = data.get("event"), data.get("result")
+        return (event == "ar.action" and result == "ok") or event in ("registry.quarantine", "billing.card_blocked")
+    except (AttributeError, TypeError, ValueError):
+        return False
+
+
 def forward(alerts, url, token):
     """Post each alert; the ones that fail go to the outbox. Returns the number sent."""
     sent = 0
     for alert in alerts:
+        if not wanted(alert):
+            continue
         try:
             post(url, alert, token)
             sent += 1

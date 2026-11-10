@@ -89,9 +89,17 @@ spec:
               readOnly: true
             - name: data
               mountPath: /alertmanager
+            - name: correlator-token
+              mountPath: /etc/correlator-token
+              readOnly: true
       volumes:
         - name: config
           configMap:
             name: alertmanager-config
         - name: data
           emptyDir: {}
+        # bearer for the correlator webhook; created by infra/secrets_to_k8s.sh
+        - name: correlator-token
+          secret:
+            secretName: correlator-token
+            optional: true

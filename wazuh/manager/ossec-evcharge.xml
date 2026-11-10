@@ -69,5 +69,14 @@
     <alert_format>json</alert_format>
   </integration>
 
+  <!-- response signals (levels 4-5) that set t_mitigated: registry quarantine, active response
+       done, billing audit; custom-correlator drops their release/unblock/flag events -->
+  <integration>
+    <name>custom-correlator</name>
+    <hook_url>http://k3s-master.incus:30804/signals/wazuh</hook_url>
+    <rule_id>110405,110410,110209</rule_id>
+    <alert_format>json</alert_format>
+  </integration>
+
 </ossec_config>
 <!-- evcharge end -->
