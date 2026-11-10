@@ -6,6 +6,8 @@ usage: logtest_driver.py DIR BLOCK [BLOCK ...]
 
 <block>.jsonl  one JSON log line per line; a line {"_session": "reset"} starts a fresh
                logtest session (frequency and composite rules count events of one session)
+               an optional "_agent":"<name>" key is removed and makes the line arrive as if
+               forwarded by that agent (frequency rules count per agent unless global_frequency)
 <block>.expect "<line number> <rule id | none | reset>  # comment", one entry per line
                of the .jsonl; "none" means no evcharge rule (110000-110499) matched
 """
@@ -14,6 +16,7 @@ import os
 import socket
 import struct
 import sys
+import zlib
 
 SOCK = "/var/ossec/queue/sockets/logtest"
 LOCATION = {"edge": "/var/log/evcharge/edge-test.json"}
@@ -40,7 +43,17 @@ def call(payload):
 
 
 def replay(event, token):
-    params = {"event": event, "log_format": "syslog", "location": "/var/log/evcharge/test.json"}
+    location = "/var/log/evcharge/test.json"
+    try:
+        doc = json.loads(event)
+    except ValueError:
+        doc = None
+    if isinstance(doc, dict) and "_agent" in doc:
+        # emulate a line forwarded by a Wazuh agent: analysisd then sees "[id] (name) any->file"
+        name = str(doc.pop("_agent"))
+        event = json.dumps(doc, separators=(",", ":"))
+        location = "[%03d] (%s) any->/var/log/evcharge/sim-test.json" % (zlib.crc32(name.encode()) % 900 + 100, name)
+    params = {"event": event, "log_format": "syslog", "location": location}
     if token:
         params["token"] = token
     reply = call({"version": 1, "origin": {"name": "evcharge-tests", "module": "logtest_driver"},

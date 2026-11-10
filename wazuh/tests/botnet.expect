@@ -82,3 +82,18 @@
 82 110015  # spread (8 of 10)
 83 110015  # spread (9 of 10)
 84 110015  # spread (10 of 10)
+85 reset  # 110304 positive, forwarded by agents: three stations to one destination (W8 live-run shape)
+86 110303  # agent beacon (1 of 3)
+87 110303  # agent beacon (2 of 3)
+88 110304  # agent beacon (3 of 3), fires across agents
+89 reset  # 110304 negative, forwarded by agents: only two stations to one destination
+90 110303  # two-station beacon (1 of 2)
+91 110303  # two-station beacon (2 of 2)
+92 reset  # 110304 negative, forwarded by agents: one station beaconing three times
+93 110303  # repeat beacon (1 of 3)
+94 110303  # repeat beacon (2 of 3)
+95 110303  # repeat beacon (3 of 3)
+96 reset  # 110304 negative, forwarded by agents: three stations, three destinations
+97 110303  # distinct destination (1 of 3)
+98 110303  # distinct destination (2 of 3)
+99 110303  # distinct destination (3 of 3)

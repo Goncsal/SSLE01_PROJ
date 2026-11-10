@@ -42,6 +42,10 @@ every replaced file to `/var/ossec/etc/evcharge/backup/<time>/`, runs
 `wazuh-analysisd -t` and restarts `wazuh-manager` only if it passes; otherwise the files
 touched in that run are restored. A second run changes nothing and does not restart.
 
+Rule 110304 (fan-in of 3 stations to one destination) needs `<global_frequency>yes</global_frequency>`:
+frequency rules count per agent by default and each station is its own agent, so it never fired live.
+`logtest_driver.py` replays lines marked `"_agent":"<name>"` as forwarded by that agent to cover this.
+
 ## Test
 
 ```

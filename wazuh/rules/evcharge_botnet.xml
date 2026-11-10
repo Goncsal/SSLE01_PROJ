@@ -35,9 +35,14 @@
     <group>mitre_ics_T0869,</group>
   </rule>
 
+  <!-- Frequency rules count only events of ONE agent unless global_frequency is set. Every station
+       reports through its own agent, so without it the fan-in never reached 3 (live W8 run: six
+       110303 alerts, six agents, no 110304). same_dstip stays: dstip is a static field here, and
+       same_field on dstip never matches. -->
   <rule id="110304" level="12" frequency="3" timeframe="300">
     <if_matched_sid>110303</if_matched_sid>
     <same_dstip />
+    <global_frequency>yes</global_frequency>
     <different_field>hier_id</different_field>
     <description>Botnet: 3 stations contacting $(dstip) within 5 minutes, command and control (T0869).</description>
     <mitre><id>T1071.001</id></mitre>
