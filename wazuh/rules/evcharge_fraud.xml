@@ -11,6 +11,7 @@
 
   <rule id="110201" level="10" frequency="5" timeframe="600">
     <if_matched_sid>110200</if_matched_sid>
+    <global_frequency>yes</global_frequency>
     <same_field>card</same_field>
     <description>Fraud: card $(card) refused 5 times within 10 minutes (blocked card in use).</description>
     <mitre><id>T1078</id></mitre>
@@ -21,6 +22,7 @@
        decision is 110210, which honours the fraud service dry-run flag -->
   <rule id="110203" level="10" frequency="2" timeframe="120">
     <if_matched_sid>110011</if_matched_sid>
+    <global_frequency>yes</global_frequency>
     <same_field>card</same_field>
     <different_field>city</different_field>
     <description>Fraud: card $(card) in a transaction in two cities at once, cloned card (T0859 valid accounts).</description>
@@ -50,6 +52,7 @@
        distance-aware check and the block decision are the fraud service (110207, 110210) -->
   <rule id="110206" level="10" frequency="2" timeframe="120">
     <if_matched_sid>110015</if_matched_sid>
+    <global_frequency>yes</global_frequency>
     <same_field>card</same_field>
     <different_field>city</different_field>
     <description>Fraud: card $(card) starts sessions in two cities within 30 minutes, impossible travel.</description>

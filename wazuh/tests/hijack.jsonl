@@ -201,3 +201,27 @@
 {"_session":"reset"}
 {"ts":"2026-11-06T10:03:21.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"ident.ip_mismatch","msg":"ident ip_mismatch","hier_id":"pt.spare.st-999.cp-1","srcip":"198.51.100.11","expected":"x"}
 {"ts":"2026-11-06T10:03:22.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"charger.duplicate_id","msg":"charger duplicate_id","hier_id":"pt.spare.st-999.cp-1","srcip":"198.51.100.10","other_srcip":"198.51.100.11"}
+{"_session":"reset"}
+{"ts":"2026-11-06T10:01:06.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"ident.quarantined","msg":"ident quarantined","hier_id":"pt.porto.st-003.cp-1","srcip":"198.51.100.10","_agent":"pt.central.k3s-master"}
+{"ts":"2026-11-06T10:01:07.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"ident.quarantined","msg":"ident quarantined","hier_id":"pt.porto.st-003.cp-1","srcip":"198.51.100.10","_agent":"pt.central.k3s-node1"}
+{"ts":"2026-11-06T10:01:08.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"ident.quarantined","msg":"ident quarantined","hier_id":"pt.porto.st-003.cp-1","srcip":"198.51.100.10","_agent":"pt.central.k3s-master"}
+{"ts":"2026-11-06T10:01:09.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"ident.quarantined","msg":"ident quarantined","hier_id":"pt.porto.st-003.cp-1","srcip":"198.51.100.10","_agent":"pt.central.k3s-node1"}
+{"ts":"2026-11-06T10:01:10.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"ident.quarantined","msg":"ident quarantined","hier_id":"pt.porto.st-003.cp-1","srcip":"198.51.100.10","_agent":"pt.central.k3s-master"}
+{"_session":"reset"}
+{"ts":"2026-11-06T10:01:12.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"ident.quarantined","msg":"ident quarantined","hier_id":"pt.zz.st-001.cp-1","srcip":"198.51.100.10","_agent":"pt.central.k3s-master"}
+{"ts":"2026-11-06T10:01:13.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"ident.quarantined","msg":"ident quarantined","hier_id":"pt.zz.st-002.cp-1","srcip":"198.51.100.10","_agent":"pt.central.k3s-node1"}
+{"ts":"2026-11-06T10:01:14.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"ident.quarantined","msg":"ident quarantined","hier_id":"pt.zz.st-003.cp-1","srcip":"198.51.100.10","_agent":"pt.central.k3s-master"}
+{"ts":"2026-11-06T10:01:15.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"ident.quarantined","msg":"ident quarantined","hier_id":"pt.zz.st-004.cp-1","srcip":"198.51.100.10","_agent":"pt.central.k3s-node1"}
+{"ts":"2026-11-06T10:01:16.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"ident.quarantined","msg":"ident quarantined","hier_id":"pt.zz.st-005.cp-1","srcip":"198.51.100.10","_agent":"pt.central.k3s-master"}
+{"_session":"reset"}
+{"ts":"2026-11-06T10:03:09.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"charger.duplicate_id","msg":"charger duplicate_id","hier_id":"pt.porto.st-003.cp-1","srcip":"198.51.100.10","other_srcip":"198.51.100.11","_agent":"pt.central.k3s-master"}
+{"ts":"2026-11-06T10:03:10.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"ident.ip_mismatch","msg":"ident ip_mismatch","hier_id":"pt.porto.st-003.cp-1","srcip":"198.51.100.11","expected":"x","_agent":"pt.central.k3s-node1"}
+{"_session":"reset"}
+{"ts":"2026-11-06T10:03:12.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"charger.duplicate_id","msg":"charger duplicate_id","hier_id":"pt.porto.st-003.cp-1","srcip":"198.51.100.10","other_srcip":"198.51.100.11","_agent":"pt.central.k3s-master"}
+{"ts":"2026-11-06T10:03:13.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"ident.ip_mismatch","msg":"ident ip_mismatch","hier_id":"pt.porto.st-004.cp-2","srcip":"198.51.100.11","expected":"x","_agent":"pt.central.k3s-node1"}
+{"_session":"reset"}
+{"ts":"2026-11-06T10:03:15.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"ident.ip_mismatch","msg":"ident ip_mismatch","hier_id":"pt.porto.st-003.cp-1","srcip":"198.51.100.11","expected":"x","_agent":"pt.central.k3s-master"}
+{"ts":"2026-11-06T10:03:16.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"charger.duplicate_id","msg":"charger duplicate_id","hier_id":"pt.porto.st-003.cp-1","srcip":"198.51.100.10","other_srcip":"198.51.100.11","_agent":"pt.central.k3s-node1"}
+{"_session":"reset"}
+{"ts":"2026-11-06T10:03:18.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"ident.ip_mismatch","msg":"ident ip_mismatch","hier_id":"pt.porto.st-003.cp-1","srcip":"198.51.100.11","expected":"x","_agent":"pt.central.k3s-master"}
+{"ts":"2026-11-06T10:03:19.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"charger.duplicate_id","msg":"charger duplicate_id","hier_id":"pt.porto.st-004.cp-2","srcip":"198.51.100.10","other_srcip":"198.51.100.11","_agent":"pt.central.k3s-node1"}

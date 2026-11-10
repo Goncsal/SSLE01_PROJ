@@ -13,6 +13,7 @@
 
   <rule id="110401" level="11" frequency="10" timeframe="120">
     <if_matched_sid>110400</if_matched_sid>
+    <global_frequency>yes</global_frequency>
     <same_field>dependency</same_field>
     <description>Platform: dependency $(dependency) failing repeatedly (10 errors in 120 s).</description>
     <mitre><id>T1499</id></mitre>

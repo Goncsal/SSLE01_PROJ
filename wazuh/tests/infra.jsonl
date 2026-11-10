@@ -68,3 +68,25 @@
 {"ts":"2026-11-06T10:01:07.000Z","level":"info","service":"ar","instance":"ar","event":"ar.evidence","msg":"ar evidence","kind":"connection","http_status":200,"detail":"saved"}
 {"ts":"2026-11-06T10:01:08.000Z","level":"warning","service":"ar","instance":"ar","event":"ar.evidence","msg":"ar evidence","kind":"registry","http_status":500,"detail":"failed"}
 {"ts":"2026-11-06T10:01:09.000Z","level":"info","service":"csms","instance":"csms-7d9f5-abcde","event":"service.start","msg":"service start","version":"1"}
+{"_session":"reset"}
+{"ts":"2026-11-06T10:00:03.000Z","level":"error","service":"csms","instance":"csms-7d9f5-abcde","event":"dependency.error","msg":"dependency error","dependency":"postgres","reason":"timeout","_agent":"pt.central.k3s-master"}
+{"ts":"2026-11-06T10:00:04.000Z","level":"error","service":"csms","instance":"csms-7d9f5-abcde","event":"dependency.error","msg":"dependency error","dependency":"postgres","reason":"timeout","_agent":"pt.central.k3s-node1"}
+{"ts":"2026-11-06T10:00:05.000Z","level":"error","service":"csms","instance":"csms-7d9f5-abcde","event":"dependency.error","msg":"dependency error","dependency":"postgres","reason":"timeout","_agent":"pt.central.k3s-master"}
+{"ts":"2026-11-06T10:00:06.000Z","level":"error","service":"csms","instance":"csms-7d9f5-abcde","event":"dependency.error","msg":"dependency error","dependency":"postgres","reason":"timeout","_agent":"pt.central.k3s-node1"}
+{"ts":"2026-11-06T10:00:07.000Z","level":"error","service":"csms","instance":"csms-7d9f5-abcde","event":"dependency.error","msg":"dependency error","dependency":"postgres","reason":"timeout","_agent":"pt.central.k3s-master"}
+{"ts":"2026-11-06T10:00:08.000Z","level":"error","service":"csms","instance":"csms-7d9f5-abcde","event":"dependency.error","msg":"dependency error","dependency":"postgres","reason":"timeout","_agent":"pt.central.k3s-node1"}
+{"ts":"2026-11-06T10:00:09.000Z","level":"error","service":"csms","instance":"csms-7d9f5-abcde","event":"dependency.error","msg":"dependency error","dependency":"postgres","reason":"timeout","_agent":"pt.central.k3s-master"}
+{"ts":"2026-11-06T10:00:10.000Z","level":"error","service":"csms","instance":"csms-7d9f5-abcde","event":"dependency.error","msg":"dependency error","dependency":"postgres","reason":"timeout","_agent":"pt.central.k3s-node1"}
+{"ts":"2026-11-06T10:00:11.000Z","level":"error","service":"csms","instance":"csms-7d9f5-abcde","event":"dependency.error","msg":"dependency error","dependency":"postgres","reason":"timeout","_agent":"pt.central.k3s-master"}
+{"ts":"2026-11-06T10:00:12.000Z","level":"error","service":"csms","instance":"csms-7d9f5-abcde","event":"dependency.error","msg":"dependency error","dependency":"postgres","reason":"timeout","_agent":"pt.central.k3s-node1"}
+{"_session":"reset"}
+{"ts":"2026-11-06T10:00:14.000Z","level":"error","service":"csms","instance":"csms-7d9f5-abcde","event":"dependency.error","msg":"dependency error","dependency":"dep1","reason":"timeout","_agent":"pt.central.k3s-master"}
+{"ts":"2026-11-06T10:00:15.000Z","level":"error","service":"csms","instance":"csms-7d9f5-abcde","event":"dependency.error","msg":"dependency error","dependency":"dep2","reason":"timeout","_agent":"pt.central.k3s-node1"}
+{"ts":"2026-11-06T10:00:16.000Z","level":"error","service":"csms","instance":"csms-7d9f5-abcde","event":"dependency.error","msg":"dependency error","dependency":"dep3","reason":"timeout","_agent":"pt.central.k3s-master"}
+{"ts":"2026-11-06T10:00:17.000Z","level":"error","service":"csms","instance":"csms-7d9f5-abcde","event":"dependency.error","msg":"dependency error","dependency":"dep4","reason":"timeout","_agent":"pt.central.k3s-node1"}
+{"ts":"2026-11-06T10:00:18.000Z","level":"error","service":"csms","instance":"csms-7d9f5-abcde","event":"dependency.error","msg":"dependency error","dependency":"dep5","reason":"timeout","_agent":"pt.central.k3s-master"}
+{"ts":"2026-11-06T10:00:19.000Z","level":"error","service":"csms","instance":"csms-7d9f5-abcde","event":"dependency.error","msg":"dependency error","dependency":"dep6","reason":"timeout","_agent":"pt.central.k3s-node1"}
+{"ts":"2026-11-06T10:00:20.000Z","level":"error","service":"csms","instance":"csms-7d9f5-abcde","event":"dependency.error","msg":"dependency error","dependency":"dep7","reason":"timeout","_agent":"pt.central.k3s-master"}
+{"ts":"2026-11-06T10:00:21.000Z","level":"error","service":"csms","instance":"csms-7d9f5-abcde","event":"dependency.error","msg":"dependency error","dependency":"dep8","reason":"timeout","_agent":"pt.central.k3s-node1"}
+{"ts":"2026-11-06T10:00:22.000Z","level":"error","service":"csms","instance":"csms-7d9f5-abcde","event":"dependency.error","msg":"dependency error","dependency":"dep9","reason":"timeout","_agent":"pt.central.k3s-master"}
+{"ts":"2026-11-06T10:00:23.000Z","level":"error","service":"csms","instance":"csms-7d9f5-abcde","event":"dependency.error","msg":"dependency error","dependency":"dep10","reason":"timeout","_agent":"pt.central.k3s-node1"}

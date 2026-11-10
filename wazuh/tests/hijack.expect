@@ -201,3 +201,27 @@
 201 reset  # whitelist: listed id then duplicate_id gives no composite
 202 110013  # 110013 silenced mismatch
 203 110100  # 110013 then duplicate_id stays 110100
+204 reset  # 110112 positive: 5 retries of one id (events from two agents)
+205 110111  # retry (1 of 5)
+206 110111  # retry (2 of 5)
+207 110111  # retry (3 of 5)
+208 110111  # retry (4 of 5)
+209 110112  # retry (5 of 5)
+210 reset  # 110112 negative: 5 retries of five ids (events from two agents)
+211 110111  # retry (1 of 5)
+212 110111  # retry (2 of 5)
+213 110111  # retry (3 of 5)
+214 110111  # retry (4 of 5)
+215 110111  # retry (5 of 5)
+216 reset  # 110130 positive: duplicate_id then ip_mismatch (events from two agents)
+217 110100  # 110130 step 1 duplicate_id
+218 110130  # 110130 step 2 ip_mismatch, same id
+219 reset  # 110130 negative: ip_mismatch of another id (events from two agents)
+220 110100  # 110130 neg step 1 duplicate_id
+221 110104  # 110130 neg step 2 ip_mismatch other id
+222 reset  # 110131 positive: ip_mismatch then duplicate_id (events from two agents)
+223 110104  # 110131 step 1 ip_mismatch
+224 110131  # 110131 step 2 duplicate_id, same id
+225 reset  # 110131 negative: duplicate_id of another id (events from two agents)
+226 110104  # 110131 neg step 1 ip_mismatch
+227 110100  # 110131 neg step 2 duplicate_id other id

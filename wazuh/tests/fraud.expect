@@ -67,3 +67,33 @@
 67 110207  # 110210 negative: alert only in dry run
 68 reset  # new session
 69 110208  # 110208 power_gap alert (quarantine is the service's own action)
+70 reset  # 110201 positive: 5 refusals of one card (events from two agents)
+71 110200  # refused (1 of 5)
+72 110200  # refused (2 of 5)
+73 110200  # refused (3 of 5)
+74 110200  # refused (4 of 5)
+75 110201  # refused (5 of 5)
+76 reset  # 110201 negative: 5 refusals of five cards (events from two agents)
+77 110200  # refused (1 of 5)
+78 110200  # refused (2 of 5)
+79 110200  # refused (3 of 5)
+80 110200  # refused (4 of 5)
+81 110200  # refused (5 of 5)
+82 reset  # 110203 positive: ConcurrentTx for one card in two cities (events from two agents)
+83 110011  # 110203 step 1 porto
+84 110203  # 110203 step 2 lisboa
+85 reset  # 110203 negative: both in the same city (events from two agents)
+86 110011  # 110203 neg step 1 porto
+87 110011  # 110203 neg step 2 porto again
+88 reset  # 110203 negative: two cities, two cards (events from two agents)
+89 110011  # 110203 neg step 1 card A
+90 110011  # 110203 neg step 2 card B
+91 reset  # 110206 positive: session.start in two cities (events from two agents)
+92 110015  # 110206 step 1 porto
+93 110206  # 110206 step 2 lisboa
+94 reset  # 110206 negative: same city (events from two agents)
+95 110015  # 110206 neg step 1 porto
+96 110015  # 110206 neg step 2 porto
+97 reset  # 110206 negative: different cards (events from two agents)
+98 110015  # 110206 neg step 1 card A
+99 110015  # 110206 neg step 2 card B

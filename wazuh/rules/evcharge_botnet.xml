@@ -18,8 +18,14 @@
     <group>mitre_ics_T0814,</group>
   </rule>
 
+  <!-- global_frequency: the CSMS pods run on two nodes (two agents) and frequency counts are per agent.
+       Set on every rule fed by CSMS/service events that can arrive via either pod (110302, 110308,
+       110112, 110130/1, 110201, 110203, 110206, 110401). Left per agent on purpose: edge-fed rules
+       (110121, 110123, 110307: one edge sees a source), and 110115/110205, 110403 (one connection or
+       one api pod). 110110 keeps its halved threshold. -->
   <rule id="110302" level="12" frequency="3" timeframe="60">
     <if_matched_sid>110300</if_matched_sid>
+    <global_frequency>yes</global_frequency>
     <same_field>city</same_field>
     <different_field>hier_id</different_field>
     <description>Botnet: 3 chargers of $(city) flooding within 60 s, coordinated fleet (T0814).</description>
@@ -79,6 +85,7 @@
 
   <rule id="110308" level="10" frequency="10" timeframe="60">
     <if_matched_sid>110015</if_matched_sid>
+    <global_frequency>yes</global_frequency>
     <same_field>city</same_field>
     <description>Botnet: 10 sessions started in $(city) within 60 s, load surge (T0831 manipulation of control).</description>
     <mitre><id>T1498</id></mitre>

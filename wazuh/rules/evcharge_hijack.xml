@@ -103,6 +103,7 @@
 
   <rule id="110112" level="10" frequency="5" timeframe="300">
     <if_matched_sid>110111</if_matched_sid>
+    <global_frequency>yes</global_frequency>
     <same_field>hier_id</same_field>
     <description>Hijack: quarantined charger $(hier_id) keeps retrying (5 in 300 s).</description>
     <mitre><id>T1078</id></mitre>
@@ -182,6 +183,7 @@
   <rule id="110130" level="12" frequency="2" timeframe="300">
     <if_sid>110104</if_sid>
     <if_matched_sid>110100</if_matched_sid>
+    <global_frequency>yes</global_frequency>
     <same_field>hier_id</same_field>
     <description>Hijack confirmed: $(hier_id) duplicate connection then IP mismatch from $(srcip), a second host holds the identity (T0849).</description>
     <mitre>
@@ -194,6 +196,7 @@
   <rule id="110131" level="12" frequency="2" timeframe="300">
     <if_sid>110100</if_sid>
     <if_matched_sid>110104</if_matched_sid>
+    <global_frequency>yes</global_frequency>
     <same_field>hier_id</same_field>
     <description>Hijack confirmed: $(hier_id) IP mismatch then duplicate connection, a second host holds the identity (T0849).</description>
     <mitre><id>T1036</id></mitre>

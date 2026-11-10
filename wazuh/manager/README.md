@@ -46,6 +46,9 @@ Rule 110304 (fan-in of 3 stations to one destination) needs `<global_frequency>y
 frequency rules count per agent by default and each station is its own agent, so it never fired live.
 `logtest_driver.py` replays lines marked `"_agent":"<name>"` as forwarded by that agent to cover this.
 
+The same applies to the CSMS-fed correlations 110302, 110308, 110112, 110130, 110131, 110201, 110203,
+110206 and 110401 (pods on two nodes = two agents); they carry `global_frequency` and have `_agent` cases.
+
 ## Test
 
 ```
