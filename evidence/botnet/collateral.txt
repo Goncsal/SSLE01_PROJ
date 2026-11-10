@@ -1,0 +1,24 @@
+Collateral of the bulk-quarantine response (6 compromised stations / 12 chargers)
+
+run.sh before-snapshot:
+  porto  interrupted=0  power_avg_w=21407
+  lisboa interrupted=0  power_avg_w=49034
+  aveiro interrupted=0  power_avg_w=20221
+  total connected=30   CSMS stopped_total=85
+
+run.sh after-snapshot (taken before the sim.env restore restarted evsim):
+  porto  interrupted=0  power_avg_w=0      <- all porto charging sessions cut by the quarantine
+  lisboa interrupted=0  power_avg_w=25083
+  aveiro interrupted=0  power_avg_w=15339
+  total connected=30   CSMS stopped_total=106
+
+Headline collateral:
+  CSMS forced session-stops during the window: 106 - 85 = 21
+  Porto charging power driven to 0 W (its live sessions terminated on quarantine).
+
+Measurement caveat (a finding, not a defect of the attack):
+  The sim's evcharge_sim_sessions_total{result="interrupted"} counter stayed 0 because a
+  session cut by a CSMS-side change-availability/disconnect is recorded by the simulator as
+  a normal stop, not an "interrupted" one. The honest collateral signal is therefore the
+  central-side CSMS stopped-session delta (21) and the per-city charging-power collapse,
+  not the sim interrupted counter. The instrument should also count CSMS-forced stops.
