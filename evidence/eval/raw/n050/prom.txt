@@ -1,0 +1,35 @@
+## csms request latency (evcharge_csms_ocpp_handle_seconds, all actions), window 120 s
+p0.5
+{"status":"success","data":{"resultType":"vector","result":[{"metric":{},"value":[1794338121.397,"0.002558605126574329"]}]}}
+p0.95
+{"status":"success","data":{"resultType":"vector","result":[{"metric":{},"value":[1794338121.451,"0.009524261046567228"]}]}}
+p0.99
+{"status":"success","data":{"resultType":"vector","result":[{"metric":{},"value":[1794338121.506,"0.02204574344404132"]}]}}
+p95 by action
+{"status":"success","data":{"resultType":"vector","result":[{"metric":{"action":"StartTransaction"},"value":[1794338121.557,"0.04374996428571429"]},{"metric":{"action":"MeterValues"},"value":[1794338121.557,"0.005718761830272643"]},{"metric":{"action":"Heartbeat"},"value":[1794338121.557,"0.008333319548996541"]},{"metric":{"action":"StopTransaction"},"value":[1794338121.557,"0.02124527076259023"]},{"metric":{"action":"BootNotification"},"value":[1794338121.557,"NaN"]},{"metric":{"action":"StatusNotification"},"value":[1794338121.557,"0.023349994428603263"]},{"metric":{"action":"Authorize"},"value":[1794338121.557,"0.04249996428571427"]}]}}
+## csms message rate (msg/s)
+{"status":"success","data":{"resultType":"vector","result":[{"metric":{},"value":[1794338121.611,"6.818924357263262"]}]}}
+## csms connected chargers
+{"status":"success","data":{"resultType":"vector","result":[{"metric":{},"value":[1794338121.663,"50"]}]}}
+## csms dependency p95 (registry/db/billing)
+{"status":"success","data":{"resultType":"vector","result":[{"metric":{"dependency":"billing"},"value":[1794338121.726,"0.0433332857142857"]},{"metric":{"dependency":"fraud"},"value":[1794338121.726,"0.08749985714285713"]},{"metric":{"dependency":"registry"},"value":[1794338121.726,"NaN"]}]}}
+## csms edge rejections (rate)
+{"status":"success","data":{"resultType":"vector","result":[]}}
+## prometheus head series
+{"status":"success","data":{"resultType":"vector","result":[{"metric":{"__name__":"prometheus_tsdb_head_series","instance":"prometheus.monitoring.svc:9090","job":"prometheus"},"value":[1794338121.841,"4502"]}]}}
+## active series by job (count of all series per job)
+{"status":"success","data":{"resultType":"vector","result":[{"metric":{"job":"federate-aveiro"},"value":[1794338121.900,"62"]},{"metric":{"job":"prometheus"},"value":[1794338121.900,"913"]},{"metric":{"job":"cadvisor"},"value":[1794338121.900,"76"]},{"metric":{"job":"federate-porto"},"value":[1794338121.900,"62"]},{"metric":{},"value":[1794338121.900,"19"]},{"metric":{"job":"alertmanager"},"value":[1794338121.900,"485"]},{"metric":{"job":"federate-lisboa"},"value":[1794338121.900,"62"]},{"metric":{"job":"grafana"},"value":[1794338121.900,"1199"]},{"metric":{"job":"fraud"},"value":[1794338121.900,"28"]},{"metric":{"job":"registry"},"value":[1794338121.900,"52"]},{"metric":{"job":"billing"},"value":[1794338121.900,"39"]},{"metric":{"job":"csms"},"value":[1794338121.900,"457"]},{"metric":{"job":"correlator"},"value":[1794338121.900,"57"]}]}}
+## series per city (federated, label city)
+{"status":"success","data":{"resultType":"vector","result":[{"metric":{"city":"aveiro"},"value":[1794338121.960,"149"]},{"metric":{"city":"porto"},"value":[1794338121.960,"118"]},{"metric":{"city":"lisboa"},"value":[1794338121.960,"117"]}]}}
+## scrape duration max/avg by job
+{"status":"success","data":{"resultType":"vector","result":[{"metric":{"job":"federate-aveiro"},"value":[1794338122.014,"0.005845044"]},{"metric":{"job":"prometheus"},"value":[1794338122.014,"0.005932614"]},{"metric":{"job":"cadvisor"},"value":[1794338122.014,"0.047663551"]},{"metric":{"job":"federate-porto"},"value":[1794338122.014,"0.004213084"]},{"metric":{"job":"alertmanager"},"value":[1794338122.014,"0.012590207"]},{"metric":{"job":"federate-lisboa"},"value":[1794338122.014,"0.004112601"]},{"metric":{"job":"grafana"},"value":[1794338122.014,"0.032644793"]},{"metric":{"job":"fraud"},"value":[1794338122.014,"0.007612682"]},{"metric":{"job":"registry"},"value":[1794338122.014,"0.004603133"]},{"metric":{"job":"billing"},"value":[1794338122.014,"0.00266295"]},{"metric":{"job":"csms"},"value":[1794338122.014,"0.019615368"]},{"metric":{"job":"correlator"},"value":[1794338122.014,"0.006244919"]}]}}
+## scrape samples scraped by job
+{"status":"success","data":{"resultType":"vector","result":[{"metric":{"job":"federate-aveiro"},"value":[1794338122.067,"54"]},{"metric":{"job":"prometheus"},"value":[1794338122.067,"905"]},{"metric":{"job":"cadvisor"},"value":[1794338122.067,"4008"]},{"metric":{"job":"federate-porto"},"value":[1794338122.067,"54"]},{"metric":{"job":"alertmanager"},"value":[1794338122.067,"477"]},{"metric":{"job":"federate-lisboa"},"value":[1794338122.067,"54"]},{"metric":{"job":"grafana"},"value":[1794338122.067,"1191"]},{"metric":{"job":"fraud"},"value":[1794338122.067,"20"]},{"metric":{"job":"registry"},"value":[1794338122.067,"44"]},{"metric":{"job":"billing"},"value":[1794338122.067,"31"]},{"metric":{"job":"csms"},"value":[1794338122.067,"441"]},{"metric":{"job":"correlator"},"value":[1794338122.067,"49"]}]}}
+## prometheus rss / cpu
+{"status":"success","data":{"resultType":"vector","result":[{"metric":{"__name__":"process_resident_memory_bytes","instance":"prometheus.monitoring.svc:9090","job":"prometheus"},"value":[1794338122.123,"161685504"]}]}}
+{"status":"success","data":{"resultType":"vector","result":[{"metric":{"instance":"prometheus.monitoring.svc:9090","job":"prometheus"},"value":[1794338122.180,"0.006222222222222168"]}]}}
+## csms process rss/cpu per pod
+{"status":"success","data":{"resultType":"vector","result":[]}}
+{"status":"success","data":{"resultType":"vector","result":[]}}
+## csms replicas (HPA)
+csms   Deployment/csms   cpu: 23%/70%   2     4     2     4d22h

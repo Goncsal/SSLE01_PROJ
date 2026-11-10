@@ -1,0 +1,5 @@
+cpu0 st-001 usage_usec 128034891
+cpu0 st-002 usage_usec 133282586
+cpu0 st-003 usage_usec 119110764
+cpu0 st-004 usage_usec 130311304
+cpu0 st-005 usage_usec 132099406

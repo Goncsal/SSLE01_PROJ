@@ -1,0 +1,32 @@
+evcharge      csms-56c7569776-wxc4c                     165m   71Mi    
+evcharge      csms-56c7569776-jt9s6                     164m   72Mi    
+evcharge      csms-56c7569776-zxlwt                     159m   74Mi    
+evcharge      csms-56c7569776-nfqlz                     155m   74Mi    
+evcharge      postgres-0                                61m    120Mi   
+evcharge      registry-674cf8496-tg96n                  49m    66Mi    
+wazuh         wazuh-agent-qfbbq                         12m    50Mi    
+wazuh         wazuh-agent-pkn8d                         10m    52Mi    
+evcharge      correlator-5d4df6f9f5-bbhx6               9m     56Mi    
+monitoring    grafana-74b4d85f9b-hp2v4                  8m     271Mi   
+kube-system   metrics-server-778c4649b4-8cx95           7m     80Mi    
+monitoring    prometheus-78bfb6d5b5-7bh2z               5m     173Mi   
+evcharge      fraud-667c57f69d-9skck                    5m     86Mi    
+evcharge      billing-5dfb5845c5-qsj2c                  4m     65Mi    
+
+k3s-master   487m   24%   1887Mi   66%   
+k3s-node1    455m   22%   1617Mi   56%   
+
+               total        used        free      shared  buff/cache   available
+Mem:           23804       15508         599        7277       15362        8296
+Swap:           4095           1        4094
+
+aveiro-edge,181.51MiB
+aveiro-st-001,214.95MiB
+aveiro-st-002,215.99MiB
+aveiro-st-003,216.45MiB
+aveiro-st-004,216.16MiB
+aveiro-st-005,216.46MiB
+docker,1.02GiB
+k3s-master,2.50GiB
+k3s-node1,2.12GiB
+wazuh-container,5.93GiB

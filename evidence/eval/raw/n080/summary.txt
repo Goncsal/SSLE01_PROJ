@@ -1,0 +1,8 @@
+label=n080 window_s=120 start=2026-11-10T19:16:37Z
+available_mb=8452
+connected_all=80
+connected_aveiro=60
+quarantined=0
+pods_running=18
+wazuh_events_processed: 11086 -> 11962 in 120 s => EPS=7.30
+end=2026-11-10T19:18:40Z

@@ -1,0 +1,7 @@
+events_processed='58696'
+events_received='59536'
+events_dropped='0'
+alerts_written='2160'
+33940  0.1 wazuh-db
+1459044 2.9 wazuh-analysisd
+20192  0.5 wazuh-remoted

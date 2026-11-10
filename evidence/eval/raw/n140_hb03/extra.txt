@@ -1,0 +1,11 @@
+# sum(rate(evcharge_csms_rate_limited_total[2m]))
+{"status":"success","data":{"resultType":"vector","result":[{"metric":{},"value":[1794339042.778,"197.70610860988117"]}]}}
+# sum(rate(evcharge_csms_ocpp_messages_total[2m]))
+{"status":"success","data":{"resultType":"vector","result":[{"metric":{},"value":[1794339042.894,"362.66916948821375"]}]}}
+# sum by (action)(rate(evcharge_csms_ocpp_handle_seconds_count[2m]))
+{"status":"success","data":{"resultType":"vector","result":[{"metric":{"action":"BootNotification"},"value":[1794339043.051,"2.68573124880775"]},{"metric":{"action":"StatusNotification"},"value":[1794339043.051,"5.552422588685596"]},{"metric":{"action":"Authorize"},"value":[1794339043.051,"0.06666938788468385"]},{"metric":{"action":"StartTransaction"},"value":[1794339043.051,"0.028572335644100964"]},{"metric":{"action":"MeterValues"},"value":[1794339043.051,"0.780975511305527"]},{"metric":{"action":"Heartbeat"},"value":[1794339043.051,"155.84868980600493"]},{"metric":{"action":"StopTransaction
+# sum(rate(evcharge_csms_events_dropped_total[2m]))
+{"status":"success","data":{"resultType":"vector","result":[{"metric":{},"value":[1794339043.182,"0"]}]}}
+# sum(rate(evcharge_csms_ocpp_errors_total[2m]))
+{"status":"success","data":{"resultType":"vector","result":[]}}
+Error: unknown shorthand flag: 'E' in -E
