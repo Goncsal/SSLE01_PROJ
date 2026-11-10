@@ -5,7 +5,11 @@
 # grid_gap rules, quarantine_charger action).
 #
 #   tamper_meter.sh [--city lisboa] [--station pt.lisboa.st-003]
-#                   [--mode scale|rollback|freeze] [--factor 0.5] [--run] [--duration N]
+#                   [--mode scale|rollback|freeze] [--factor 0.5] [--extra-args "FLAGS"]
+#                   [--run] [--duration N]
+#
+# --extra-args appends simulator flags (e.g. "--session-minutes 3 --arrival-rate 30": short,
+# frequent sessions, so power_gap has enough charging samples inside the PoC window).
 #
 # Sets SIM_EXTRA_ARGS on one station's sim.env to the chosen tamper mode (saving the
 # previous content first), restarts evsim, waits, then restores the saved sim.env (on
@@ -22,10 +26,11 @@ CITY=lisboa
 STATION=""
 MODE=scale
 FACTOR=0.5
+EXTRA=""
 
 print_usage() {
   cat <<EOF
-usage: $(basename "$0") [--city CITY] [--station HIER_ID] [--mode scale|rollback|freeze] [--factor F] [--run] [--duration SECONDS] [--dry-run]
+usage: $(basename "$0") [--city CITY] [--station HIER_ID] [--mode scale|rollback|freeze] [--factor F] [--extra-args "SIM FLAGS"] [--run] [--duration SECONDS] [--dry-run]
 
 scale/freeze take --factor (0 < F < 1, default 0.5, the under-report ratio: 9.2);
 rollback ignores --factor (the register jumps back a fixed 500 Wh once per session).
@@ -40,6 +45,7 @@ while [ $# -gt 0 ]; do
     --station) STATION="$2"; shift 2 ;;
     --mode) MODE="$2"; shift 2 ;;
     --factor) FACTOR="$2"; shift 2 ;;
+    --extra-args) EXTRA="$2"; shift 2 ;;
     -h|--help) print_usage; exit 0 ;;
     *) ARGS+=("$1"); shift ;;
   esac
@@ -62,6 +68,8 @@ if [ "$MODE" = rollback ]; then
   TAMPER_ARGS="--tamper 0.5 --tamper-mode rollback"
 fi
 
+[ -z "$EXTRA" ] || TAMPER_ARGS="$TAMPER_ARGS $EXTRA"
+
 echo "== fraud PoC 2: meter tamper ($MODE) on $STATION ($INST) =="
 echo "  tamper args          : $TAMPER_ARGS"
 echo "  time-box             : ${DURATION}s"
@@ -69,7 +77,7 @@ case "$MODE" in
   scale)
     echo "  expected detections : invisible to the CSMS anomaly check (the readings stay"
     echo "                        internally consistent) -- caught by the feeder-meter"
-    echo "                        grid_gap fraud rule and Prometheus MeterUnderReporting"
+    echo "                        power_gap fraud rule and Prometheus MeterUnderReporting"
     echo "                        (city:station_power_gap_watts)"
     echo "  expected response    : quarantine-charger"
     ;;
@@ -99,7 +107,7 @@ if [ "$DRY_RUN" = 1 ]; then
   would "wait ${DURATION}s while the station reports tampered meter values"
 else
   echo "-- waiting ${DURATION}s --"
-  sleep "$DURATION"
+  sleep "$DURATION" & wait $!   # background + wait: INT/TERM run the cleanup at once
 fi
 
 echo

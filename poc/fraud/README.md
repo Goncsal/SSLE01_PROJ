@@ -28,8 +28,10 @@ restarts `evsim`. The same card id then authorises sessions in two cities within
 minutes -- the impossible-travel signature.
 
 ```
-clone_card.sh [--home porto] [--used-in aveiro,lisboa] [--phase before|after] [--run] [--duration N]
+clone_card.sh [--home porto] [--used-in aveiro,lisboa] [--phase before|after] [--card CARD] [--run] [--duration N]
 ```
+
+`--card` pins the card instead of taking the first roster card of `--home`.
 
 - **Expected detections**: fraud `impossible_travel` (`distance_km`, `speed_kmh` >
   `FRAUD_MAX_KMH`, city coordinates from the registry); Wazuh **110203** (`ConcurrentTx`
@@ -49,12 +51,16 @@ Sets `SIM_EXTRA_ARGS` on one station's `sim.env` (default `pt.lisboa.st-003`) to
 `--tamper F --tamper-mode scale|rollback|freeze` and restarts `evsim`.
 
 ```
-tamper_meter.sh [--city lisboa] [--station pt.lisboa.st-003] [--mode scale|rollback] [--factor 0.5] [--run] [--duration N]
+tamper_meter.sh [--city lisboa] [--station pt.lisboa.st-003] [--mode scale|rollback] [--factor 0.5] [--extra-args "SIM FLAGS"] [--run] [--duration N]
 ```
+
+`--extra-args` appends simulator flags to the tamper flags (for example
+`"--session-minutes 3 --arrival-rate 30"`: short, frequent sessions so `power_gap` has enough
+completed sessions inside the window).
 
 - **`--mode scale`** (under-report, default): the readings the charger sends stay
   internally consistent, so the **CSMS anomaly check cannot see it** -- it is caught by
-  the **feeder-meter `grid_gap` fraud rule** and Prometheus `MeterUnderReporting`
+  the **real-time `power_gap` fraud rule** (feeder power vs reported power) and Prometheus `MeterUnderReporting`
   (`city:station_power_gap_watts`). **Tampering under-reporting is invisible to the
   CSMS and caught only by the independent out-of-band feeder-meter gap** -- the point of
   this PoC.

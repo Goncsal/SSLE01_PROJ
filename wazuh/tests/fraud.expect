@@ -57,3 +57,13 @@
 57 110209  # 110209 billing.card_unblocked
 58 110209  # 110209 billing.session_flagged
 59 110090  # 110209 negative: billing.session_closed
+60 reset  # new session
+61 110210  # 110210 high-confidence live: block-card
+62 reset  # new session
+63 110207  # 110210 negative: dry_run true stays an alert (no AR)
+64 reset  # new session
+65 110207  # 110210 negative: 201 km/h alert only (no AR)
+66 reset  # new session
+67 110207  # 110210 negative: alert only in dry run
+68 reset  # new session
+69 110208  # 110208 power_gap alert (quarantine is the service's own action)

@@ -67,7 +67,7 @@ banner "1/2 cloned card (impossible travel)" \
 "$FRAUD_DIR/clone_card.sh" --phase after --duration "$DURATION" "$MODE_FLAG"
 
 banner "2/2 meter tamper (scale, under-report)" \
-       "invisible to the CSMS; Prometheus MeterUnderReporting; fraud grid_gap" \
+       "invisible to the CSMS; Prometheus MeterUnderReporting; fraud power_gap" \
        "quarantine-charger"
 "$FRAUD_DIR/tamper_meter.sh" --mode scale --duration "$DURATION" "$MODE_FLAG"
 

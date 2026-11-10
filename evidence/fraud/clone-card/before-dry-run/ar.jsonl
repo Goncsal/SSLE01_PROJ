@@ -1,0 +1,1 @@
+{"ts":"2026-11-09T13:34:06.199Z","level":"warning","service":"ar","instance":"wazuh-container","event":"ar.action","msg":"block-card refused: allowlisted","ar_command":"block-card","target":"E3EE5BE2ED4120","card":"E3EE5BE2ED4120","hier_id":"pt.lisboa.st-001.cp-2","rule_id":"110207","alert_id":"1794231246.270854","result":"refused","reason":"allowlisted"}

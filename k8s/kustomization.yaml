@@ -7,7 +7,7 @@ resources:
   - registry.yaml
   - billing.yaml
   - csms.yaml
-  # - fraud.yaml   # W7 RUN card: uncomment (after the fraud role/DB, image and fraud-env exist)
+  - fraud.yaml
 # The roster ConfigMap is created by infra/05_deploy.sh from dev/roster.yaml.
 # infra/05_deploy.sh rewrites newTag in its pushed copy when IMAGE_TAG is set.
 images:

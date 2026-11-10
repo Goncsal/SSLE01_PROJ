@@ -1,0 +1,108 @@
+{
+ "count": 4,
+ "items": [
+  {
+   "alert_id": "93de46b5-0aaf-40c8-a8e7-2c1f088a08e2",
+   "ts": "2026-11-09T18:12:41.676366Z",
+   "rule": "impossible_travel",
+   "severity": "critical",
+   "card": "E3EE5BE2ED4120",
+   "hier_id": "pt.porto.st-005.cp-2",
+   "other_hier_id": "pt.lisboa.st-001.cp-2",
+   "city": "porto",
+   "score": 0.95,
+   "detail": "card E3EE5BE2ED4120 started a session in lisboa and 24.1 min later in porto: 278 km at 694 km/h (alert above 200, block at 400 or overlap): 694 km/h >= 400",
+   "evidence": {
+    "distance_km": 278.1,
+    "speed_kmh": 693.6,
+    "minutes_apart": 24.05,
+    "max_kmh": 200.0,
+    "block_kmh": 400.0,
+    "concurrent": false,
+    "high_confidence": true,
+    "from_city": "lisboa",
+    "to_city": "porto",
+    "transaction_ids": [
+     4400,
+     4444
+    ]
+   }
+  },
+  {
+   "alert_id": "fec09065-e367-4f0a-81e7-4c58c3773554",
+   "ts": "2026-11-09T18:11:58.846881Z",
+   "rule": "power_gap",
+   "severity": "critical",
+   "card": null,
+   "hier_id": "pt.lisboa.st-003",
+   "other_hier_id": null,
+   "city": "lisboa",
+   "score": 0.9,
+   "detail": "station pt.lisboa.st-003: feeder power exceeds reported power by 24337 W (50% of 48674 W) in 21 of 26 charging samples over 15 min",
+   "evidence": {
+    "mean_gap_w": 24337.1,
+    "mean_feeder_w": 48674.1,
+    "gap_ratio": 0.5,
+    "samples": 26,
+    "gapped_samples": 21,
+    "window_s": 900.0,
+    "power_gap_w": 1000.0,
+    "power_gap_ratio": 0.3
+   }
+  },
+  {
+   "alert_id": "b9972cc5-bd6d-4777-b333-3d3881bdeb43",
+   "ts": "2026-11-09T17:57:31.415244Z",
+   "rule": "impossible_travel",
+   "severity": "critical",
+   "card": "4AB5EE3CD4AA84",
+   "hier_id": "pt.porto.st-003.cp-2",
+   "other_hier_id": "pt.lisboa.st-002.cp-2",
+   "city": "porto",
+   "score": 0.95,
+   "detail": "card 4AB5EE3CD4AA84 started a session in lisboa and 71.1 min later in porto: 268 km at 226 km/h (alert above 200, block at 400 or overlap): alert only",
+   "evidence": {
+    "distance_km": 268.2,
+    "speed_kmh": 226.4,
+    "minutes_apart": 71.07,
+    "max_kmh": 200.0,
+    "block_kmh": 400.0,
+    "concurrent": false,
+    "high_confidence": false,
+    "from_city": "lisboa",
+    "to_city": "porto",
+    "transaction_ids": [
+     4310,
+     4416
+    ]
+   }
+  },
+  {
+   "alert_id": "e6c325d5-d9e6-42f8-830e-2045ccfe7362",
+   "ts": "2026-11-09T17:48:38.472037Z",
+   "rule": "impossible_travel",
+   "severity": "critical",
+   "card": "E3EE5BE2ED4120",
+   "hier_id": "pt.lisboa.st-001.cp-2",
+   "other_hier_id": "pt.porto.st-002.cp-2",
+   "city": "lisboa",
+   "score": 0.95,
+   "detail": "card E3EE5BE2ED4120 started a session in porto and 26.3 min later in lisboa: 276 km at 629 km/h (alert above 200, block at 400 or overlap): 629 km/h >= 400",
+   "evidence": {
+    "distance_km": 275.5,
+    "speed_kmh": 629.1,
+    "minutes_apart": 26.28,
+    "max_kmh": 200.0,
+    "block_kmh": 400.0,
+    "concurrent": false,
+    "high_confidence": true,
+    "from_city": "porto",
+    "to_city": "lisboa",
+    "transaction_ids": [
+     4359,
+     4400
+    ]
+   }
+  }
+ ]
+}

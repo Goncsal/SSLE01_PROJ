@@ -32,8 +32,11 @@ def create_app(settings: Settings, *, geo=None, responder: Responder | None = No
     def act(raised: list[Raised]) -> None:
         """Run the response of each new alert; then tell the correlator about criticals."""
         for r in raised:
-            txs = (scorer.card_transactions(r.finding.card, r.alert.ts)
-                   if r.finding.action == "block_card" and r.finding.card else None)
+            txs = None
+            if r.finding.action == "block_card" and r.finding.card:
+                txs = scorer.card_transactions(r.finding.card, r.alert.ts)
+            elif r.finding.action == "quarantine" and r.finding.hier_id and not settings.dry_run:
+                txs = scorer.station_transactions(r.finding.hier_id, r.alert.ts)
             responder.run(r.alert, r.finding, txs)
             responder.notify_correlator(r.alert)
 

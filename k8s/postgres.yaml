@@ -11,11 +11,12 @@ data:
     # Runs once, on the first start of an empty data directory.
     # One role and one database per service; nobody else may connect.
     set -eu
-    for svc in registry csms billing; do
+    for svc in registry csms billing fraud; do
       case "$svc" in
         registry) pw="$PG_PASSWORD_REGISTRY" ;;
         csms)     pw="$PG_PASSWORD_CSMS" ;;
         billing)  pw="$PG_PASSWORD_BILLING" ;;
+        fraud)    pw="$PG_PASSWORD_FRAUD" ;;
       esac
       psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d postgres -v svc="$svc" -v pw="$pw" <<'SQL'
     CREATE ROLE :"svc" LOGIN PASSWORD :'pw';

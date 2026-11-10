@@ -510,3 +510,41 @@ def test_sleep_or_cancel_leaves_no_pending_tasks() -> None:
         return [t for t in asyncio.all_tasks() if t is not me and not t.done()]
 
     assert asyncio.run(scenario()) == []
+
+
+# ---- honest card selection is city-local --------------------------------------
+
+def test_pick_card_is_city_local():
+    from evsim import driver
+    roster = load_roster(FIXTURE_ROSTER)
+    rng = random.Random(1)
+    for city in {c.home_city for c in roster.cards}:
+        home = {c.card for c in roster.cards_for_city(city)}
+        for bias in (1.0, 0.8, 0.0):
+            assert {driver.pick_card(rng, roster, city, bias) for _ in range(300)} <= home
+
+
+def test_two_cities_never_share_an_honest_card():
+    from evsim import driver
+    roster = load_roster(FIXTURE_ROSTER)
+    cities = sorted({c.home_city for c in roster.cards})
+    assert len(cities) >= 2
+    rng = random.Random(2)
+    used = {c: {driver.pick_card(rng, roster, c, 0.8) for _ in range(400)} for c in cities}
+    for i, a in enumerate(cities):
+        for b in cities[i + 1:]:
+            assert not (used[a] & used[b])
+
+
+def test_clone_pattern_stands_out_against_city_local_traffic():
+    """A cloned card seen in a second city is the only cross-city card."""
+    from evsim import driver
+    roster = load_roster(FIXTURE_ROSTER)
+    cities = sorted({c.home_city for c in roster.cards})
+    rng = random.Random(3)
+    honest = {c: {driver.pick_card(rng, roster, c, 1.0) for _ in range(300)} for c in cities}
+    victim = next(iter(honest[cities[0]]))
+    state = attacks.CloneState(card=victim, sessions=1)
+    assert state.take() == victim                      # injected, bypasses honest selection
+    seen_in = [c for c in cities if victim in honest[c]] + [cities[1]]  # clone used in city 2
+    assert len(set(seen_in)) == 2                      # two cities, same card: impossible travel

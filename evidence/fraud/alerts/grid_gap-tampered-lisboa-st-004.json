@@ -1,0 +1,25 @@
+[
+  {
+    "alert_id": "5242c637-a48f-45c3-be07-064d3e0905a0",
+    "ts": "2026-11-09T15:08:02.048664Z",
+    "rule": "grid_gap",
+    "severity": "critical",
+    "card": null,
+    "hier_id": "pt.lisboa.st-004",
+    "other_hier_id": null,
+    "city": "lisboa",
+    "score": 0.9,
+    "detail": "station pt.lisboa.st-004 reported 22518 Wh against 31057 Wh on the feeder meter (73%, limit 80%), sustained over 10 min, 27 sessions",
+    "evidence": {
+      "reported_wh": 22518.0,
+      "grid_wh": 31057.1,
+      "ratio": 0.725,
+      "grid_factor": 0.8,
+      "window_h": 6.0,
+      "sessions": 27,
+      "grid_settle_s": 1400.0,
+      "grid_sustain_s": 600.0,
+      "prior_ratio": 0.789
+    }
+  }
+]

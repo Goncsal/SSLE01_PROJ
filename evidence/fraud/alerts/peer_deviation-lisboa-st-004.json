@@ -1,0 +1,22 @@
+[
+  {
+    "alert_id": "b076296c-1d3d-4941-a4e0-1c20734bf0c9",
+    "ts": "2026-11-09T14:41:23.360988Z",
+    "rule": "peer_deviation",
+    "severity": "warning",
+    "card": null,
+    "hier_id": "pt.lisboa.st-004",
+    "other_hier_id": null,
+    "city": "lisboa",
+    "score": 0.7,
+    "detail": "station pt.lisboa.st-004 averages 1043 Wh per session, 48% of the lisboa median (2184 Wh)",
+    "evidence": {
+      "mean_wh": 1042.8,
+      "city_median_wh": 2184.5,
+      "ratio": 0.477,
+      "own_sessions": 21,
+      "peer_sessions": 34,
+      "peer_factor": 0.5
+    }
+  }
+]

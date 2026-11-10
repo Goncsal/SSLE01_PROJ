@@ -1,0 +1,2 @@
+E3EE5BE2ED4120|fraud|2026-11-09 17:48:38.537243+00|fraud rule impossible_travel: card E3EE5BE2ED4120 started a session in porto and 26.3 min later in lisboa: 276 km at 629 km/h (alert above 200, block at 400 or overlap): 629 km/h >= 400
+E3EE5BE2ED4120|fraud|2026-11-09 18:12:41.716851+00|fraud rule impossible_travel: card E3EE5BE2ED4120 started a session in lisboa and 24.1 min later in porto: 278 km at 694 km/h (alert above 200, block at 400 or overlap): 694 km/h >= 400

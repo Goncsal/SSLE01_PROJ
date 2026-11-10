@@ -1,0 +1,53 @@
+[
+  {
+    "alert_id": "c267a9ca-6be9-4206-91a3-99f3cea54d16",
+    "ts": "2026-11-09T13:59:12.882615Z",
+    "rule": "meter_backwards",
+    "severity": "warning",
+    "card": "06482E034BB4EC",
+    "hier_id": "pt.porto.st-003.cp-2",
+    "other_hier_id": null,
+    "city": "porto",
+    "score": 0.75,
+    "detail": "charger pt.porto.st-003.cp-2 meter anomaly 'backwards' in session 4073",
+    "evidence": {
+      "reason": "backwards",
+      "transaction_id": 4073,
+      "max_kw": 50.0
+    }
+  },
+  {
+    "alert_id": "beeb04e7-b4a9-44ee-812c-1d9a92cf2a74",
+    "ts": "2026-11-09T13:56:38.076401Z",
+    "rule": "meter_backwards",
+    "severity": "warning",
+    "card": "0942D7BDC322D7",
+    "hier_id": "pt.porto.st-003.cp-1",
+    "other_hier_id": null,
+    "city": "porto",
+    "score": 0.75,
+    "detail": "charger pt.porto.st-003.cp-1 meter anomaly 'backwards' in session 4070",
+    "evidence": {
+      "reason": "backwards",
+      "transaction_id": 4070,
+      "max_kw": 22.0
+    }
+  },
+  {
+    "alert_id": "27e8c377-886a-4620-b955-8b4a852b3872",
+    "ts": "2026-11-09T13:54:43.916794Z",
+    "rule": "meter_backwards",
+    "severity": "warning",
+    "card": "4CD5B7CD345C2B",
+    "hier_id": "pt.porto.st-003.cp-2",
+    "other_hier_id": null,
+    "city": "porto",
+    "score": 0.75,
+    "detail": "charger pt.porto.st-003.cp-2 meter anomaly 'backwards' in session 4066",
+    "evidence": {
+      "reason": "backwards",
+      "transaction_id": 4066,
+      "max_kw": 50.0
+    }
+  }
+]

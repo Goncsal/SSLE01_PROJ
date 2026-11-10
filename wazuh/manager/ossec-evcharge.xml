@@ -53,10 +53,12 @@
     <rules_id>110101,110103,110130,110131</rules_id>
   </active-response>
 
+  <!-- only 110210: it honours the fraud service dry-run flag. 110203/110206 are native
+       cross-city alerts without that flag, so they alert but do not block -->
   <active-response>
     <command>block-card</command>
     <location>server</location>
-    <rules_id>110203,110206,110207</rules_id>
+    <rules_id>110210</rules_id>
   </active-response>
 
   <integration>

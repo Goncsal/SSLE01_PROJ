@@ -54,7 +54,7 @@ fi
 val() { sed -n "s/^$1=//p" "$SECRETS_FILE" | head -1; }
 urlenc() { python3 -c 'import sys, urllib.parse; print(urllib.parse.quote(sys.argv[1], safe=""))' "$1"; }
 
-need=(POSTGRES_PASSWORD PG_PASSWORD_REGISTRY PG_PASSWORD_CSMS PG_PASSWORD_BILLING
+need=(POSTGRES_PASSWORD PG_PASSWORD_REGISTRY PG_PASSWORD_CSMS PG_PASSWORD_BILLING PG_PASSWORD_FRAUD
       REGISTRY_ADMIN_TOKEN CSMS_API_TOKEN BILLING_API_TOKEN)
 for k in "${need[@]}"; do
   v="$(val "$k")"
@@ -74,20 +74,23 @@ dburl() { # service, password-key
 }
 pair() { printf '%s=%s\n' "$1" "$(val "$1")"; }
 
-{ pair POSTGRES_PASSWORD; pair PG_PASSWORD_REGISTRY; pair PG_PASSWORD_CSMS; pair PG_PASSWORD_BILLING; } > "$WORK/postgres-env"
+{ pair POSTGRES_PASSWORD; pair PG_PASSWORD_REGISTRY; pair PG_PASSWORD_CSMS; pair PG_PASSWORD_BILLING; pair PG_PASSWORD_FRAUD; } > "$WORK/postgres-env"
 # the responder tokens are optional: written only when present in platform.env
 optional() { [ -n "$(val "$1")" ] && [ "$(val "$1")" != "change-me" ] && pair "$1"; true; }
 { pair REGISTRY_ADMIN_TOKEN; optional REGISTRY_RESPONDER_TOKEN
   sed -n 's/^\(REGISTRY_TOKEN_[A-Z0-9_]*\)=.*/\1/p' "$SECRETS_FILE" | while read -r k; do pair "$k"; done
   dburl registry PG_PASSWORD_REGISTRY; } > "$WORK/registry-env"
-{ pair CSMS_API_TOKEN; optional CSMS_RESPONDER_TOKEN; pair BILLING_API_TOKEN; dburl csms PG_PASSWORD_CSMS; } > "$WORK/csms-env"
+{ pair CSMS_API_TOKEN; optional CSMS_RESPONDER_TOKEN; pair BILLING_API_TOKEN; dburl csms PG_PASSWORD_CSMS
+  printf 'FRAUD_URL=http://fraud:8003\n'; pair FRAUD_API_TOKEN; } > "$WORK/csms-env"
 { pair BILLING_API_TOKEN; optional BILLING_RESPONDER_TOKEN; dburl billing PG_PASSWORD_BILLING; } > "$WORK/billing-env"
+{ pair FRAUD_API_TOKEN; dburl fraud PG_PASSWORD_FRAUD; optional REGISTRY_RESPONDER_TOKEN; optional CSMS_RESPONDER_TOKEN
+  optional BILLING_RESPONDER_TOKEN; optional CORRELATOR_API_TOKEN; } > "$WORK/fraud-env"
 
 log "applying Secrets in namespace evcharge"
 incus exec k3s-master -- sh -c 'rm -rf '"$REMOTE"' && mkdir -m 700 '"$REMOTE"
 incus exec k3s-master -- sh -c 'kubectl create namespace evcharge --dry-run=client -o yaml | kubectl apply -f -' >/dev/null
 
-for s in postgres registry csms billing; do
+for s in postgres registry csms billing fraud; do
   incus file push --mode 600 "$WORK/$s-env" "k3s-master$REMOTE/$s-env" >/dev/null
   incus exec k3s-master -- sh -c "kubectl -n evcharge create secret generic $s-env --from-env-file=$REMOTE/$s-env --dry-run=client -o yaml \
     | kubectl label --local -f - app.kubernetes.io/name=$s app.kubernetes.io/part-of=evcharge -o yaml \

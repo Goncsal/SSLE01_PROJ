@@ -7,6 +7,7 @@ it asks for, so the caller (the HTTP layer, the tests) decides when to run them.
 
 from __future__ import annotations
 
+import collections
 import datetime as dt
 import threading
 import uuid
@@ -56,6 +57,8 @@ class Scorer:
         self.cfg = settings
         self.geo = geo                    # station hier-id -> (lat, lon) or None
         self.lock = threading.Lock()
+        # real-time power samples per station (time, feeder W, gap W); memory only: the window is minutes
+        self._power: dict[str, collections.deque] = {}
 
     # ---- ingestion -------------------------------------------------------------------------------
 
@@ -88,12 +91,16 @@ class Scorer:
         prior = [self._card_ev(r) for r in db.scalars(
             select(CardEventRow).where(CardEventRow.card == ev.card, CardEventRow.kind == "start",
                                        CardEventRow.ts >= since, CardEventRow.ts <= ev.ts))]
+        stopped = frozenset(t for t in db.scalars(
+            select(CardEventRow.transaction_id).where(
+                CardEventRow.card == ev.card, CardEventRow.kind == "stop", CardEventRow.ts >= since,
+                CardEventRow.ts <= ev.ts, CardEventRow.transaction_id.is_not(None))))
         db.add(CardEventRow(ts=ev.ts, kind="start", card=ev.card, city=ev.city, hier_id=ev.hier_id,
                             lat=lat, lon=lon, transaction_id=ev.transaction_id))
         db.flush()
         here = CardEv(ev.ts, ev.card, ev.city, ev.hier_id, lat, lon, None, ev.transaction_id)
         out = []
-        for f in (rules.impossible_travel(here, prior, self.cfg),
+        for f in (rules.impossible_travel(here, prior, self.cfg, stopped),
                   rules.card_velocity(card=ev.card, city=ev.city, hier_id=ev.hier_id,
                                       starts=[p.ts for p in prior] + [ev.ts], now=ev.ts, cfg=self.cfg)):
             if f:
@@ -118,27 +125,52 @@ class Scorer:
         return out
 
     def record_grid_sample(self, station_id: str, city: str, power_w: float, seconds: float,
-                           ts: dt.datetime | None = None) -> list[Raised]:
-        """Add the feeder-meter energy of one polling interval and re-run the station rules."""
+                           ts: dt.datetime | None = None, gap_w: float | None = None) -> list[Raised]:
+        """Add the feeder-meter energy of one polling interval and re-run the station rules.
+
+        `gap_w` is the instantaneous feeder-minus-reported power (None = unknown: power_gap
+        gets no sample)."""
         ts = ts or dt.datetime.now(dt.UTC)
         with self.lock, self.sessions() as db:
             db.add(StationStatRow(ts=ts, city=city, station_id=station_id, grid_power_w=power_w,
                                   grid_wh=max(power_w, 0.0) * seconds / 3600))
             db.flush()
-            raised = [r for f in self._station_rules(db, station_id, city, ts, peers=False)
-                      if (r := self._raise(db, f, ts))]
+            findings = self._station_rules(db, station_id, city, ts, peers=False)
+            if gap_w is not None:
+                dq = self._power.setdefault(station_id, collections.deque())
+                dq.append((ts, power_w, gap_w))
+                horizon = ts - dt.timedelta(seconds=self.cfg.power_gap_window_s)
+                while dq and dq[0][0] <= horizon:
+                    dq.popleft()
+                f = rules.power_gap(station_id=station_id, city=city, samples=list(dq), now=ts,
+                                    cfg=self.cfg)
+                if f:
+                    findings.append(f)
+            raised = [r for f in findings if (r := self._raise(db, f, ts))]
             db.commit()
             return raised
 
     def _station_rules(self, db, station: str, city: str, now: dt.datetime, peers: bool = True):
         since = now - dt.timedelta(hours=self.cfg.window_h)
         out = []
-        reported, grid = db.execute(
-            select(func.coalesce(func.sum(StationStatRow.reported_wh), 0.0),
-                   func.coalesce(func.sum(StationStatRow.grid_wh), 0.0))
-            .where(StationStatRow.station_id == station, StationStatRow.ts >= since,
-                   StationStatRow.ts <= now)).one()
+        def totals(at: dt.datetime) -> tuple[float, float, int]:
+            """Reported energy and sessions up to `at`; feeder energy up to `at` minus the settle lag."""
+            lo = at - dt.timedelta(hours=self.cfg.window_h)
+            rep, n = db.execute(
+                select(func.coalesce(func.sum(StationStatRow.reported_wh), 0.0),
+                       func.coalesce(func.sum(StationStatRow.sessions), 0))
+                .where(StationStatRow.station_id == station, StationStatRow.ts >= lo,
+                       StationStatRow.ts <= at)).one()
+            grid = db.scalar(
+                select(func.coalesce(func.sum(StationStatRow.grid_wh), 0.0))
+                .where(StationStatRow.station_id == station, StationStatRow.ts >= lo,
+                       StationStatRow.ts <= at - dt.timedelta(seconds=self.cfg.grid_settle_s)))
+            return rep, grid, n
+
+        reported, grid, sessions = totals(now)
+        p_rep, p_grid, _ = totals(now - dt.timedelta(seconds=self.cfg.grid_sustain_s))
         f = rules.grid_gap(station_id=station, city=city, reported_wh=reported, grid_wh=grid,
+                           sessions=sessions, prior_reported_wh=p_rep, prior_grid_wh=p_grid,
                            cfg=self.cfg)
         if f:
             out.append(f)
@@ -183,7 +215,10 @@ class Scorer:
             "fraud.alert", f.detail, level="warning", rule=f.rule, score=f.score, card=f.card,
             hier_id=f.hier_id, other_hier_id=f.other_hier_id, severity=f.severity,
             distance_km=ev.get("distance_km"), speed_kmh=ev.get("speed_kmh"),
-            energy_wh=ev.get("energy_wh"), max_kw=ev.get("max_kw"), alert_id=alert.alert_id)
+            energy_wh=ev.get("energy_wh"), max_kw=ev.get("max_kw"), alert_id=alert.alert_id,
+            # what the service will do with it, and whether it is allowed to: Wazuh's active
+            # responses key off these two so a dry run suppresses them as well
+            auto_action=f.action or "none", dry_run=self.cfg.dry_run)
         return Raised(alert, f)
 
     def _refresh_high_risk(self, db, now: dt.datetime) -> None:
@@ -240,6 +275,16 @@ class Scorer:
         with self.sessions() as db:
             ids = db.scalars(select(CardEventRow.transaction_id).where(
                 CardEventRow.card == card, CardEventRow.kind == "start",
+                CardEventRow.ts >= since, CardEventRow.transaction_id.is_not(None))
+                .order_by(CardEventRow.ts))
+            return sorted(set(ids))
+
+    def station_transactions(self, station: str, now: dt.datetime) -> list[int]:
+        """Transaction ids of sessions started at the station in the window (for flagging)."""
+        since = now - dt.timedelta(hours=self.cfg.window_h)
+        with self.sessions() as db:
+            ids = db.scalars(select(CardEventRow.transaction_id).where(
+                CardEventRow.hier_id.like(f"{station}.%"), CardEventRow.kind == "start",
                 CardEventRow.ts >= since, CardEventRow.transaction_id.is_not(None))
                 .order_by(CardEventRow.ts))
             return sorted(set(ids))

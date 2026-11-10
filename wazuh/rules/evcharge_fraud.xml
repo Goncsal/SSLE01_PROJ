@@ -16,9 +16,9 @@
     <mitre><id>T1078</id></mitre>
   </rule>
 
-  <!-- 120 s, not 10 min: the simulated drivers roam between cities (home bias 0.8), so a card
-       refused with ConcurrentTx in two cities within minutes is normal traffic (3 per 12 h);
-       two refusals within two minutes are a cloned card -->
+  <!-- the simulated drivers are city-local (cards are issued per city), so one card in a
+       transaction in two cities within two minutes is a cloned card. Alert only: the block
+       decision is 110210, which honours the fraud service dry-run flag -->
   <rule id="110203" level="10" frequency="2" timeframe="120">
     <if_matched_sid>110011</if_matched_sid>
     <same_field>card</same_field>
@@ -45,10 +45,9 @@
     <group>mitre_ics_T0856,</group>
   </rule>
 
-  <!-- 120 s, not 30 min: with 20 % of the sessions on a card of another city, a card starting
-       sessions in two cities within half an hour happened about 5 times per hour on normal load
-       and the response would block those cards; the distance-aware check is the fraud service
-       (110207) -->
+  <!-- 120 s window: honest cards never leave their home city, so a card starting sessions in
+       two cities within two minutes is a clone. Alert only (no active response); the
+       distance-aware check and the block decision are the fraud service (110207, 110210) -->
   <rule id="110206" level="10" frequency="2" timeframe="120">
     <if_matched_sid>110015</if_matched_sid>
     <same_field>card</same_field>
@@ -57,12 +56,27 @@
     <mitre><id>T1078</id></mitre>
   </rule>
 
+  <!-- the ALERT for every impossible_travel above FRAUD_MAX_KMH; no active response is attached
+       to this id (the block is 110210) -->
   <rule id="110207" level="10">
     <if_sid>110000</if_sid>
     <field name="event">^fraud\.alert$</field>
     <field name="rule">^impossible_travel$</field>
     <description>Fraud service: impossible travel for $(card), $(hier_id) to $(other_hier_id).</description>
     <mitre><id>T1078</id></mitre>
+  </rule>
+
+  <!-- the block-card trigger: only the alerts the fraud service itself marks as auto-block
+       (overlapping sessions, or speed at FRAUD_BLOCK_KMH) AND only when it is not in dry run.
+       Both fields must be present: a line without them (older service, other source) never
+       blocks, and a dry run keeps matching 110207 only. -->
+  <rule id="110210" level="12">
+    <if_sid>110207</if_sid>
+    <field name="auto_action">^block_card$</field>
+    <field name="dry_run">^false$</field>
+    <description>Fraud service: high-confidence cloned card $(card) ($(hier_id) to $(other_hier_id)), block.</description>
+    <mitre><id>T1078</id></mitre>
+    <group>mitre_ics_T0859,</group>
   </rule>
 
   <rule id="110208" level="9">

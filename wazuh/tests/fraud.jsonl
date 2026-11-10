@@ -57,3 +57,13 @@
 {"ts":"2026-11-06T10:00:56.000Z","level":"info","service":"billing","instance":"billing","event":"billing.card_unblocked","msg":"billing card_unblocked","card":"04A1B2C3D4E5F6","reason":"x","source":"wazuh"}
 {"ts":"2026-11-06T10:00:57.000Z","level":"warning","service":"billing","instance":"billing","event":"billing.session_flagged","msg":"billing session_flagged","card":"04A1B2C3D4E5F6","reason":"x","source":"wazuh"}
 {"ts":"2026-11-06T10:00:58.000Z","level":"info","service":"billing","instance":"billing","event":"billing.session_closed","msg":"billing session_closed","card":"04A1B2C3D4E5F6","transaction_id":1,"energy_wh":1000,"cost_eur":0.5,"hier_id":"pt.porto.st-003.cp-1"}
+{"_session": "reset"}
+{"level":"warning","service":"fraud","instance":"fraud","event":"fraud.alert","msg":"fraud alert","rule":"impossible_travel","score":0.95,"card":"04A1B2C3D4E5F6","hier_id":"pt.lisboa.st-001.cp-1","other_hier_id":"pt.porto.st-001.cp-1","severity":"critical","auto_action":"block_card","dry_run":false,"speed_kmh":1312.0,"ts":"2026-11-06T10:01:00.000Z"}
+{"_session": "reset"}
+{"level":"warning","service":"fraud","instance":"fraud","event":"fraud.alert","msg":"fraud alert","rule":"impossible_travel","score":0.95,"card":"04A1B2C3D4E5F6","hier_id":"pt.lisboa.st-001.cp-1","other_hier_id":"pt.porto.st-001.cp-1","severity":"critical","auto_action":"block_card","dry_run":true,"speed_kmh":1312.0,"ts":"2026-11-06T10:01:02.000Z"}
+{"_session": "reset"}
+{"level":"warning","service":"fraud","instance":"fraud","event":"fraud.alert","msg":"fraud alert","rule":"impossible_travel","score":0.95,"card":"04A1B2C3D4E5F6","hier_id":"pt.lisboa.st-001.cp-1","other_hier_id":"pt.porto.st-001.cp-1","severity":"critical","auto_action":"none","dry_run":false,"speed_kmh":201.0,"ts":"2026-11-06T10:01:04.000Z"}
+{"_session": "reset"}
+{"level":"warning","service":"fraud","instance":"fraud","event":"fraud.alert","msg":"fraud alert","rule":"impossible_travel","score":0.95,"card":"04A1B2C3D4E5F6","hier_id":"pt.lisboa.st-001.cp-1","other_hier_id":"pt.porto.st-001.cp-1","severity":"critical","auto_action":"none","dry_run":true,"speed_kmh":201.0,"ts":"2026-11-06T10:01:06.000Z"}
+{"_session": "reset"}
+{"level":"warning","service":"fraud","instance":"fraud","event":"fraud.alert","msg":"fraud alert","rule":"power_gap","score":0.95,"card":"04A1B2C3D4E5F6","hier_id":"pt.lisboa.st-001.cp-1","other_hier_id":"pt.porto.st-001.cp-1","severity":"critical","auto_action":"quarantine","dry_run":false,"ts":"2026-11-06T10:01:08.000Z"}

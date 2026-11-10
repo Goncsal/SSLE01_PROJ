@@ -92,9 +92,35 @@ spec:
               value: http://csms:8000
             - name: CORRELATOR_URL
               value: http://correlator:8004
-            # feeder-meter source for grid_gap (central Prometheus, federated recording rule)
+            # feeder-meter source for grid_gap and power_gap (central Prometheus, federated recording rule)
             - name: FRAUD_PROMETHEUS_URL
               value: http://prometheus.monitoring:9090
+            # grid_gap guards against timing lag (energy is booked at session stop)
+            - name: FRAUD_GRID_MIN_SESSIONS
+              value: "2"
+            - name: FRAUD_GRID_MIN_REPORTED_WH
+              value: "500"
+            - name: FRAUD_GRID_SETTLE_S
+              value: "1400"
+            - name: FRAUD_GRID_SUSTAIN_S
+              value: "600"
+            # impossible_travel: alert above FRAUD_MAX_KMH (200, default), auto-block only on
+            # overlapping sessions or at FRAUD_BLOCK_KMH
+            - name: FRAUD_BLOCK_KMH
+              value: "400"
+            - name: FRAUD_CONCURRENT_MAX_AGE_S
+              value: "3600"
+            # power_gap (the quarantine trigger): feeder vs reported power in near real time
+            - name: FRAUD_POWER_GAP_W
+              value: "1000"
+            - name: FRAUD_POWER_GAP_RATIO
+              value: "0.3"
+            - name: FRAUD_POWER_GAP_WINDOW_S
+              value: "900"
+            - name: FRAUD_POWER_GAP_MIN_SAMPLES
+              value: "10"
+            - name: FRAUD_POWER_GAP_FRAC
+              value: "0.8"
           readinessProbe:
             httpGet:
               path: /health

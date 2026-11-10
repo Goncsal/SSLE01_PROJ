@@ -1,0 +1,24 @@
+[
+  {
+    "alert_id": "fec09065-e367-4f0a-81e7-4c58c3773554",
+    "ts": "2026-11-09T18:11:58.846881Z",
+    "rule": "power_gap",
+    "severity": "critical",
+    "card": null,
+    "hier_id": "pt.lisboa.st-003",
+    "other_hier_id": null,
+    "city": "lisboa",
+    "score": 0.9,
+    "detail": "station pt.lisboa.st-003: feeder power exceeds reported power by 24337 W (50% of 48674 W) in 21 of 26 charging samples over 15 min",
+    "evidence": {
+      "mean_gap_w": 24337.1,
+      "mean_feeder_w": 48674.1,
+      "gap_ratio": 0.5,
+      "samples": 26,
+      "gapped_samples": 21,
+      "window_s": 900.0,
+      "power_gap_w": 1000.0,
+      "power_gap_ratio": 0.3
+    }
+  }
+]

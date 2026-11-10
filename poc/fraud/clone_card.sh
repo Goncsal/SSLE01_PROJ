@@ -5,7 +5,7 @@
 # card" and 4.4 (impossible_travel rule, block_card action).
 #
 #   clone_card.sh [--home porto] [--used-in aveiro,lisboa] [--phase before|after]
-#                 [--run] [--duration N]
+#                 [--card CARD] [--run] [--duration N]
 #
 # Picks a non-blocked card whose home_city is --home from dev/roster.yaml, then on one
 # station in each --used-in city sets SIM_EXTRA_ARGS="--clone-card <card> --clone-sessions
@@ -27,10 +27,11 @@ HOME_CITY=porto
 USED_IN=aveiro,lisboa
 PHASE=before
 CLONE_SESSIONS=2
+CARD=""
 
 print_usage() {
   cat <<EOF
-usage: $(basename "$0") [--home CITY] [--used-in CITY,CITY,...] [--phase before|after] [--run] [--duration SECONDS] [--dry-run]
+usage: $(basename "$0") [--home CITY] [--used-in CITY,CITY,...] [--phase before|after] [--card CARD] [--run] [--duration SECONDS] [--dry-run]
 
 Picks a non-blocked card whose home_city is --home (dev/roster.yaml), then on one station
 in each --used-in city sets SIM_EXTRA_ARGS="--clone-card <card> --clone-sessions $CLONE_SESSIONS"
@@ -45,6 +46,7 @@ while [ $# -gt 0 ]; do
     --home) HOME_CITY="$2"; shift 2 ;;
     --used-in) USED_IN="$2"; shift 2 ;;
     --phase) PHASE="$2"; shift 2 ;;
+    --card) CARD="$2"; shift 2 ;;
     -h|--help) print_usage; exit 0 ;;
     *) ARGS+=("$1"); shift ;;
   esac
@@ -57,7 +59,7 @@ case "$PHASE" in
   *) echo "--phase must be before or after" >&2; exit 2 ;;
 esac
 
-CARD="$(pick_card "$HOME_CITY")"
+[ -n "$CARD" ] || CARD="$(pick_card "$HOME_CITY")"
 [ -n "$CARD" ] || { echo "no non-blocked card with home_city=$HOME_CITY in $ROSTER" >&2; exit 2; }
 
 IFS=',' read -r -a CITIES <<< "$USED_IN"
@@ -104,7 +106,7 @@ if [ "$DRY_RUN" = 1 ]; then
   would "wait ${DURATION}s for the cloned sessions to complete in both cities"
 else
   echo "-- waiting ${DURATION}s for the cloned sessions --"
-  sleep "$DURATION"
+  sleep "$DURATION" & wait $!   # background + wait: INT/TERM run the cleanup at once
 fi
 
 echo

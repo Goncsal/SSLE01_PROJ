@@ -1,0 +1,35 @@
+{
+    "count": 1,
+    "items": [
+        {
+            "name": "Lisboa - Bel\u00e9m",
+            "lat": 38.697,
+            "lon": -9.206,
+            "max_kw": null,
+            "connectors": null,
+            "vendor": null,
+            "model": null,
+            "serial": null,
+            "cert_serial": null,
+            "host": "lisboa-st-004",
+            "ip": "10.32.0.19",
+            "network": "city-lisboa",
+            "dns": "st-004.lisboa.pt.lab",
+            "metrics_target": "st-004.lisboa.pt.lab:9300",
+            "hier_id": "pt.lisboa.st-004",
+            "kind": "station",
+            "parent": "pt.lisboa",
+            "city": "lisboa",
+            "station": "st-004",
+            "charger": null,
+            "state": "quarantined",
+            "effective_state": "quarantined",
+            "state_reason": "fraud rule grid_gap: station pt.lisboa.st-004 reported 22518 Wh against 31057 Wh on the feeder meter (73%, limit 80%), sustained over 10 min, 27 sessions",
+            "state_source": "fraud",
+            "state_changed_at": "2026-11-09T15:08:02.074503Z",
+            "created_at": "2026-11-05T20:34:30.355721Z",
+            "updated_at": "2026-11-09T15:08:02.074503Z",
+            "updated_by": "responder"
+        }
+    ]
+}

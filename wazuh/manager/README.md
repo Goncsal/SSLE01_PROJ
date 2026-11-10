@@ -72,10 +72,17 @@ split from 110405 (registry quarantine/release); 110412 keeps `ar.evidence` line
 
 - Wazuh counts a frequency rule **per agent**. The two CSMS pods are two agents, so 110110 now
   uses 5 within 60 s (a scan of 10 or more ids spread over both pods reaches it).
-- 110203 and 110206 use 120 s windows. The simulated drivers roam between cities (20 % of
-  the sessions use a card of another city), which made 110206 fire about 5 times per hour on
-  normal load and the response would have blocked those cards. The distance-aware check is the
-  fraud service (110207).
+- 110203 and 110206 use 120 s windows. The simulated drivers are city-local (a card is only
+  used in its home city; see sim/README), so one card in two cities within two minutes is a
+  clone and these rules no longer fire on honest traffic.
+- **Fraud-service alerts and the block-card response (2026-11-09).** A live run showed 110207
+  (any `impossible_travel` alert, 200 km/h) blocking honest roaming cards, and the response
+  ran for real while the fraud service was in dry run (dry run only gates the service's own
+  API calls). 110207 is now alert-only. The response is attached to 110210, a child that also
+  requires the log line's `auto_action` to be `block_card` (overlapping sessions or speed at
+  `FRAUD_BLOCK_KMH`) and `dry_run` to be `false`; the fraud service writes both fields on every
+  `fraud.alert`. A line without them never blocks. 110203 and 110206 key on the CSMS logs, which carry no
+  dry-run flag, so they are alert-only too and 110210 is the single block path.
 - The `station-sockets` command is `netwatch.py --sockets`: only destinations outside the
   allow file, so queue sizes, pids and ephemeral ports no longer change the output (the raw
   `ss` output made 110305 fire about 250 times per hour).

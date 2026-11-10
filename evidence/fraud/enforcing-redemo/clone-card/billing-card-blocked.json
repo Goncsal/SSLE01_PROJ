@@ -1,0 +1,1 @@
+{"card":"E3EE5BE2ED4120","holder":"driver-0001","home_city":"porto","tariff_id":"standard","expiry_date":null,"status":"blocked","blocked_reason":"fraud rule impossible_travel: card E3EE5BE2ED4120 started a session in porto and 26.3 min later in lisboa: 276 km at 629 km/h (alert above 200, block at 400 or overlap): 629 km/h >= 400","blocked_at":"2026-11-09T17:48:38.537243Z"}

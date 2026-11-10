@@ -1,0 +1,10 @@
+{
+    "card": "E3EE5BE2ED4120",
+    "holder": "driver-0001",
+    "home_city": "porto",
+    "tariff_id": "standard",
+    "expiry_date": null,
+    "status": "blocked",
+    "blocked_reason": "fraud rule impossible_travel: card E3EE5BE2ED4120 started a session in aveiro and 10.0 min later in lisboa: 218 km at 1312 km/h (limit 200)",
+    "blocked_at": "2026-11-09T13:51:47.537493Z"
+}

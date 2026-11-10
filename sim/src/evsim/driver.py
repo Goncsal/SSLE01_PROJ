@@ -50,12 +50,26 @@ def stop_reason(rng: random.Random) -> str:
     return "EVDisconnected" if rng.random() < REJECTED_STOP_RATIO else "Local"
 
 
-def pick_card(rng: random.Random, roster: Roster, home_city: str, home_bias: float) -> str:
-    """A driver's card: from this station's city with probability home_bias,
-    else from any city (blocked cards stay in the pool: real rejections)."""
-    if not roster.cards:
-        raise ValueError("roster has no cards")
-    home = roster.cards_for_city(home_city)
-    if home and rng.random() < home_bias:
-        return rng.choice(home).card
-    return rng.choice(roster.cards).card
+def pick_card(rng: random.Random, roster: Roster, home_city: str, home_bias: float = 1.0) -> str:
+    """A driver's card for a station in `home_city`.
+
+    RFID cards are issued per city operator and honest drivers charge in their
+    own city, so honest selection is city-local: only cards whose home_city is
+    this station's city are ever drawn. An honest card therefore never shows up
+    in two cities, which keeps impossible-travel detection free of false
+    positives; cross-city use of one card is anomalous by construction (the
+    clone attack injects it explicitly, bypassing this function).
+
+    home_bias is kept for compatibility but no longer widens the pool. It is
+    the probability of drawing from the unblocked cards first; blocked cards
+    stay in the city pool so rejections still happen. A city with no cards of
+    its own yields no driver (ValueError), never a foreign card.
+    """
+    local = roster.cards_for_city(home_city)
+    if not local:
+        raise ValueError(f"roster has no cards for city {home_city!r}")
+    if home_bias < 1.0:
+        ok = [c for c in local if not c.blocked]
+        if ok and rng.random() < home_bias:
+            return rng.choice(ok).card
+    return rng.choice(local).card

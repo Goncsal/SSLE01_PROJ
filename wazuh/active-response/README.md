@@ -8,7 +8,7 @@ Each script is a single file, standard library only, and answers the Wazuh 4.x p
 | Script | Runs on | Rules | Does |
 |---|---|---|---|
 | `quarantine-charger` | manager, `/var/ossec/framework/python/bin/python3` | 110101, 110103, 110130, 110131 | evidence, registry quarantine, CSMS stop/Inoperative/disconnect, revocation request |
-| `block-card` | manager | 110203, 110206, 110207 | evidence, billing card block, session flag |
+| `block-card` | manager | 110210 | evidence, billing card block, session flag |
 | `evcharge-edge-drop` | agents (`location all`), `python3` | 110110, 110130 | `iptables` DROP at the city edge, removed after 600 s |
 
 Install (done by the manager deploy): copy to `/var/ossec/active-response/bin/`, mode 0750,

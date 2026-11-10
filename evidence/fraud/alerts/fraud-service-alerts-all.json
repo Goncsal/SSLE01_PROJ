@@ -1,0 +1,978 @@
+{
+    "count": 44,
+    "items": [
+        {
+            "alert_id": "f5cb3710-6e4e-4890-ba80-e8434f52d988",
+            "ts": "2026-11-09T15:08:32.449395Z",
+            "rule": "grid_gap",
+            "severity": "critical",
+            "card": null,
+            "hier_id": "pt.porto.st-002",
+            "other_hier_id": null,
+            "city": "porto",
+            "score": 0.9,
+            "detail": "station pt.porto.st-002 reported 25912 Wh against 36602 Wh on the feeder meter (71%, limit 80%), sustained over 10 min, 10 sessions",
+            "evidence": {
+                "reported_wh": 25912.0,
+                "grid_wh": 36601.9,
+                "ratio": 0.708,
+                "grid_factor": 0.8,
+                "window_h": 6.0,
+                "sessions": 10,
+                "grid_settle_s": 1400.0,
+                "grid_sustain_s": 600.0,
+                "prior_ratio": 0.736
+            }
+        },
+        {
+            "alert_id": "5242c637-a48f-45c3-be07-064d3e0905a0",
+            "ts": "2026-11-09T15:08:02.048664Z",
+            "rule": "grid_gap",
+            "severity": "critical",
+            "card": null,
+            "hier_id": "pt.lisboa.st-004",
+            "other_hier_id": null,
+            "city": "lisboa",
+            "score": 0.9,
+            "detail": "station pt.lisboa.st-004 reported 22518 Wh against 31057 Wh on the feeder meter (73%, limit 80%), sustained over 10 min, 27 sessions",
+            "evidence": {
+                "reported_wh": 22518.0,
+                "grid_wh": 31057.1,
+                "ratio": 0.725,
+                "grid_factor": 0.8,
+                "window_h": 6.0,
+                "sessions": 27,
+                "grid_settle_s": 1400.0,
+                "grid_sustain_s": 600.0,
+                "prior_ratio": 0.789
+            }
+        },
+        {
+            "alert_id": "81f32191-21b4-4ff9-8fe3-c2f119a7aaf1",
+            "ts": "2026-11-09T15:06:30.380360Z",
+            "rule": "impossible_travel",
+            "severity": "critical",
+            "card": "B96B9CF76ABEB1",
+            "hier_id": "pt.aveiro.st-004.cp-1",
+            "other_hier_id": "pt.porto.st-002.cp-1",
+            "city": "aveiro",
+            "score": 0.95,
+            "detail": "card B96B9CF76ABEB1 started a session in porto and 12.6 min later in aveiro: 56 km at 268 km/h (limit 200)",
+            "evidence": {
+                "distance_km": 56.5,
+                "speed_kmh": 267.9,
+                "minutes_apart": 12.65,
+                "max_kmh": 200.0,
+                "from_city": "porto",
+                "to_city": "aveiro",
+                "transaction_ids": [
+                    4155,
+                    4173
+                ]
+            }
+        },
+        {
+            "alert_id": "25b86aa9-5590-4713-8673-bf76fbfa5715",
+            "ts": "2026-11-09T15:03:17.718249Z",
+            "rule": "impossible_travel",
+            "severity": "critical",
+            "card": "B2C84EB3C51711",
+            "hier_id": "pt.lisboa.st-004.cp-1",
+            "other_hier_id": "pt.aveiro.st-004.cp-2",
+            "city": "lisboa",
+            "score": 0.95,
+            "detail": "card B2C84EB3C51711 started a session in aveiro and 48.4 min later in lisboa: 223 km at 276 km/h (limit 200)",
+            "evidence": {
+                "distance_km": 222.7,
+                "speed_kmh": 276.1,
+                "minutes_apart": 48.4,
+                "max_kmh": 200.0,
+                "from_city": "aveiro",
+                "to_city": "lisboa",
+                "transaction_ids": [
+                    4102,
+                    4171
+                ]
+            }
+        },
+        {
+            "alert_id": "b076296c-1d3d-4941-a4e0-1c20734bf0c9",
+            "ts": "2026-11-09T14:41:23.360988Z",
+            "rule": "peer_deviation",
+            "severity": "warning",
+            "card": null,
+            "hier_id": "pt.lisboa.st-004",
+            "other_hier_id": null,
+            "city": "lisboa",
+            "score": 0.7,
+            "detail": "station pt.lisboa.st-004 averages 1043 Wh per session, 48% of the lisboa median (2184 Wh)",
+            "evidence": {
+                "mean_wh": 1042.8,
+                "city_median_wh": 2184.5,
+                "ratio": 0.477,
+                "own_sessions": 21,
+                "peer_sessions": 34,
+                "peer_factor": 0.5
+            }
+        },
+        {
+            "alert_id": "f1f7ae17-b014-4e39-b7bb-4b9f22cd29ce",
+            "ts": "2026-11-09T14:40:40.511742Z",
+            "rule": "impossible_travel",
+            "severity": "critical",
+            "card": "D1A52EA01C7B37",
+            "hier_id": "pt.lisboa.st-003.cp-2",
+            "other_hier_id": "pt.aveiro.st-002.cp-1",
+            "city": "lisboa",
+            "score": 0.95,
+            "detail": "card D1A52EA01C7B37 started a session in aveiro and 30.6 min later in lisboa: 213 km at 417 km/h (limit 200)",
+            "evidence": {
+                "distance_km": 212.8,
+                "speed_kmh": 417.2,
+                "minutes_apart": 30.61,
+                "max_kmh": 200.0,
+                "from_city": "aveiro",
+                "to_city": "lisboa",
+                "transaction_ids": [
+                    4095,
+                    4138
+                ]
+            }
+        },
+        {
+            "alert_id": "01599b84-ea69-46ef-94b7-df0a7be9feb2",
+            "ts": "2026-11-09T14:39:42.362775Z",
+            "rule": "impossible_travel",
+            "severity": "critical",
+            "card": "E8A97F9B922047",
+            "hier_id": "pt.lisboa.st-004.cp-1",
+            "other_hier_id": "pt.porto.st-003.cp-1",
+            "city": "lisboa",
+            "score": 0.95,
+            "detail": "card E8A97F9B922047 started a session in porto and 75.9 min later in lisboa: 278 km at 220 km/h (limit 200)",
+            "evidence": {
+                "distance_km": 277.7,
+                "speed_kmh": 219.6,
+                "minutes_apart": 75.88,
+                "max_kmh": 200.0,
+                "from_city": "porto",
+                "to_city": "lisboa",
+                "transaction_ids": [
+                    4020,
+                    4133
+                ]
+            }
+        },
+        {
+            "alert_id": "62efac0e-e1ad-409c-a99f-8d376bf850de",
+            "ts": "2026-11-09T14:32:39.355507Z",
+            "rule": "impossible_travel",
+            "severity": "critical",
+            "card": "D718607E5651A9",
+            "hier_id": "pt.lisboa.st-004.cp-2",
+            "other_hier_id": "pt.porto.st-005.cp-1",
+            "city": "lisboa",
+            "score": 0.95,
+            "detail": "card D718607E5651A9 started a session in porto and 24.2 min later in lisboa: 281 km at 695 km/h (limit 200)",
+            "evidence": {
+                "distance_km": 280.6,
+                "speed_kmh": 695.1,
+                "minutes_apart": 24.23,
+                "max_kmh": 200.0,
+                "from_city": "porto",
+                "to_city": "lisboa",
+                "transaction_ids": [
+                    4092,
+                    4127
+                ]
+            }
+        },
+        {
+            "alert_id": "de1d66d8-6035-4b0f-9aa3-0289156c36fd",
+            "ts": "2026-11-09T14:26:37.623881Z",
+            "rule": "impossible_travel",
+            "severity": "critical",
+            "card": "4AB5EE3CD4AA84",
+            "hier_id": "pt.porto.st-002.cp-2",
+            "other_hier_id": "pt.lisboa.st-004.cp-1",
+            "city": "porto",
+            "score": 0.95,
+            "detail": "card 4AB5EE3CD4AA84 started a session in lisboa and 32.2 min later in porto: 278 km at 517 km/h (limit 200)",
+            "evidence": {
+                "distance_km": 278.0,
+                "speed_kmh": 517.5,
+                "minutes_apart": 32.24,
+                "max_kmh": 200.0,
+                "from_city": "lisboa",
+                "to_city": "porto",
+                "transaction_ids": [
+                    4069,
+                    4124
+                ]
+            }
+        },
+        {
+            "alert_id": "ac34dddb-110b-4116-831e-8156062e35c2",
+            "ts": "2026-11-09T14:20:10.417722Z",
+            "rule": "impossible_travel",
+            "severity": "critical",
+            "card": "4CD5B7CD345C2B",
+            "hier_id": "pt.lisboa.st-005.cp-1",
+            "other_hier_id": "pt.porto.st-003.cp-2",
+            "city": "lisboa",
+            "score": 0.95,
+            "detail": "card 4CD5B7CD345C2B started a session in porto and 26.8 min later in lisboa: 272 km at 609 km/h (limit 200)",
+            "evidence": {
+                "distance_km": 271.7,
+                "speed_kmh": 608.8,
+                "minutes_apart": 26.78,
+                "max_kmh": 200.0,
+                "from_city": "porto",
+                "to_city": "lisboa",
+                "transaction_ids": [
+                    4066,
+                    4110
+                ]
+            }
+        },
+        {
+            "alert_id": "62bc47dc-ab22-4061-b55a-900f5cefcd77",
+            "ts": "2026-11-09T14:14:52.792770Z",
+            "rule": "impossible_travel",
+            "severity": "critical",
+            "card": "78EF4C06219BB5",
+            "hier_id": "pt.aveiro.st-004.cp-1",
+            "other_hier_id": "pt.lisboa.st-004.cp-1",
+            "city": "aveiro",
+            "score": 0.95,
+            "detail": "card 78EF4C06219BB5 started a session in lisboa and 37.4 min later in aveiro: 223 km at 357 km/h (limit 200)",
+            "evidence": {
+                "distance_km": 222.7,
+                "speed_kmh": 357.0,
+                "minutes_apart": 37.43,
+                "max_kmh": 200.0,
+                "from_city": "lisboa",
+                "to_city": "aveiro",
+                "transaction_ids": [
+                    4044,
+                    4101
+                ]
+            }
+        },
+        {
+            "alert_id": "ad4e3eb7-c368-4bf9-9b2a-9ee7a3e185c2",
+            "ts": "2026-11-09T14:08:13.324342Z",
+            "rule": "grid_gap",
+            "severity": "critical",
+            "card": null,
+            "hier_id": "pt.porto.st-002",
+            "other_hier_id": null,
+            "city": "porto",
+            "score": 0.9,
+            "detail": "station pt.porto.st-002 reported 20148 Wh against 25641 Wh on the feeder meter (79%, limit 80%), sustained over 10 min, 5 sessions",
+            "evidence": {
+                "reported_wh": 20148.0,
+                "grid_wh": 25640.7,
+                "ratio": 0.786,
+                "grid_factor": 0.8,
+                "window_h": 6.0,
+                "sessions": 5,
+                "grid_settle_s": 1400.0,
+                "grid_sustain_s": 600.0,
+                "prior_ratio": 0.798
+            }
+        },
+        {
+            "alert_id": "06d85c22-59d3-436e-ad74-d8d3c2577462",
+            "ts": "2026-11-09T14:04:44.253028Z",
+            "rule": "impossible_travel",
+            "severity": "critical",
+            "card": "EA0A8579A63028",
+            "hier_id": "pt.lisboa.st-002.cp-1",
+            "other_hier_id": "pt.aveiro.st-002.cp-1",
+            "city": "lisboa",
+            "score": 0.95,
+            "detail": "card EA0A8579A63028 started a session in aveiro and 44.4 min later in lisboa: 210 km at 285 km/h (limit 200)",
+            "evidence": {
+                "distance_km": 210.4,
+                "speed_kmh": 284.6,
+                "minutes_apart": 44.37,
+                "max_kmh": 200.0,
+                "from_city": "aveiro",
+                "to_city": "lisboa",
+                "transaction_ids": [
+                    4011,
+                    4085
+                ]
+            }
+        },
+        {
+            "alert_id": "c267a9ca-6be9-4206-91a3-99f3cea54d16",
+            "ts": "2026-11-09T13:59:12.882615Z",
+            "rule": "meter_backwards",
+            "severity": "warning",
+            "card": "06482E034BB4EC",
+            "hier_id": "pt.porto.st-003.cp-2",
+            "other_hier_id": null,
+            "city": "porto",
+            "score": 0.75,
+            "detail": "charger pt.porto.st-003.cp-2 meter anomaly 'backwards' in session 4073",
+            "evidence": {
+                "reason": "backwards",
+                "transaction_id": 4073,
+                "max_kw": 50.0
+            }
+        },
+        {
+            "alert_id": "3eb8b1ad-fa74-4c39-b589-aed962698180",
+            "ts": "2026-11-09T13:58:43.010824Z",
+            "rule": "impossible_travel",
+            "severity": "critical",
+            "card": "DBEA22B4FDE926",
+            "hier_id": "pt.aveiro.st-005.cp-2",
+            "other_hier_id": "pt.lisboa.st-001.cp-1",
+            "city": "aveiro",
+            "score": 0.95,
+            "detail": "card DBEA22B4FDE926 started a session in lisboa and 18.1 min later in aveiro: 217 km at 720 km/h (limit 200)",
+            "evidence": {
+                "distance_km": 217.4,
+                "speed_kmh": 719.9,
+                "minutes_apart": 18.12,
+                "max_kmh": 200.0,
+                "from_city": "lisboa",
+                "to_city": "aveiro",
+                "transaction_ids": [
+                    4047,
+                    4076
+                ]
+            }
+        },
+        {
+            "alert_id": "beeb04e7-b4a9-44ee-812c-1d9a92cf2a74",
+            "ts": "2026-11-09T13:56:38.076401Z",
+            "rule": "meter_backwards",
+            "severity": "warning",
+            "card": "0942D7BDC322D7",
+            "hier_id": "pt.porto.st-003.cp-1",
+            "other_hier_id": null,
+            "city": "porto",
+            "score": 0.75,
+            "detail": "charger pt.porto.st-003.cp-1 meter anomaly 'backwards' in session 4070",
+            "evidence": {
+                "reason": "backwards",
+                "transaction_id": 4070,
+                "max_kw": 22.0
+            }
+        },
+        {
+            "alert_id": "27e8c377-886a-4620-b955-8b4a852b3872",
+            "ts": "2026-11-09T13:54:43.916794Z",
+            "rule": "meter_backwards",
+            "severity": "warning",
+            "card": "4CD5B7CD345C2B",
+            "hier_id": "pt.porto.st-003.cp-2",
+            "other_hier_id": null,
+            "city": "porto",
+            "score": 0.75,
+            "detail": "charger pt.porto.st-003.cp-2 meter anomaly 'backwards' in session 4066",
+            "evidence": {
+                "reason": "backwards",
+                "transaction_id": 4066,
+                "max_kw": 50.0
+            }
+        },
+        {
+            "alert_id": "353a99d6-0f82-43b1-aab4-892edd035864",
+            "ts": "2026-11-09T13:51:47.490622Z",
+            "rule": "impossible_travel",
+            "severity": "critical",
+            "card": "E3EE5BE2ED4120",
+            "hier_id": "pt.lisboa.st-001.cp-2",
+            "other_hier_id": "pt.aveiro.st-001.cp-1",
+            "city": "lisboa",
+            "score": 0.95,
+            "detail": "card E3EE5BE2ED4120 started a session in aveiro and 10.0 min later in lisboa: 218 km at 1312 km/h (limit 200)",
+            "evidence": {
+                "distance_km": 218.5,
+                "speed_kmh": 1312.0,
+                "minutes_apart": 9.99,
+                "max_kmh": 200.0,
+                "from_city": "aveiro",
+                "to_city": "lisboa",
+                "transaction_ids": [
+                    4049,
+                    4065
+                ]
+            }
+        },
+        {
+            "alert_id": "e57e8827-ee98-48ea-b620-5705e7a8cacb",
+            "ts": "2026-11-09T13:49:00.593466Z",
+            "rule": "impossible_travel",
+            "severity": "critical",
+            "card": "7E50631B571C35",
+            "hier_id": "pt.aveiro.st-002.cp-1",
+            "other_hier_id": "pt.lisboa.st-002.cp-1",
+            "city": "aveiro",
+            "score": 0.95,
+            "detail": "card 7E50631B571C35 started a session in lisboa and 25.6 min later in aveiro: 210 km at 494 km/h (limit 200)",
+            "evidence": {
+                "distance_km": 210.4,
+                "speed_kmh": 493.9,
+                "minutes_apart": 25.56,
+                "max_kmh": 200.0,
+                "from_city": "lisboa",
+                "to_city": "aveiro",
+                "transaction_ids": [
+                    4017,
+                    4060
+                ]
+            }
+        },
+        {
+            "alert_id": "85597224-3e87-4f0e-bfe4-050530bfa721",
+            "ts": "2026-11-09T13:47:05.277951Z",
+            "rule": "impossible_travel",
+            "severity": "critical",
+            "card": "D3699D81DF161A",
+            "hier_id": "pt.porto.st-002.cp-1",
+            "other_hier_id": "pt.lisboa.st-004.cp-2",
+            "city": "porto",
+            "score": 0.95,
+            "detail": "card D3699D81DF161A started a session in lisboa and 10.4 min later in porto: 278 km at 1609 km/h (limit 200)",
+            "evidence": {
+                "distance_km": 278.0,
+                "speed_kmh": 1608.9,
+                "minutes_apart": 10.37,
+                "max_kmh": 200.0,
+                "from_city": "lisboa",
+                "to_city": "porto",
+                "transaction_ids": [
+                    4042,
+                    4059
+                ]
+            }
+        },
+        {
+            "alert_id": "bf689502-2d1b-4abf-aaa8-8892a1a808a7",
+            "ts": "2026-11-09T13:46:10.539018Z",
+            "rule": "impossible_travel",
+            "severity": "critical",
+            "card": "B1D9626D834889",
+            "hier_id": "pt.aveiro.st-004.cp-1",
+            "other_hier_id": "pt.lisboa.st-005.cp-2",
+            "city": "aveiro",
+            "score": 0.95,
+            "detail": "card B1D9626D834889 started a session in lisboa and 31.0 min later in aveiro: 217 km at 419 km/h (limit 200)",
+            "evidence": {
+                "distance_km": 216.8,
+                "speed_kmh": 418.9,
+                "minutes_apart": 31.04,
+                "max_kmh": 200.0,
+                "from_city": "lisboa",
+                "to_city": "aveiro",
+                "transaction_ids": [
+                    4000,
+                    4057
+                ]
+            }
+        },
+        {
+            "alert_id": "b11bb8d2-bce2-4b5c-b025-c6f7c7cf24bb",
+            "ts": "2026-11-09T13:40:40.579092Z",
+            "rule": "impossible_travel",
+            "severity": "critical",
+            "card": "77C0442427041F",
+            "hier_id": "pt.aveiro.st-005.cp-1",
+            "other_hier_id": "pt.lisboa.st-003.cp-1",
+            "city": "aveiro",
+            "score": 0.95,
+            "detail": "card 77C0442427041F started a session in lisboa and 14.7 min later in aveiro: 213 km at 871 km/h (limit 200)",
+            "evidence": {
+                "distance_km": 212.9,
+                "speed_kmh": 871.1,
+                "minutes_apart": 14.66,
+                "max_kmh": 200.0,
+                "from_city": "lisboa",
+                "to_city": "aveiro",
+                "transaction_ids": [
+                    4023,
+                    4048
+                ]
+            }
+        },
+        {
+            "alert_id": "1e71b334-b4de-4c6e-9c63-9b70ff746b71",
+            "ts": "2026-11-09T13:34:06.080118Z",
+            "rule": "impossible_travel",
+            "severity": "critical",
+            "card": "E3EE5BE2ED4120",
+            "hier_id": "pt.lisboa.st-001.cp-2",
+            "other_hier_id": "pt.porto.st-004.cp-2",
+            "city": "lisboa",
+            "score": 0.95,
+            "detail": "card E3EE5BE2ED4120 started a session in porto and 16.9 min later in lisboa: 274 km at 975 km/h (limit 200)",
+            "evidence": {
+                "distance_km": 274.2,
+                "speed_kmh": 974.6,
+                "minutes_apart": 16.88,
+                "max_kmh": 200.0,
+                "from_city": "porto",
+                "to_city": "lisboa",
+                "transaction_ids": [
+                    4004,
+                    4039
+                ]
+            }
+        },
+        {
+            "alert_id": "1c50438c-31d1-4ef2-b0b3-2e825408c90a",
+            "ts": "2026-11-09T13:31:38.071686Z",
+            "rule": "impossible_travel",
+            "severity": "critical",
+            "card": "4C229BC2B6A90B",
+            "hier_id": "pt.lisboa.st-003.cp-1",
+            "other_hier_id": "pt.aveiro.st-002.cp-2",
+            "city": "lisboa",
+            "score": 0.95,
+            "detail": "card 4C229BC2B6A90B started a session in aveiro and 44.5 min later in lisboa: 213 km at 287 km/h (limit 200)",
+            "evidence": {
+                "distance_km": 212.8,
+                "speed_kmh": 287.2,
+                "minutes_apart": 44.47,
+                "max_kmh": 200.0,
+                "from_city": "aveiro",
+                "to_city": "lisboa",
+                "transaction_ids": [
+                    3968,
+                    4038
+                ]
+            }
+        },
+        {
+            "alert_id": "40e0821d-5ca0-4a07-b157-bfbe1a836111",
+            "ts": "2026-11-09T13:29:35.180445Z",
+            "rule": "impossible_travel",
+            "severity": "critical",
+            "card": "AFAA13EEB100FD",
+            "hier_id": "pt.aveiro.st-003.cp-1",
+            "other_hier_id": "pt.lisboa.st-001.cp-1",
+            "city": "aveiro",
+            "score": 0.95,
+            "detail": "card AFAA13EEB100FD started a session in lisboa and 31.3 min later in aveiro: 217 km at 416 km/h (limit 200)",
+            "evidence": {
+                "distance_km": 217.3,
+                "speed_kmh": 416.5,
+                "minutes_apart": 31.31,
+                "max_kmh": 200.0,
+                "from_city": "lisboa",
+                "to_city": "aveiro",
+                "transaction_ids": [
+                    3980,
+                    4034
+                ]
+            }
+        },
+        {
+            "alert_id": "b194aa89-fec5-4c56-9624-3237a67eb5f8",
+            "ts": "2026-11-09T13:28:31.688447Z",
+            "rule": "impossible_travel",
+            "severity": "critical",
+            "card": "B9137D03B1119D",
+            "hier_id": "pt.lisboa.st-005.cp-1",
+            "other_hier_id": "pt.porto.st-002.cp-1",
+            "city": "lisboa",
+            "score": 0.95,
+            "detail": "card B9137D03B1119D started a session in porto and 20.7 min later in lisboa: 272 km at 789 km/h (limit 200)",
+            "evidence": {
+                "distance_km": 272.0,
+                "speed_kmh": 788.6,
+                "minutes_apart": 20.7,
+                "max_kmh": 200.0,
+                "from_city": "porto",
+                "to_city": "lisboa",
+                "transaction_ids": [
+                    3993,
+                    4032
+                ]
+            }
+        },
+        {
+            "alert_id": "71a4ff91-7400-4b80-a5a5-eed8fabe5328",
+            "ts": "2026-11-09T13:27:57.744999Z",
+            "rule": "impossible_travel",
+            "severity": "critical",
+            "card": "0F0C89196CB02D",
+            "hier_id": "pt.porto.st-002.cp-2",
+            "other_hier_id": "pt.lisboa.st-002.cp-1",
+            "city": "porto",
+            "score": 0.95,
+            "detail": "card 0F0C89196CB02D started a session in lisboa and 43.8 min later in porto: 269 km at 368 km/h (limit 200)",
+            "evidence": {
+                "distance_km": 268.7,
+                "speed_kmh": 368.1,
+                "minutes_apart": 43.79,
+                "max_kmh": 200.0,
+                "from_city": "lisboa",
+                "to_city": "porto",
+                "transaction_ids": [
+                    3965,
+                    4031
+                ]
+            }
+        },
+        {
+            "alert_id": "86155c99-721e-4277-9bc2-f937b8d786e0",
+            "ts": "2026-11-09T13:27:12.615370Z",
+            "rule": "impossible_travel",
+            "severity": "critical",
+            "card": "759225FF6ECFCE",
+            "hier_id": "pt.lisboa.st-005.cp-2",
+            "other_hier_id": "pt.porto.st-004.cp-1",
+            "city": "lisboa",
+            "score": 0.95,
+            "detail": "card 759225FF6ECFCE started a session in porto and 15.0 min later in lisboa: 271 km at 1080 km/h (limit 200)",
+            "evidence": {
+                "distance_km": 270.7,
+                "speed_kmh": 1080.2,
+                "minutes_apart": 15.04,
+                "max_kmh": 200.0,
+                "from_city": "porto",
+                "to_city": "lisboa",
+                "transaction_ids": [
+                    3997,
+                    4027
+                ]
+            }
+        },
+        {
+            "alert_id": "bf8282a8-9884-4460-af97-00bee6a1427b",
+            "ts": "2026-11-09T13:15:07.959255Z",
+            "rule": "impossible_travel",
+            "severity": "critical",
+            "card": "B1D9626D834889",
+            "hier_id": "pt.lisboa.st-005.cp-2",
+            "other_hier_id": "pt.porto.st-001.cp-1",
+            "city": "lisboa",
+            "score": 0.95,
+            "detail": "card B1D9626D834889 started a session in porto and 36.1 min later in lisboa: 271 km at 451 km/h (limit 200)",
+            "evidence": {
+                "distance_km": 271.4,
+                "speed_kmh": 450.9,
+                "minutes_apart": 36.12,
+                "max_kmh": 200.0,
+                "from_city": "porto",
+                "to_city": "lisboa",
+                "transaction_ids": [
+                    3957,
+                    4000
+                ]
+            }
+        },
+        {
+            "alert_id": "7c2bf594-834a-4f90-878f-158be14b1ec1",
+            "ts": "2026-11-09T13:03:26.710517Z",
+            "rule": "impossible_travel",
+            "severity": "critical",
+            "card": "DBA27E1591CDAB",
+            "hier_id": "pt.porto.st-005.cp-1",
+            "other_hier_id": "pt.aveiro.st-004.cp-1",
+            "city": "porto",
+            "score": 0.95,
+            "detail": "card DBA27E1591CDAB started a session in aveiro and 9.0 min later in porto: 59 km at 392 km/h (limit 200)",
+            "evidence": {
+                "distance_km": 58.8,
+                "speed_kmh": 392.4,
+                "minutes_apart": 8.98,
+                "max_kmh": 200.0,
+                "from_city": "aveiro",
+                "to_city": "porto",
+                "transaction_ids": [
+                    3977,
+                    3986
+                ]
+            }
+        },
+        {
+            "alert_id": "7137e6fe-2720-4604-a433-5e524e2c6765",
+            "ts": "2026-11-09T12:47:46.783677Z",
+            "rule": "impossible_travel",
+            "severity": "critical",
+            "card": "A77BA0FA3D8686",
+            "hier_id": "pt.porto.st-002.cp-2",
+            "other_hier_id": "pt.aveiro.st-001.cp-1",
+            "city": "porto",
+            "score": 0.95,
+            "detail": "card A77BA0FA3D8686 started a session in aveiro and 15.5 min later in porto: 58 km at 222 km/h (limit 200)",
+            "evidence": {
+                "distance_km": 57.6,
+                "speed_kmh": 222.4,
+                "minutes_apart": 15.53,
+                "max_kmh": 200.0,
+                "from_city": "aveiro",
+                "to_city": "porto",
+                "transaction_ids": [
+                    3946,
+                    3969
+                ]
+            }
+        },
+        {
+            "alert_id": "995acd54-511c-4db8-9de7-2b6f9ebcd2fd",
+            "ts": "2026-11-09T12:46:53.759754Z",
+            "rule": "impossible_travel",
+            "severity": "critical",
+            "card": "D3699D81DF161A",
+            "hier_id": "pt.lisboa.st-005.cp-1",
+            "other_hier_id": "pt.aveiro.st-002.cp-2",
+            "city": "lisboa",
+            "score": 0.95,
+            "detail": "card D3699D81DF161A started a session in aveiro and 21.5 min later in lisboa: 214 km at 597 km/h (limit 200)",
+            "evidence": {
+                "distance_km": 214.1,
+                "speed_kmh": 596.6,
+                "minutes_apart": 21.53,
+                "max_kmh": 200.0,
+                "from_city": "aveiro",
+                "to_city": "lisboa",
+                "transaction_ids": [
+                    3934,
+                    3967
+                ]
+            }
+        },
+        {
+            "alert_id": "760cff5a-d75d-4c18-b5b2-fa6b3f682edb",
+            "ts": "2026-11-09T12:44:10.243085Z",
+            "rule": "impossible_travel",
+            "severity": "critical",
+            "card": "0F0C89196CB02D",
+            "hier_id": "pt.lisboa.st-002.cp-1",
+            "other_hier_id": "pt.porto.st-004.cp-1",
+            "city": "lisboa",
+            "score": 0.95,
+            "detail": "card 0F0C89196CB02D started a session in porto and 14.5 min later in lisboa: 267 km at 1106 km/h (limit 200)",
+            "evidence": {
+                "distance_km": 267.5,
+                "speed_kmh": 1105.6,
+                "minutes_apart": 14.52,
+                "max_kmh": 200.0,
+                "from_city": "porto",
+                "to_city": "lisboa",
+                "transaction_ids": [
+                    3943,
+                    3965
+                ]
+            }
+        },
+        {
+            "alert_id": "6f1ba749-5c54-46e3-afd2-0489b47b7000",
+            "ts": "2026-11-09T12:33:29.873934Z",
+            "rule": "grid_gap",
+            "severity": "critical",
+            "card": null,
+            "hier_id": "pt.aveiro.st-005",
+            "other_hier_id": null,
+            "city": "aveiro",
+            "score": 0.9,
+            "detail": "station pt.aveiro.st-005 reported 0 Wh against 1778 Wh on the feeder meter (0%, limit 80%)",
+            "evidence": {
+                "reported_wh": 0.0,
+                "grid_wh": 1777.6,
+                "ratio": 0.0,
+                "grid_factor": 0.8,
+                "window_h": 6.0
+            }
+        },
+        {
+            "alert_id": "adde7e69-9ec5-4c76-8574-8658193bc82b",
+            "ts": "2026-11-09T12:33:29.829342Z",
+            "rule": "grid_gap",
+            "severity": "critical",
+            "card": null,
+            "hier_id": "pt.lisboa.st-003",
+            "other_hier_id": null,
+            "city": "lisboa",
+            "score": 0.9,
+            "detail": "station pt.lisboa.st-003 reported 2509 Wh against 3271 Wh on the feeder meter (77%, limit 80%)",
+            "evidence": {
+                "reported_wh": 2509.0,
+                "grid_wh": 3271.0,
+                "ratio": 0.767,
+                "grid_factor": 0.8,
+                "window_h": 6.0
+            }
+        },
+        {
+            "alert_id": "22c58f79-9266-4cfa-8ea5-88dd7bd0c6f1",
+            "ts": "2026-11-09T12:32:29.528097Z",
+            "rule": "grid_gap",
+            "severity": "critical",
+            "card": null,
+            "hier_id": "pt.lisboa.st-002",
+            "other_hier_id": null,
+            "city": "lisboa",
+            "score": 0.9,
+            "detail": "station pt.lisboa.st-002 reported 1016 Wh against 1336 Wh on the feeder meter (76%, limit 80%)",
+            "evidence": {
+                "reported_wh": 1016.0,
+                "grid_wh": 1335.7,
+                "ratio": 0.761,
+                "grid_factor": 0.8,
+                "window_h": 6.0
+            }
+        },
+        {
+            "alert_id": "37e59db5-279a-4675-b49a-5b48a9a4c641",
+            "ts": "2026-11-09T12:31:29.313571Z",
+            "rule": "grid_gap",
+            "severity": "critical",
+            "card": null,
+            "hier_id": "pt.porto.st-005",
+            "other_hier_id": null,
+            "city": "porto",
+            "score": 0.9,
+            "detail": "station pt.porto.st-005 reported 0 Wh against 1020 Wh on the feeder meter (0%, limit 80%)",
+            "evidence": {
+                "reported_wh": 0.0,
+                "grid_wh": 1020.0,
+                "ratio": 0.0,
+                "grid_factor": 0.8,
+                "window_h": 6.0
+            }
+        },
+        {
+            "alert_id": "408f346d-c580-4b92-8aed-92ddef7223b8",
+            "ts": "2026-11-09T12:29:28.698363Z",
+            "rule": "grid_gap",
+            "severity": "critical",
+            "card": null,
+            "hier_id": "pt.aveiro.st-001",
+            "other_hier_id": null,
+            "city": "aveiro",
+            "score": 0.9,
+            "detail": "station pt.aveiro.st-001 reported 0 Wh against 1201 Wh on the feeder meter (0%, limit 80%)",
+            "evidence": {
+                "reported_wh": 0.0,
+                "grid_wh": 1200.8,
+                "ratio": 0.0,
+                "grid_factor": 0.8,
+                "window_h": 6.0
+            }
+        },
+        {
+            "alert_id": "26f33d5e-5f40-403a-b5ef-14072e085bad",
+            "ts": "2026-11-09T12:27:58.330172Z",
+            "rule": "grid_gap",
+            "severity": "critical",
+            "card": null,
+            "hier_id": "pt.porto.st-003",
+            "other_hier_id": null,
+            "city": "porto",
+            "score": 0.9,
+            "detail": "station pt.porto.st-003 reported 0 Wh against 1036 Wh on the feeder meter (0%, limit 80%)",
+            "evidence": {
+                "reported_wh": 0.0,
+                "grid_wh": 1036.4,
+                "ratio": 0.0,
+                "grid_factor": 0.8,
+                "window_h": 6.0
+            }
+        },
+        {
+            "alert_id": "502ac950-5a7a-4493-9c2e-71c389031e5f",
+            "ts": "2026-11-09T12:27:58.314947Z",
+            "rule": "grid_gap",
+            "severity": "critical",
+            "card": null,
+            "hier_id": "pt.porto.st-002",
+            "other_hier_id": null,
+            "city": "porto",
+            "score": 0.9,
+            "detail": "station pt.porto.st-002 reported 0 Wh against 1026 Wh on the feeder meter (0%, limit 80%)",
+            "evidence": {
+                "reported_wh": 0.0,
+                "grid_wh": 1026.5,
+                "ratio": 0.0,
+                "grid_factor": 0.8,
+                "window_h": 6.0
+            }
+        },
+        {
+            "alert_id": "97d0e618-1f4f-4c90-ab07-c238b37a074b",
+            "ts": "2026-11-09T12:27:58.299428Z",
+            "rule": "grid_gap",
+            "severity": "critical",
+            "card": null,
+            "hier_id": "pt.porto.st-001",
+            "other_hier_id": null,
+            "city": "porto",
+            "score": 0.9,
+            "detail": "station pt.porto.st-001 reported 0 Wh against 1068 Wh on the feeder meter (0%, limit 80%)",
+            "evidence": {
+                "reported_wh": 0.0,
+                "grid_wh": 1068.3,
+                "ratio": 0.0,
+                "grid_factor": 0.8,
+                "window_h": 6.0
+            }
+        },
+        {
+            "alert_id": "ddc32a4b-ce17-4693-9c78-1636f9065718",
+            "ts": "2026-11-09T12:27:58.254351Z",
+            "rule": "grid_gap",
+            "severity": "critical",
+            "card": null,
+            "hier_id": "pt.aveiro.st-002",
+            "other_hier_id": null,
+            "city": "aveiro",
+            "score": 0.9,
+            "detail": "station pt.aveiro.st-002 reported 117 Wh against 1088 Wh on the feeder meter (11%, limit 80%)",
+            "evidence": {
+                "reported_wh": 117.0,
+                "grid_wh": 1087.8,
+                "ratio": 0.108,
+                "grid_factor": 0.8,
+                "window_h": 6.0
+            }
+        },
+        {
+            "alert_id": "229e4bef-e222-4900-a4cb-e1961db16606",
+            "ts": "2026-11-09T12:26:58.124299Z",
+            "rule": "grid_gap",
+            "severity": "critical",
+            "card": null,
+            "hier_id": "pt.porto.st-004",
+            "other_hier_id": null,
+            "city": "porto",
+            "score": 0.9,
+            "detail": "station pt.porto.st-004 reported 555 Wh against 1058 Wh on the feeder meter (52%, limit 80%)",
+            "evidence": {
+                "reported_wh": 555.0,
+                "grid_wh": 1057.8,
+                "ratio": 0.525,
+                "grid_factor": 0.8,
+                "window_h": 6.0
+            }
+        },
+        {
+            "alert_id": "1a582389-fce9-4a60-89db-220158cf93ef",
+            "ts": "2026-11-09T12:26:27.960233Z",
+            "rule": "grid_gap",
+            "severity": "critical",
+            "card": null,
+            "hier_id": "pt.aveiro.st-004",
+            "other_hier_id": null,
+            "city": "aveiro",
+            "score": 0.9,
+            "detail": "station pt.aveiro.st-004 reported 0 Wh against 1265 Wh on the feeder meter (0%, limit 80%)",
+            "evidence": {
+                "reported_wh": 0.0,
+                "grid_wh": 1265.2,
+                "ratio": 0.0,
+                "grid_factor": 0.8,
+                "window_h": 6.0
+            }
+        }
+    ]
+}

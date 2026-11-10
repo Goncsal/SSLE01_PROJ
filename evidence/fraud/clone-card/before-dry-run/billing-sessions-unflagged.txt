@@ -1,0 +1,5 @@
+Billing state read during/after the dry-run run (FRAUD_DRY_RUN=true), card E3EE5BE2ED4120 (status active):
+  4039 pt.lisboa.st-001.cp-2  13:34:06 -> 13:40:16  2136 Wh  status closed  flag_reason null   (cloned use, Lisboa)
+  4049 pt.aveiro.st-001.cp-1  13:41:47 -> 13:47:25  1953 Wh  status closed  flag_reason null   (cloned use, Aveiro)
+  4004 pt.porto.st-004.cp-2   13:17:12 -> 13:32:53 12387 Wh  status closed  flag_reason null   (the holder's own Porto session)
+  GET /cards/E3EE5BE2ED4120 -> "status":"active"

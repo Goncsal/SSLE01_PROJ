@@ -3,7 +3,8 @@
 Every FRAUD_GRID_POLL_S the poller reads `city:station_grid_power_watts:sum` from
 Prometheus (FRAUD_PROMETHEUS_URL; the metric is the utility's meter at each station, the
 truth) and adds power x elapsed time to the station's rolling energy. With no URL the
-poller does not run and grid_gap stays quiet.
+poller does not run and grid_gap stays quiet. It also reads `city:station_power_gap_watts`
+(feeder minus reported power) for power_gap, the real-time tamper signal that quarantines.
 """
 
 from __future__ import annotations
@@ -18,6 +19,7 @@ from .scorer import Scorer
 from .settings import Settings
 
 QUERY = "city:station_grid_power_watts:sum"
+GAP_QUERY = "city:station_power_gap_watts"      # feeder minus reported power, per station
 
 
 def parse_samples(body: dict) -> list[tuple[str, str, float]]:
@@ -44,17 +46,25 @@ class GridPoller:
         self._thread: threading.Thread | None = None
         self._last = time.monotonic()
 
-    def poll_once(self, seconds: float) -> int:
+    def _query(self, query: str) -> list[tuple[str, str, float]] | None:
         try:
-            r = self.client.get("/api/v1/query", params={"query": QUERY})
+            r = self.client.get("/api/v1/query", params={"query": query})
             r.raise_for_status()
-            samples = parse_samples(r.json())
+            return parse_samples(r.json())
         except (httpx.HTTPError, ValueError) as exc:
             jsonlog.get_logger().event("dependency.error", "prometheus query failed", level="warning",
                                        dependency="prometheus", reason=type(exc).__name__)
+            return None
+
+    def poll_once(self, seconds: float) -> int:
+        samples = self._query(QUERY)
+        if samples is None:
             return 0
+        # without the gap series (query failed) power_gap simply gets no sample this round
+        gaps = {s: w for s, _, w in (self._query(GAP_QUERY) or [])}
         for station_id, city, watts in samples:
-            self.act(self.scorer.record_grid_sample(station_id, city, watts, seconds))
+            self.act(self.scorer.record_grid_sample(station_id, city, watts, seconds,
+                                                    gap_w=gaps.get(station_id)))
         return len(samples)
 
     def _loop(self) -> None:

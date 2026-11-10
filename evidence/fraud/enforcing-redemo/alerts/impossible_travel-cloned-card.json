@@ -1,0 +1,27 @@
+{
+  "alert_id": "e6c325d5-d9e6-42f8-830e-2045ccfe7362",
+  "ts": "2026-11-09T17:48:38.472037Z",
+  "rule": "impossible_travel",
+  "severity": "critical",
+  "card": "E3EE5BE2ED4120",
+  "hier_id": "pt.lisboa.st-001.cp-2",
+  "other_hier_id": "pt.porto.st-002.cp-2",
+  "city": "lisboa",
+  "score": 0.95,
+  "detail": "card E3EE5BE2ED4120 started a session in porto and 26.3 min later in lisboa: 276 km at 629 km/h (alert above 200, block at 400 or overlap): 629 km/h >= 400",
+  "evidence": {
+    "distance_km": 275.5,
+    "speed_kmh": 629.1,
+    "minutes_apart": 26.28,
+    "max_kmh": 200.0,
+    "block_kmh": 400.0,
+    "concurrent": false,
+    "high_confidence": true,
+    "from_city": "porto",
+    "to_city": "lisboa",
+    "transaction_ids": [
+      4359,
+      4400
+    ]
+  }
+}

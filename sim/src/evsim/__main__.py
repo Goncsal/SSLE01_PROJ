@@ -42,7 +42,9 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--meter-interval", type=float, default=10.0)
     p.add_argument("--arrival-rate", type=float, default=6.0)
     p.add_argument("--session-minutes", type=float, default=8.0)
-    p.add_argument("--home-bias", type=float, default=0.8)
+    p.add_argument("--home-bias", type=float, default=1.0,
+                   help="probability of drawing an unblocked card of the station's own city; "
+                        "cards are always city-local (cross-city use is only the clone attack)")
     p.add_argument("--seed", type=int, default=None)
     p.add_argument("--duration", type=float, default=None)
     p.add_argument("--reconnect-max", type=float, default=30.0)

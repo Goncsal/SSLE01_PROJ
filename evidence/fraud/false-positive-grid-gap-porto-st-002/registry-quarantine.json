@@ -1,0 +1,35 @@
+{
+    "count": 1,
+    "items": [
+        {
+            "name": "Porto - Boavista",
+            "lat": 41.1579,
+            "lon": -8.6291,
+            "max_kw": null,
+            "connectors": null,
+            "vendor": null,
+            "model": null,
+            "serial": null,
+            "cert_serial": null,
+            "host": "porto-st-002",
+            "ip": "10.31.0.175",
+            "network": "city-porto",
+            "dns": "st-002.porto.pt.lab",
+            "metrics_target": "st-002.porto.pt.lab:9300",
+            "hier_id": "pt.porto.st-002",
+            "kind": "station",
+            "parent": "pt.porto",
+            "city": "porto",
+            "station": "st-002",
+            "charger": null,
+            "state": "quarantined",
+            "effective_state": "quarantined",
+            "state_reason": "fraud rule grid_gap: station pt.porto.st-002 reported 20148 Wh against 25641 Wh on the feeder meter (79%, limit 80%), sustained over 10 min, 5 sessions",
+            "state_source": "fraud",
+            "state_changed_at": "2026-11-09T14:08:13.343558Z",
+            "created_at": "2026-11-05T20:34:29.998593Z",
+            "updated_at": "2026-11-09T14:08:13.343558Z",
+            "updated_by": "responder"
+        }
+    ]
+}

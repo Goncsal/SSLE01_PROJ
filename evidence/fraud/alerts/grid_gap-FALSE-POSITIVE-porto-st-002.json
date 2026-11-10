@@ -1,0 +1,67 @@
+[
+  {
+    "alert_id": "f5cb3710-6e4e-4890-ba80-e8434f52d988",
+    "ts": "2026-11-09T15:08:32.449395Z",
+    "rule": "grid_gap",
+    "severity": "critical",
+    "card": null,
+    "hier_id": "pt.porto.st-002",
+    "other_hier_id": null,
+    "city": "porto",
+    "score": 0.9,
+    "detail": "station pt.porto.st-002 reported 25912 Wh against 36602 Wh on the feeder meter (71%, limit 80%), sustained over 10 min, 10 sessions",
+    "evidence": {
+      "reported_wh": 25912.0,
+      "grid_wh": 36601.9,
+      "ratio": 0.708,
+      "grid_factor": 0.8,
+      "window_h": 6.0,
+      "sessions": 10,
+      "grid_settle_s": 1400.0,
+      "grid_sustain_s": 600.0,
+      "prior_ratio": 0.736
+    }
+  },
+  {
+    "alert_id": "ad4e3eb7-c368-4bf9-9b2a-9ee7a3e185c2",
+    "ts": "2026-11-09T14:08:13.324342Z",
+    "rule": "grid_gap",
+    "severity": "critical",
+    "card": null,
+    "hier_id": "pt.porto.st-002",
+    "other_hier_id": null,
+    "city": "porto",
+    "score": 0.9,
+    "detail": "station pt.porto.st-002 reported 20148 Wh against 25641 Wh on the feeder meter (79%, limit 80%), sustained over 10 min, 5 sessions",
+    "evidence": {
+      "reported_wh": 20148.0,
+      "grid_wh": 25640.7,
+      "ratio": 0.786,
+      "grid_factor": 0.8,
+      "window_h": 6.0,
+      "sessions": 5,
+      "grid_settle_s": 1400.0,
+      "grid_sustain_s": 600.0,
+      "prior_ratio": 0.798
+    }
+  },
+  {
+    "alert_id": "502ac950-5a7a-4493-9c2e-71c389031e5f",
+    "ts": "2026-11-09T12:27:58.314947Z",
+    "rule": "grid_gap",
+    "severity": "critical",
+    "card": null,
+    "hier_id": "pt.porto.st-002",
+    "other_hier_id": null,
+    "city": "porto",
+    "score": 0.9,
+    "detail": "station pt.porto.st-002 reported 0 Wh against 1026 Wh on the feeder meter (0%, limit 80%)",
+    "evidence": {
+      "reported_wh": 0.0,
+      "grid_wh": 1026.5,
+      "ratio": 0.0,
+      "grid_factor": 0.8,
+      "window_h": 6.0
+    }
+  }
+]

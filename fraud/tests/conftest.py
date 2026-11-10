@@ -16,7 +16,9 @@ ROSTER = Path(__file__).resolve().parents[2] / "dev" / "roster.yaml"
 PORTO = "pt.porto.st-001.cp-1"        # 22 kW
 LISBOA = "pt.lisboa.st-001.cp-1"
 CARD = "04A1B2C3D4E5F6"
-T0 = dt.datetime(2026, 11, 6, 10, 0, tzinfo=dt.UTC)
+# Anchored to the present so scores (which look back from the real clock) stay in window on any run
+# date. Four hours back leaves room for the largest offset used (+3 h) and the 6 h scoring window.
+T0 = (dt.datetime.now(dt.UTC) - dt.timedelta(hours=4)).replace(second=0, microsecond=0)
 TOKEN_LEN = 24
 
 
