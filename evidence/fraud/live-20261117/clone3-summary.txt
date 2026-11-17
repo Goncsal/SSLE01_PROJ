@@ -1,0 +1,4 @@
+Clone (overlap-fix run), 2026-11-17T11:38:31Z
+Aveiro->Lisboa 218 km at 1692 km/h -> block.
+110210 at 11:35:52.926 -> fraud block_card 11:35:52.939 -> 110410 block-card done 11:35:53.676 (~0.75s).
+Card E3EE5BE2ED4120 status=blocked, 5 sessions flagged.

@@ -28,6 +28,15 @@ USED_IN=aveiro,lisboa
 PHASE=after
 CLONE_SESSIONS=2
 CARD=""
+# The cloned card must be used quickly in both cities so the sessions overlap (the
+# high-confidence block condition: a session still open in another city). With the default
+# arrival rate a station waits about ten minutes for its first session, so the two cloned
+# sessions rarely overlap and the implied speed lands just under the block threshold. A
+# fast arrival rate and a session long enough to still be open when the second city starts
+# make the overlap, and the block, reliable; this is also what a real cloned card looks
+# like. Override with --arrival-rate / --session-minutes if needed.
+CLONE_ARRIVAL=90
+CLONE_SESSION_MIN=6
 
 print_usage() {
   cat <<EOF
@@ -47,6 +56,8 @@ while [ $# -gt 0 ]; do
     --used-in) USED_IN="$2"; shift 2 ;;
     --phase) PHASE="$2"; shift 2 ;;
     --card) CARD="$2"; shift 2 ;;
+    --arrival-rate) CLONE_ARRIVAL="$2"; shift 2 ;;
+    --session-minutes) CLONE_SESSION_MIN="$2"; shift 2 ;;
     -h|--help) print_usage; exit 0 ;;
     *) ARGS+=("$1"); shift ;;
   esac
@@ -66,7 +77,7 @@ IFS=',' read -r -a CITIES <<< "$USED_IN"
 [ "${#CITIES[@]}" -ge 1 ] || { echo "--used-in needs at least one city" >&2; exit 2; }
 
 echo "== fraud PoC 1: cloned card ($CARD, home $HOME_CITY) used in: ${CITIES[*]} =="
-echo "  clone-sessions each  : $CLONE_SESSIONS"
+echo "  clone-sessions each  : $CLONE_SESSIONS (arrival ${CLONE_ARRIVAL}/h, ${CLONE_SESSION_MIN} min each, to overlap)"
 echo "  time-box             : ${DURATION}s"
 if [ "$PHASE" = before ]; then
   echo "  before               : fraud service stopped, or FRAUD_DRY_RUN=true -- the cloned"
@@ -101,7 +112,7 @@ for inst in "${INSTANCES[@]}"; do
 done
 
 for inst in "${INSTANCES[@]}"; do
-  set_sim_extra_args "$inst" "--clone-card $CARD --clone-sessions $CLONE_SESSIONS"
+  set_sim_extra_args "$inst" "--clone-card $CARD --clone-sessions $CLONE_SESSIONS --arrival-rate $CLONE_ARRIVAL --session-minutes $CLONE_SESSION_MIN"
 done
 
 if [ "$DRY_RUN" = 1 ]; then
