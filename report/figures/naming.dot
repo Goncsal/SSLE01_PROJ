@@ -1,0 +1,26 @@
+digraph naming {
+  graph [rankdir=LR, fontname="Helvetica", nodesep=0.12, ranksep=0.35, pad=0.03];
+  node  [fontname="Helvetica", fontsize=12, shape=box, style="rounded,filled", fillcolor="#eef3fb", color="#4a6fa5", margin="0.08,0.03", height=0.3];
+  edge  [color="#555555", arrowhead=none];
+
+  pt [label="pt", fillcolor="#dbe6f5"];
+  porto   [label="pt.porto"];
+  lisboa  [label="pt.lisboa"];
+  aveiro  [label="pt.aveiro"];
+  central [label="pt.central"];
+  cnode   [label="pt.central.k3s-master\n(central nodes)", fillcolor="#f3f3f3", color="#888888"];
+  pedge   [label="pt.porto.edge", fillcolor="#eaf6ea", color="#4f8f4f"];
+  st1     [label="pt.porto.st-001", fillcolor="#eaf6ea", color="#4f8f4f"];
+  st3     [label="pt.porto.st-003", fillcolor="#eaf6ea", color="#4f8f4f"];
+  stdots  [label="... st-005", shape=plaintext, style="", fillcolor="white"];
+  cp1     [label="pt.porto.st-003.cp-1", fillcolor="#fff3c4", color="#b8860b"];
+  cp2     [label="pt.porto.st-003.cp-2", fillcolor="#fff3c4", color="#b8860b", penwidth=2];
+  ldots   [label="same shape", shape=plaintext, style=""];
+  adots   [label="same shape", shape=plaintext, style=""];
+
+  pt -> porto; pt -> lisboa; pt -> aveiro; pt -> central;
+  central -> cnode;
+  porto -> pedge; porto -> st1; porto -> st3; porto -> stdots;
+  st3 -> cp1; st3 -> cp2;
+  lisboa -> ldots [style=dotted]; aveiro -> adots [style=dotted];
+}

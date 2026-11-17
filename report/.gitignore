@@ -1,0 +1,14 @@
+# LaTeX build files
+*.aux
+*.log
+*.out
+*.toc
+*.bbl
+*.blg
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+
+# Figures rendered from the .dot sources by make
+figures/*.pdf
+missfont.log

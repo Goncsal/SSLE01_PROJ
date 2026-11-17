@@ -9,12 +9,12 @@ automated responses.
 
 ## Platform
 
-The lab follows the course setup: a Debian VM running Incus, with the K3s nodes as
-privileged Incus containers and Docker in its own Incus instance. Each city is a
-separate Incus network with an edge gateway and one container per charging station.
-
-`infra/env.sh` selects how K3s nodes are created (`K3S_NODE=container`, the default,
-or `K3S_NODE=vm` on a bare-metal host). Host-specific overrides go in `infra/local.env`.
+The lab runs on one Linux host with Incus. The K3s nodes (`k3s-master`, `k3s-node1`) and
+the Docker host are Incus VMs on this host: `infra/local.env` sets `K3S_NODE=vm`.
+`K3S_NODE=container` is the course setup (privileged Incus containers on a Debian VM).
+`infra/env.sh` holds the default (`container`); overrides go in `infra/local.env`.
+Each city is a separate Incus network with an edge gateway and one container per
+charging station.
 
 ## Layout
 
@@ -27,8 +27,11 @@ or `K3S_NODE=vm` on a bare-metal host). Host-specific overrides go in `infra/loc
 | `monitoring/` | Prometheus (city and central), alert rules, Grafana dashboards |
 | `wazuh/` | decoders, rules, active responses, integrations |
 | `poc/` | attack proofs of concept, one folder per threat |
-| `eval/` `evidence/` `report/` | scalability runs, captured evidence, report |
+| `eval/` `evidence/` | scalability runs, captured evidence |
+| `report/` | the report: LaTeX source (`report.tex`), Graphviz figures, built `report.pdf` |
+| `docs/` | interface contract (`interfaces.md`), setup notes, demo runbook (`demo.md`) |
 
-## Status
+## Report
 
-Work in progress.
+The report is `report/report.pdf`, built from `report/report.tex` with `make -C report`. Evidence is under `evidence/`. The demo
+runbook is `docs/demo.md`.

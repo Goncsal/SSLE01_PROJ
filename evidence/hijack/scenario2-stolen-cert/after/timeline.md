@@ -15,7 +15,7 @@ VMs, and confirmed NOT present on any regular Incus container -- `porto-edge`,
 both pairs of timestamps describe the SAME events; only the CSMS pods' embedded clock is
 off. This was not present during the earlier BEFORE-state captures (scenario 1/2/3), so it
 developed at some point during this session, not from the start. Flagged in
-`evidence/hijack/README.md` and `.ai/RESTORE-NOTES.md` as an operational finding for a
+`evidence/hijack/README.md` as an operational finding for a
 human to decide on (NTP on the K3s VMs, or periodic resync) -- not something fixed here.
 
 ## What happened, in order (times as logged; CSMS files are ~2h34m19s behind the others)

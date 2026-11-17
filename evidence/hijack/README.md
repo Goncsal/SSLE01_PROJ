@@ -3,8 +3,7 @@
 Lab-only, time-boxed PoC runs against the EV-charging-network platform (Porto/Lisboa are
 TLS cities, Aveiro is the legacy plain-`ws://` city). Three exploitation paths, each with a
 BEFORE run (the attack succeeds, detected) and an AFTER run (a mitigation blocks it), tied
-to the design note (`.ai/tasks/DESIGN-hijacking.md`) and the detection/response contract
-(`docs/interfaces.md` v6 §5.2, §15).
+to the detection/response contract (`docs/interfaces.md` v6 §5.2, §15).
 
 ## Scenario 1 -- rogue duplicate id (Porto, TLS city)
 

@@ -1,0 +1,474 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage[expansion=false]{microtype}
+\usepackage[a4paper,left=2.4cm,right=2.4cm,top=2.5cm,bottom=2.5cm]{geometry}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{tabularx}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{url}
+\usepackage[hidelinks,pdfauthor={Gonçalo Almeida},pdftitle={Threat detection, monitoring and prevention in a regional EV charging network},pdfsubject={SSLE Project 1},bookmarksnumbered]{hyperref}
+
+\makeatletter
+\g@addto@macro\UrlBreaks{\do\_\do\-\do\:\do\,\do\=}
+\makeatother
+\urlstyle{tt}
+\renewcommand{\UrlFont}{\ttfamily\small}
+\Urlmuskip=0mu plus 1mu
+
+\captionsetup{font=small,labelfont=bf,labelsep=period,format=hang,margin=0.4cm}
+\setlength{\parindent}{0pt}
+\setlength{\emergencystretch}{3em}
+\setlength{\parskip}{0.55em}
+\renewcommand{\arraystretch}{1.15}
+\setcounter{secnumdepth}{2}
+\setcounter{tocdepth}{1}
+\numberwithin{table}{section}
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\floatpagefraction}{0.8}
+
+% Screenshot figures: shows figures/<file> if present, otherwise a framed placeholder.
+\newcommand{\screenshot}[3]{%
+  \IfFileExists{figures/#1}{\includegraphics[width=0.95\textwidth]{figures/#1}}%
+  {\fbox{\parbox[c][7cm][c]{0.9\textwidth}{\centering\sffamily Screenshot pending: #3}}}}
+
+\newcommand{\hid}[1]{\path|#1|}
+
+\title{\textsf{\textbf{Threat detection, monitoring and prevention\\in a regional EV charging network}}}
+\author{Gonçalo Almeida\\[0.3em]
+% Student number: TODO
+\normalsize Security in Large-Scale Systems (SSLE), University of Aveiro\\
+\normalsize Project 1}
+\date{November 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\noindent We built and secured a regional operator's EV charging network: OCPP 1.6J chargers in three cities, a central management system on K3s, Prometheus and Alertmanager for metrics, and Wazuh for host and log detection. One hierarchical name is used for each charger in the certificate, the OCPP path, the registry, the metrics and the logs, so every alert can be located with one registry lookup. A correlator joins Prometheus, Wazuh and fraud-service signals into one incident per root cause; on replayed recordings it located the source in 0.1 to 3.6 s. We drove three threats against the live platform (identity hijacking, accounting fraud and a charger botnet) and report what was detected, what was missed and what we changed. A two-tier Prometheus design cut inter-site monitoring traffic by 99.3\% in a controlled comparison, and the scalability test reached about 170 msg/s handled before a configuration limit. We also state the limits: the cross-agent botnet rule is proven in a rule test but not live, the fraud tuning was verified on normal traffic only, and the capacity figures come from one laptop.
+\end{abstract}
+
+\tableofcontents
+\clearpage
+
+\section{Introduction}
+
+\subsection{The system}
+We built and secured a regional operator's EV charging network. Chargers speak OCPP 1.6J (JSON over WebSocket) \cite{ocpp16} to a central charging-station management system (CSMS) on K3s. The chargers sit in three cities (Porto, Lisboa, Aveiro), each on its own Incus network behind an nginx edge. Around the CSMS run a registry (inventory and delegation), billing, fraud scoring and a correlator. The correlator joins Prometheus, Wazuh and fraud-service signals into one incident per root cause (section~\ref{sec:monitoring}). Prometheus and Alertmanager provide metrics and alerting; Wazuh provides host and log detection and active response. All components share one hierarchical naming scheme, \path|pt.<city>.<station>.<charger>| (section~\ref{sec:naming}).
+
+\subsection{Why it matters}\label{sec:why}
+A charging network is critical infrastructure on three counts. It draws load from the grid, so coordinated behaviour by many chargers is a grid-stability issue. It handles money, so metering and card authorisation must be trustworthy. Drivers depend on its availability. In the syllabus it is a large, geographically distributed system whose monitoring cost, not only its security, has to scale.
+
+\subsection{Scope: three threats}
+All three are on the course threat list: (i) hijacking of a charger identity or its signals, (ii) fraud against accounting (cloned cards, tampered meters), (iii) a botnet of compromised chargers (C2, floods, synchronised load). Section~\ref{sec:threats} treats each.
+
+\subsection{Contributions}
+\begin{itemize}
+\item One identity end to end: the same string is the certificate name, OCPP path, registry key, Prometheus and Wazuh labels and map label.
+\item Correlation to one located incident: Prometheus, Wazuh and fraud-service alerts are joined by a correlator and located via the registry, in 0.1 to 3.6 s on replayed recordings (section~\ref{sec:eval}).
+\item Honest post-mortems of three live PoC threats, including the detection gaps they exposed and the fixes (section~\ref{sec:threats}).
+\item Measured federated monitoring: a two-tier Prometheus design cut inter-site monitoring traffic by 99.3\% in a controlled comparison (section~\ref{sec:bandwidth}).
+\item Baselined thresholds computed from recorded data rather than chosen ad hoc (section~\ref{sec:baseline}).
+\item Quantitative scalability (section~\ref{sec:eval}) and honest limitations (section~\ref{sec:concl}).
+\end{itemize}
+
+\subsection{Roadmap}
+Section~\ref{sec:soa} reviews tools and EV-security context, section~\ref{sec:arch} the architecture, section~\ref{sec:risk} risk and monitoring, section~\ref{sec:threats} the threats, section~\ref{sec:eval} the evaluation, and section~\ref{sec:concl} the conclusions.
+
+\section{Relevant state of the art}\label{sec:soa}
+
+\subsection{Monitoring stacks}
+We compared Prometheus, Zabbix and Datadog. Zabbix \cite{zabbix} is server-centric with agents and templates, suited to inventory-style polling but with a heavier central database and a less natural per-label time-series model. Datadog \cite{datadog} is hosted SaaS: it removes operations work but requires every site to ship data to an external provider and carries per-host cost, which does not fit a lab that must measure and minimise inter-site traffic. Prometheus \cite{prometheus} is self-hosted, pull-based, with a label-based query language (PromQL), recording rules and federation, so a site can expose only pre-aggregated series to a parent. Federation is the mechanism that keeps per-charger series inside each city, which is why we chose it (measured in section~\ref{sec:bandwidth}).
+
+\subsection{Detection and SIEM}
+Wazuh \cite{wazuh} descends from OSSEC \cite{ossec} and adds a manager, indexer and dashboard, custom decoders and rules, active response and a MITRE ATT\&CK mapping; OSSEC alone lacks the indexer and dashboard. Falco \cite{falco} detects at syscall level (eBPF), strong for container runtime behaviour but with no application-log correlation, so it is complementary rather than a substitute. Splunk Enterprise Security \cite{splunk} is a capable commercial SIEM but heavy and licensed. We chose Wazuh because it parses our structured JSON logs with custom decoders and rules, ships built-in active responses, and was used in the course. We do not use a network IDS (Snort, Suricata) because OCPP is encrypted (wss with mTLS), so payload signatures would see nothing useful.
+
+\subsection{EV-charging security context}
+OCPP 1.6J, the deployed version, has no built-in security profile; transport protection is left to the deployment. OCPP 2.0.1 \cite{ocpp201} adds Security Profiles (including TLS with client certificates), and the Open Charge Alliance security whitepaper for 1.6 \cite{ocpp16sec} describes similar hardening for older fleets. ISO 15118 \cite{iso15118} defines Plug\&Charge with contract certificates. Typical attack classes on public charging are identity spoofing of a charge-point id, meter and transaction fraud, and compromised firmware enrolled in a botnet. These motivate our mTLS edge, the binding of the certificate subject to the hier-id (section~\ref{sec:transport}), and a deliberately unprotected legacy city (Aveiro, plain ws) to show hijacking before and after hardening.
+
+\subsection{Frameworks}
+Detection rules are mapped to MITRE ATT\&CK (Enterprise) and ATT\&CK for ICS \cite{mitre}. The operational workflow follows FCAPS \cite{itum3400}, concentrating on Fault (availability alerts, inhibition) and Accounting (billing, fraud). Risk is structured with an attack-defense tree (Kordy et al. \cite{kordy}), which extends Schneier's attack trees \cite{schneier} with countermeasure nodes (section~\ref{sec:adtree}).
+
+\section{Service architecture used}\label{sec:arch}
+
+\subsection{Overview}
+The central platform runs on K3s (two nodes in Incus VMs): CSMS with 2 to 4 replicas under a horizontal autoscaler, registry, billing, fraud, correlator, a PostgreSQL StatefulSet with a persistent volume, central Prometheus, Alertmanager and Grafana. The full interface contract (ports, endpoints, environment variables, log fields, metrics) is in the repository at \path|docs/interfaces.md| \cite{interfaces}; this report states only what is needed to follow the argument. The correlator receives alerts from three sources (Alertmanager through a webhook with a bearer token, a Wazuh \path|custom-correlator| integration for level 7 and above plus selected response rule ids, and the fraud service) and exposes \path|/incidents| and its own metrics (NodePort 30804). Wazuh runs in its own container with agents on edges and stations. Each city is an Incus network containing an nginx edge, a city Prometheus on that edge and simulated stations (Figure~\ref{fig:arch}).
+
+\begin{figure}[p]
+\centering
+\includegraphics[height=20.5cm,keepaspectratio]{figures/architecture.pdf}
+\caption{Architecture. Cities are physical sites, each an Incus network with an edge (nginx, city Prometheus, exporters) and five stations of two chargers; Porto is expanded, Lisboa and Aveiro are collapsed and have the same structure. Central services are logical: Kubernetes pods addressed by service name, on two Incus VMs, plus separate Incus instances for Wazuh, the CA and the image build host. Blue: OCPP path (wss with mTLS in Porto and Lisboa, plain ws in Aveiro). Green dashed: federation of the \texttt{city:*} series, every 30 s. Gold: the correlator's three inbound signals (Alertmanager webhook, Wazuh integration, fraud service) and its \texttt{/locate} call to the registry (dotted). Purple dashed: Wazuh agents on edges, stations and K3s nodes reporting to the manager. Red dashed: attacker containers used in the proofs of concept.}
+\label{fig:arch}
+\end{figure}
+
+\subsection{Hierarchical naming}\label{sec:naming}
+Identifiers are \path|pt.<city>.<station>.<charger>| (e.g.\ \path|pt.porto.st-003.cp-2|); cities are \path|pt.<city>|, edges \path|pt.<city>.edge|, central nodes \path|pt.central.<node>|. The same string is used everywhere (Figure~\ref{fig:naming}, Table~\ref{tab:naming}). An alert carrying a \path|hier_id| is therefore located by one registry lookup, and prefix matching on dot boundaries yields a city or station subtree.
+
+\begin{figure}[tb]
+\centering
+\includegraphics[width=0.92\textwidth]{figures/naming.pdf}
+\caption{Naming scheme: the hier-id tree. Cities are children of \texttt{pt}; each city has an edge and stations, each station has chargers. Lisboa and Aveiro follow the same shape as Porto.}
+\label{fig:naming}
+\end{figure}
+
+\begin{table}[tb]
+\centering
+\small
+\begin{tabularx}{\textwidth}{@{}L{4.6cm}Y@{}}
+\toprule
+Where & Value for the charger \path|pt.porto.st-003.cp-2| \\
+\midrule
+Certificate & \path|CN=pt.porto.st-003.cp-2|, SAN DNS \path|cp-2.st-003.porto.pt.lab| \\
+OCPP URL path & \path|/ocpp/pt.porto.st-003.cp-2| \\
+Registry key & \path|pt.porto.st-003.cp-2| \\
+Prometheus labels & \path|hier_id="pt.porto.st-003.cp-2"|, together with \path|city|, \path|station| and \path|charger| \\
+Wazuh & agent \path|pt.porto.st-003| (the station); the charger is the log field \path|hier_id| \\
+DNS name (station) & \path|st-003.porto.pt.lab| \\
+Incus key (station) & \path|user.hier-id=pt.porto.st-003| \\
+Map label & Geomap markers are keyed by \path|hier_id| \\
+\bottomrule
+\end{tabularx}
+\caption{The same identity in each system. The DNS name, the Wazuh agent name and the Incus key belong to the station that hosts the charger; a charger has no address of its own.}
+\label{tab:naming}
+\end{table}
+
+\subsection{Physical versus logical naming}
+Central services are logical: Kubernetes pods addressed by service names. Cities are physical sites, each on its own Incus network and DNS zone. A charger has no address of its own and is reached through its station's IP. The IP locates the station; the hier-id and certificate locate the charger. The registry stores logical identity and physical attributes (host, IP, network, edge, coordinates), which \path|/locate| returns.
+
+\subsection{Delegation}
+Each city operator is authoritative for \path|pt.<city>.*|, enforced by per-city bearer tokens: the token of city X may create, change, delete, quarantine and release only elements strictly below \path|pt.X|; the NOC (admin token) owns \path|pt|, the city nodes and \path|pt.central.*|. \path|/locate| returns the element, its subtree and its \path|operator| (city or \path|noc|). Edges register their own subtree with the city token, and Prometheus service discovery is registry-driven, so a station registered by its operator is monitored without editing Prometheus. Wazuh active responses use separate responder tokens that can only isolate, never administer.
+
+\subsection{Transport and identity}\label{sec:transport}
+In TLS cities the edge terminates wss on 443, requests a client certificate (\path|ssl_verify_client| \texttt{optional}), checks CA and CRL, and forwards the certificate DN, serial and verify result in headers nginx always overwrites. Before the WebSocket upgrade the CSMS applies ten ordered checks (interfaces \S5.2): trusted proxy; well-formed id; known in registry; not quarantined; edge city equals charger city; certificate verified; certificate CN equals id; certificate serial equals registered serial; source IP equals registered station IP (logged, enforced only with \path|CSMS_ENFORCE_STATION_IP|); duplicate-id guard that pings an existing connection before refusing or replacing it. Each refusal increments \path|evcharge_csms_identity_rejections_total{reason}|. Aveiro is deliberately plain \path|ws://| on port 80 with empty certificate headers, to be migrated to mTLS in the hijacking demonstration. A per-connection token bucket in the CSMS limits message rates, since edge \path|limit_req| sees only handshakes. mTLS proves key possession, not device location: a key copied to another host in the same city passes checks 5 to 8, hence the IP check and duplicate-id guard.
+
+\subsection{PKI and secrets}\label{sec:pki}
+A single-level lab CA lives in its own container \path|lab-ca|. Keys are EC P-256; charger certificates have \path|CN=<hier-id>| and 397-day validity; a CRL (7-day) is pushed to the edges; the CA key never leaves the container and leaf keys are copied straight into the target instance. Revocation is part of the hijacking response: registry quarantine, CSMS disconnect, then certificate revocation (interfaces \S12.5). Secrets have no defaults (services refuse to start without them), Postgres has one role per service, active responses use isolate-only tokens, and secret files are gitignored with an example template.
+
+\subsection{Data and APIs}
+Registry, CSMS, billing, fraud and correlator each own their tables and an authenticated HTTP API. Billing holds cards, tariffs, sessions and costs, covering FCAPS Accounting. The correlator keeps open incidents in memory and closed history in SQLite in the pod, and uses the registry \path|/locate| to place an incident on a charger, station, city or edge.
+
+\section{Risk management and mitigation}\label{sec:risk}
+
+\subsection{Attack surfaces}
+Table~\ref{tab:surfaces} lists the surfaces we identified, the attack on each and the defence we built.
+
+\begin{table}[tb]
+\centering
+\footnotesize
+\begin{tabularx}{\textwidth}{@{}L{2.5cm}L{3.1cm}YL{1.7cm}@{}}
+\toprule
+Surface & Attack & Defence built & Contract \\
+\midrule
+OCPP WebSocket & identity spoofing, id reuse, floods & mTLS with CN = hier-id and serial check; ten handshake checks; duplicate-id guard; per-connection rate limit; edge \path|limit_req| & \S5.2, \S5.5, \S11 \\
+Plain ws legacy city (Aveiro) & MitM, rewriting meter values & migration to mTLS; physics-based detection of inconsistent meter values & \S11.1, \S15.4 \\
+RFID card path & cloned card across cities & fraud service (impossible travel) and Wazuh fraud rules; block via rule 110210 (honours dry-run) & \S4.3, \S4.4, \S15.5 \\
+Meter and accounting path & under-reported energy (scale, rollback, freeze) & \path|power_gap| against the feeder meter (real time); cumulative \path|grid_gap| is warning only; meter-anomaly alert & \S4.4, \S14.3 \\
+Station host & firmware compromise, C2, synchronised load & Wazuh network watch of new outbound connections and cross-station correlation; city load alert against baseline; \path|quarantine-charger| & \S15.4, \S15.5, \S14.7 \\
+Registry delegation & token abuse & per-city subtree tokens; isolate-only responder tokens & \S1.3, \S4.1 \\
+City to central network & station reaching NodePorts, peers, other cities & Incus network ACLs, egress allow list & \S14.8, \S16 \\
+\bottomrule
+\end{tabularx}
+\caption{Attack surfaces and the defences built. The Contract column gives the section of \texttt{docs/interfaces.md} that specifies the defence.}
+\label{tab:surfaces}
+\end{table}
+
+\subsection{Attack-defense tree}\label{sec:adtree}
+Figure~\ref{fig:adtree} has one root goal: ``Disrupt or defraud the regional EV charging network.'' Three attacker sub-goals form the branches.
+\begin{enumerate}
+\item Hijack a charger identity or falsify its signals. Leaves: reuse an existing charge-point id from a rogue device; present a stolen client certificate from another host; man-in-the-middle the plain-ws legacy city and rewrite \texttt{MeterValues}.
+\item Defraud accounting. Leaves: use a cloned RFID card across cities (impossible travel); tamper the meter to under-report energy (scale, rollback, freeze).
+\item Enlist chargers into a botnet. Leaves: beacon to an external C2; flood the CSMS with OCPP messages or handshakes; synchronise a full-power grid surge.
+\end{enumerate}
+Green countermeasure nodes attach to the leaves they address: mTLS with CN = hier-id and serial check; the ten CSMS handshake checks and duplicate-id guard (composite 110131); station-IP enforcement; Aveiro plain-to-mTLS migration; per-connection rate limit and edge \path|limit_req|; Incus network ACLs (egress allow list); fraud-service rules (impossible travel; real-time \path|power_gap| against the feeder meter as the quarantine trigger, cumulative \path|grid_gap| warning-only) and the Wazuh fraud rules; block via 110210; \path|quarantine-charger|; netwatch C2 detection with cross-station correlation (110303, 110304); the city-load alert for the synchronised surge; bulk quarantine; the correlator (one located incident); baselined thresholds. Each is annotated detecting or preventing, and standing (always on: rate limits, ACLs) or triggered (active responses). The tree is kept simple: root, three branches, leaves, defence boxes. Where one defence serves two leaves it is drawn twice.
+
+\begin{figure}[p]
+\centering
+\includegraphics[height=20cm,keepaspectratio]{figures/adtree.pdf}
+\caption{Attack-defense tree. Red boxes are attacker goals; green boxes are defences, attached to the leaves they address by dashed arrows. Dark green defences prevent (P), light green detect (D); a solid border marks a standing defence, a dashed border a triggered one. The correlator applies to the whole tree and is attached to the root.}
+\label{fig:adtree}
+\end{figure}
+
+\subsection{Large-scale monitoring design}\label{sec:monitoring}
+Two tiers. A city Prometheus runs on each edge, scrapes its stations and edge exporters every 5 s, sees every charger, and computes \path|city:*| recording rules. The central Prometheus federates only \path|{__name__=~"city:.*"}| every 30 s, so per-charger series never cross the inter-site link. When an edge dies the central side also loses that city's federation, which is the \path|EdgeDown| condition. Alertmanager inhibition suppresses a city's dependent alerts while its \path|EdgeDown| is active, so a dead edge raises one alert instead of one per station and charger.
+
+In the Phase 4 run\footnote{Evidence: \path|evidence/phase4/README.md|.} stopping the simulator on one station turned its map marker grey after 6 s (worst case about 15 s, the CSMS scrape interval), raised \path|StationDown| after 83 s and \path|ChargerOffline| after 130 s. Stopping the Aveiro edge raised \path|EdgeDown{city="aveiro"}| after 101 s; the Aveiro \path|ChargerOffline| alerts (131 s) were shown as suppressed, inhibited by \path|EdgeDown|; all 30 chargers reconnected within about 2 min of the edge restart. Locating \path|StationDown| for \path|pt.lisboa.st-003| via registry \path|/locate| took 0.013 s (host, IP, network, edge, DNS name, coordinates). City-level alerts locate to the city subtree; the correlator narrows them by joining them with Wazuh and fraud signals sharing a hier-id, card or city key within a 120 s window plus 3 s skew tolerance (section~\ref{sec:detection}). Alertmanager inhibition keeps dependent alerts away from the correlator as well: with \path|EdgeDown| active, \path|ChargerOffline| alerts are suppressed before the webhook.
+
+\begin{figure}[tb]
+\centering
+% TODO screenshot: take it from the evcharge-map dashboard with the basemap loaded (capture steps in evidence/phase4/README.md)
+\screenshot{geomap.png}{Grafana Geomap}{Grafana Geomap of the 30 stations in three green clusters (Porto, Lisboa, Aveiro); optionally the grey-marker and red-ring views of a stopped station}
+\caption{Grafana Geomap (dashboard \texttt{evcharge-map}): the 30 stations as three clusters, one per city. A stopped station turns grey and a station-level alert adds a red ring.}
+\label{fig:geomap}
+\end{figure}
+
+\subsection{Baseline and thresholds}\label{sec:baseline}
+Thresholds are computed (interfaces \S14.7). Per city we record load (\path|city:grid_power_watts:sum|), OCPP message rate and the 10-minute failed card authorisations in the central Prometheus, and set upper = mean + $3\sigma$ from one-minute samples, capping load at 90\% of installed capacity. The simulator load is stationary, so hour-of-day bands would add nothing. The window actually used is 12 hours (2026-11-05T23:01Z to 2026-11-06T11:01Z, 721 samples per series, basis \path|12h-20261106|): above the contract minimum of 6 h, below the 24 h target, so the thresholds are a 12 h baseline. The 90\% cap did not apply in any city. Table~\ref{tab:baseline} gives the bounds.
+
+\begin{table}[tb]
+\centering
+\small
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+City & Grid power (W) & Messages/s & Failed auth/10 min \\
+\midrule
+Porto  & 288,519 & 6.43 & 0.55 \\
+Lisboa & 245,403 & 1.30 & 2.82 \\
+Aveiro & 251,375 & 1.33 & 0.00 \\
+\bottomrule
+\end{tabular}
+\caption{Baseline upper bounds per city (mean + $3\sigma$). Source: \texttt{monitoring/rules/baseline.yml}.}
+\label{tab:baseline}
+\end{table}
+
+The Porto message-rate bound is wide (mean 0.95, $\sigma$ 1.83) because that series is more variable in this window. The Phase 4 README records the thresholds as provisional at the time of the run. The cross-agent frequency rules (110304, 110308) use Wazuh \path|global_frequency|, because per-agent counting missed the fleet in the first live botnet run (section~\ref{sec:botnet}).
+
+\subsection{Bandwidth of per-site monitoring}\label{sec:bandwidth}
+We compared federation only (window A) with direct scraping of every station by the central Prometheus (window B), 30 minutes each, same load, 15 stations.\footnote{Evidence: \path|evidence/phase4/README.md| and \path|evidence/phase4/bandwidth.txt|.} Federation reduced traffic by 99.3\% uncompressed (47.2 KB/min against 6.38 MB/min in total) and 99.5\% with gzip (4.4 KB/min against 963 KB/min). Per city: about 15.5 KB/min federated against about 2.1 MB/min direct. Samples fell from 55,427 to 324 per minute. On the central side, direct scraping cost more: Prometheus RSS +12\% and CPU 5 times higher (Table~\ref{tab:bandwidth}).
+
+\begin{table}[tb]
+\centering
+\small
+\begin{tabularx}{\textwidth}{@{}Xrrr@{}}
+\toprule
+Metric & Federated (A) & Direct (B) & Saving \\
+\midrule
+Bytes/min, uncompressed & 47,234 & 6,383,567 & 99.3\% \\
+Bytes/min, gzip & 4,372 & 962,688 & 99.5\% \\
+Samples/min & 324 & 55,427 & 99.4\% \\
+Series per scrape per city & 54 & about 1,540 & \\
+Central Prometheus RSS (30 min avg) & 131.8 MiB & 148.1 MiB & direct +12\% \\
+Central Prometheus CPU (cores) & 0.007 & 0.037 & direct 5$\times$ \\
+\bottomrule
+\end{tabularx}
+\caption{Federated against direct scraping, 15 stations, 30 minutes per window.}
+\label{tab:bandwidth}
+\end{table}
+
+Scaling: direct grows with chargers and stations (every station target at 5 s); federation grows only with \path|city:*| series (about 54 per city), independent of station count. TCP/HTTP overhead is ignored and the measurement was at 10 chargers per city, so the scaling statement is an extrapolation of the mechanism, tested at larger sizes in section~\ref{sec:eval} where the host permits.
+
+\subsection{Network containment}
+City networks are restricted with Incus network ACLs applied by \path|infra/08_acls.sh| (interfaces \S16). Egress allow list per role: a station reaches only its own edge (443, or 80 in a plain city) and the Wazuh manager; an edge reaches the K3s nodes (30900, 30801) and Wazuh; the central Prometheus reaches the edges on 9090, 9100, 9113. Stations cannot reach NodePorts, other cities, other stations, the CA or central monitoring NodePorts. ACLs are Incus-native, so they behave the same on the laptop and the Debian VM, and the script applies and removes them so the hijacking demo shows a rogue station's bypass attempt before (reaches the NodePort, refused by the CSMS at \path|ident.untrusted_peer|) and after (stopped at the network). ACLs are L3/L4 only: a fully controlled station can still abuse its legitimate OCPP path, which identity checks and rate limits address. Before/after evidence is in section~\ref{sec:threats}.
+
+\section{Approach to the three threats}\label{sec:threats}
+
+Each threat follows the same pattern: define it, say why it matters here, show how it is exploited, list the detection and mitigation signals, then the action responses, and finally a post-mortem of the proof-of-concept (PoC) runs. All runs are lab-only, time-boxed and recorded under \path|evidence/<threat>/|. Alert ids are Wazuh rule ids unless stated. All three threats were driven against the live platform (30 chargers; Aveiro plain \path|ws://|, Porto and Lisboa mTLS). Figure~\ref{fig:wazuh} shows the Wazuh dashboard view of the alerts of the three threats.
+
+\begin{figure}[tb]
+\centering
+% TODO screenshot: Wazuh dashboard alerts view filtered by rule.groups for the three threats (hijack, fraud, botnet)
+\screenshot{wazuh-alerts.png}{Wazuh alerts}{Wazuh dashboard, alerts view filtered by \texttt{rule.groups} for the three threats (hijack, fraud, botnet)}
+\caption{Wazuh dashboard alerts view, filtered by \texttt{rule.groups} for the hijacking, fraud and botnet rules.}
+\label{fig:wazuh}
+\end{figure}
+
+\subsection{Hijacking}\label{sec:hijack}
+
+\textbf{Threat.} An attacker takes over a charger's identity or tampers with the signals it sends: reusing a charge-point id from a rogue device, presenting a stolen client certificate from another host, or sitting on the plain-ws link and rewriting \path|MeterValues| (MITRE T1036, T0849, T1557, T1565.002).\footnote{ATT\&CK v20.1 \cite{mitre}: T1036 Masquerading; T0849 Masquerading (ATT\&CK for ICS); T1557 Adversary-in-the-Middle; T1565.002 Transmitted Data Manipulation. Our rules use the Enterprise id in \texttt{<mitre>} and the ICS id as a rule group.}
+
+\textbf{Why it matters here.} The hier-id is the key for authorisation, billing and location (section~\ref{sec:naming}). A device that holds \path|pt.porto.st-001.cp-1| can book energy to it, shadow the real charger and poison the operator's view of the grid. mTLS proves possession of a key, not location (section~\ref{sec:transport}), and Aveiro is deliberately unprotected.
+
+\textbf{Exploitation} (three scenarios, \path|poc/hijack/|).
+\begin{enumerate}
+\item Rogue duplicate id (Porto): a container on the city network holding a copy of the certificate of \path|pt.porto.st-001.cp-1| connects while the real station stays up.
+\item Stolen certificate from another host (Porto): the same certificate is used after the real connection is stopped, to isolate identity check 9 (source IP) from the duplicate-id guard.
+\item Routed man-in-the-middle (Aveiro): an interceptor that is the station's only gateway rewrites \path|Energy.Active.Import.Register| by a factor of 5 in live frames.
+\end{enumerate}
+
+\textbf{Monitoring and mitigation metrics.} The CSMS logs \path|ident.ip_mismatch| (110104) and \path|charger.duplicate_id| (109100); a correlation window raises composite \textbf{110131} (``a second host holds the identity'', level 12). \path|evcharge_csms_identity_rejections_total{reason}| counts refusals, and the Prometheus \path|DuplicateChargerID| alert is city-level. Physics checks on meter values (\path|over_energy|, \path|stop_mismatch|) feed \textbf{meter.anomaly 110116}. The CSMS never sees the man-in-the-middle directly; it infers it from impossible readings.
+
+\textbf{Action responses.} Wazuh's active response on the CSMS runs \path|remote-stop|, \path|change-availability| and \path|disconnect|, then registry \path|quarantine-charger| on the id. Three standing mitigations were applied: (1) \path|CSMS_ENFORCE_STATION_IP=true|, which turns the stolen-certificate case from a logged warning into a 403 at the handshake; (2) default-drop city network ACLs, which close the direct-NodePort shortcut used by the rogue container; (3) Aveiro migrated from plain ws to mTLS. The response chain ends with revocation: registry quarantine, CSMS disconnect, certificate revocation with a pushed CRL and re-issue (section~\ref{sec:pki}).
+
+\textbf{PoC post-mortem.}\footnote{Evidence: \path|evidence/hijack/|.} Table~\ref{tab:hijack} gives the before and after of each scenario.
+
+\begin{table}[tb]
+\centering
+\small
+\begin{tabularx}{\textwidth}{@{}L{2.6cm}YY@{}}
+\toprule
+Scenario & Before & After \\
+\midrule
+1 Rogue duplicate id & \path|ip_mismatch| 110104, then 110131; \path|remote-stop| rejected (nothing charging), \path|change-availability| and \path|disconnect| accepted, then quarantine & Quarantine applied \\
+2 Stolen certificate & Rogue accepted from a foreign address, \path|ip_mismatch| logged only & Same rogue refused with 403; two attempts, no \path|conn.open| for the rogue's address \\
+3 MitM on Aveiro & 46 rewritten \path|MeterValues|; \path|meter.anomaly| 110116 fired 48 times across both chargers & Defeated by two independent layers (ACL egress denial; mTLS certificate pinning) \\
+\bottomrule
+\end{tabularx}
+\caption{Hijacking PoC, before and after the mitigations.}
+\label{tab:hijack}
+\end{table}
+
+What the runs exposed:
+\begin{itemize}
+\item Quarantine is per charger id, so the genuine station is locked out together with the thief (two 403 lines for the real station's own address in scenario 1) until an operator releases it. This is a design choice, observed and not hidden.
+\item The ACLs stop routed traffic but not same-bridge traffic between two stations in one city, because the host lacks \path|br_netfilter| (loading it would affect every bridge, including K3s's). The ACL file contains no peer-to-peer allow rule, but that does not prove the traffic is blocked on the wire, and here it is not.
+\item Because both the ACL and mTLS defeat scenario 3, the demonstration could not isolate ``mTLS alone''. mTLS pinning is confirmed from the \path|mitmproxy| and \path|evsim| sources, not re-staged live (that would mean turning a mitigation off on purpose). Aveiro was then returned to plain ws so the final state still shows the legacy city; the one-time proof stands.
+\item Station-IP enforcement needs accurate registry data. Certificate re-issue changes the serial, so the registry \path|cert_serial| must be updated too (check 8), or the new legitimate certificate is refused like the compromised one. The health gate caught this during the revocation exercise.
+\item The K3s VMs drifted about 2 h 34 min behind the host mid-session, so the log timestamps of the scenario-2 ``after'' capture are on a skewed clock (noted next to the files).
+\end{itemize}
+
+\subsection{Fraud}\label{sec:fraud}
+
+\textbf{Threat.} Fraud against accounting: a cloned RFID card used in two cities, and a tampered meter that under-reports energy (scale, rollback or freeze).
+
+\textbf{Why it matters here.} Billing is what the operator is paid by (FCAPS Accounting). A cloned card is billed to an innocent holder, and under-reporting is invisible to the CSMS because the readings stay internally consistent. Only an independent reference, the feeder meter, exposes it.
+
+\textbf{Exploitation.} \path|poc/fraud/clone_card.sh| presents card \path|E3EE5BE2ED4120| (home city Porto) at \path|pt.aveiro.st-001| and \path|pt.lisboa.st-001|. \path|poc/fraud/tamper_meter.sh| makes a station apply rollback (a fixed 500 Wh once per session) or a scale factor (0.5, then 0.1) to its meter values.
+
+\textbf{Monitoring and mitigation metrics.} Two detectors run side by side on purpose. The fraud service has \path|impossible_travel| (distance and implied speed against \path|FRAUD_MAX_KMH|=200), \path|meter_backwards|, \path|peer_deviation|, \path|grid_gap| and \path|power_gap|. Wazuh has rules 110200 to 110209 on CSMS and fraud logs. Prometheus has \path|city:station_power_gap_watts| (feeder minus reported power) and the alert \path|MeterUnder|\allowbreak\path|Reporting| ($>$ 1000 W for 5 min).
+
+\textbf{Action responses.} \path|block-card| (fraud service, then Wazuh active response, idempotent), flagging of the card's recent sessions, and \path|quarantine-charger| with \path|change-availability| and \path|disconnect| for meter tampering. Unblocking is operator-only; the responders cannot do it.
+
+\textbf{PoC post-mortem.}\footnote{Evidence: \path|evidence/fraud/|.}
+\begin{itemize}
+\item Cloned card, before (dry-run): \path|impossible_travel| at 975 km/h (274 km in 16.9 min). Two cloned sessions (2136 Wh and 1953 Wh) completed and were billed with \texttt{flag\_reason null}; the card stayed active.
+\item Cloned card, after (enforcing): \path|impossible_travel| at 1312 km/h (218 km in 10 min) was detected 23 ms after the second-city \path|session.start|. The fraud service blocked the card at +58 ms; Wazuh 110207 plus \path|block-card| (110410) found it already blocked at +133 ms; five sessions were flagged by 110209 within 0.8 s; later \path|/authorize| returned \path|Blocked| and the CSMS issued \path|auth.reject|. Collateral: the real holder is blocked too and recovery is manual.
+\item Meter rollback: three \texttt{meter.anomaly backwards}, three \path|meter_backwards| alerts, 110204, 110208 and 110209, three sessions flagged, about 2 min each. 110205 (three anomalies on one charger in 600 s) did not fire because the events split over two chargers; it is not claimed.
+\item Meter scale: the feeder gap reached about 27.8 kW and up to 34 kW and \path|MeterUnder|\allowbreak\path|Reporting| fired 23 min after the tamper began, while the CSMS raised nothing. The cumulative \path|grid_gap| rule needed run 2 at factor 0.1 and fired 33 min into it (76 min after the first tamper), then quarantined both chargers within 0.15 s (110405). That latency is structural: energy is booked at session stop (settle 1400 s), the gap must have held 600 s, and the ratio is a 6 h cumulative one diluted by honest history.
+\end{itemize}
+
+What the runs exposed, and what was changed:
+\begin{itemize}
+\item \textbf{Honest-card false positives.} The simulator drew 20\% of sessions on a card of another city and had no travel time, so over 2.8 h there were 26 \path|impossible_travel| alerts, 24 on honest cards, and 10 distinct honest cards were blocked in one hour. Wazuh was blocking even in dry-run, because rule 110207 read the \path|fraud.alert| line, which is written in dry-run too.
+\item \textbf{Hardening.} Alerts now carry \path|dry_run| and \path|auto_action|; the block path is a single rule, \textbf{110210}, which requires \path|auto_action=block_card| and \path|dry_run=false|. Auto-block requires overlapping sessions in two cities or a speed of at least \path|FRAUD_BLOCK_KMH|=400; alerts still fire above 200 km/h. 110203 and 110206 became alert-only. The simulator now draws honest cards city-local, so honest cross-city reuse no longer occurs. This was verified under watch (16:58 to 17:11) with no block or quarantine on honest targets, but residual alert-only hits from old history still appeared.
+\item \textbf{\path|grid_gap| false quarantines.} \path|pt.porto.st-002| was quarantined twice (79\% and 71\%). The honest reported-to-feeder ratio spans 0.71 to 1.38 across 15 stations, and the tampered station ended at 0.71, so a 0.8 cumulative limit cannot separate a 10\% tamper from honest variance. \path|grid_gap| was demoted to a warning; the quarantine trigger is now the real-time \path|power_gap| (at least 1000 W and 30\% of feeder power in 80\% of at least 10 samples over 15 min), which is exactly 0 on honest stations. The \path|power_gap| change and the quarantine-flags-sessions step were covered by unit tests and the earlier captures, \textbf{not re-attacked live}.
+\item The billing flag after quarantine was promised in the design but not implemented at the time of the run; it was added afterwards.
+\item Residual: the rate guard on \path|block-card| (10 cards per hour) was exhausted by honest false positives, so the fraud service's own block caught the real clone. \path|power_gap| trusts the feeder meter and the reported-power metric and can miss a very short tamper. A slow clone (sequential, under 400 km/h) is alerted but not blocked. Enforcing mode (\path|FRAUD_DRY_RUN=false|) was switched back to \path|true| at the end of the runs; it should be re-enabled only after a supervised re-demo.
+\end{itemize}
+
+\subsection{Botnet}\label{sec:botnet}
+
+\textbf{Threat.} A fleet of compromised chargers beacons to a command-and-control (C2) host and, on command, floods the CSMS with OCPP messages and starts full-power sessions at the same moment.
+
+\textbf{Why it matters here.} Synchronised load is a grid-stability issue (section~\ref{sec:why}) and a flood is an availability attack on the CSMS. The attack is distributed across stations and cities, so single-charger rules see only fragments.
+
+\textbf{Exploitation.} Six stations (\path|st-001| and \path|st-002| in each of the three cities) beacon every 15 s to the lab C2 \path|c2.incus:8099|. The schedule is idle 30 s, flood 60 s at 20 Hz, surge 120 s, stop 30 s. For the run the city egress ACLs were removed so the beacon could land; with ACLs applied the same beacon is dropped at egress, an earlier but weaker signal. They were re-applied afterwards.
+
+\textbf{Monitoring and mitigation metrics.} Wazuh netwatch: 110303 (new outbound connection to the C2, per station), 110305 (established-connection diff), 110304 (the same C2 contacted from several stations), 110300 and 110301 (OCPP rate flood and token-bucket kick). Prometheus: \path|MsgRateAnomaly|, \path|ChargerMsgFlood|, and the city load \path|city:grid_power_watts:sum| against the baseline of section~\ref{sec:baseline} (alert \path|CityLoadSpike|, 110308).
+
+\textbf{Action responses.} Bulk registry quarantine of the compromised stations, which makes the CSMS set them Inoperative and disconnect them; each action is audited as 110405.
+
+\textbf{PoC post-mortem.}\footnote{Evidence: \path|evidence/botnet/|.} Fired: 110303 $\times$6, 110305 $\times$6, 110300 $\times$6, 110301 $\times$2 and 110405 $\times$6 (one quarantine per station); Prometheus \path|MsgRateAnomaly| and \path|ChargerMsgFlood| in Aveiro and Lisboa. The surge peaked at 207 kW (Lisboa), 166 kW (Aveiro) and 156 kW (Porto), 5 to 8 times the pre-attack baseline.
+
+Three findings from the live run:
+\begin{enumerate}
+\item \textbf{110304 did not fire} despite six 110303 beacons to one C2. This was the main detection gap: the fleet-level signal was missing. The cause is that Wazuh frequency rules count per agent, while the six stations are six different agents. The fix applies \path|global_frequency| to the cross-agent frequency rules (including 110304 and 110308). It is \textbf{proven in \texttt{wazuh-logtest}} but \textbf{not yet re-proven in a live two-node run}, so sections~\ref{sec:eval} and~\ref{sec:concl} treat it as designed and unit-proven, not live-proven.
+\item \textbf{110308 (\path|CityLoadSpike|) did not reach firing} because the quarantine cut the surge before the alert's sustained-dwell window elapsed. The response beat the alert; the per-charger flood signals carried the detection. The same Wazuh per-agent limitation applies to the cross-agent rules, so the fix covers it too.
+\item \textbf{Collateral and its instrument gap.} Bulk quarantine forced \textbf{21 CSMS session stops (counter 85 to 106)} and drove Porto's charging power to 0 W, so every driver mid-session on a quarantined station pays for a per-charger compromise. The simulator's \path|interrupted| counter does not count CSMS-forced stops (it logs them as normal), so the valid collateral measures are the central CSMS stopped-session delta and the power collapse, not the simulator counter. This is the most disruptive response in the project.
+\end{enumerate}
+
+\section{Evaluation of the approaches and scalability}\label{sec:eval}
+
+\subsection{Method}
+The scalability test ran on one laptop (23 GiB RAM, 8 cores, about 8 GiB available) with Wazuh, K3s, the three city sites and all services running.\footnote{Evidence: \path|evidence/eval/README.md|.} The cheapest valid lever was to add OCPP connections and message rate on the plain-ws Aveiro edge with a synthetic generator (\path|eval/ocpp_load.py|), placed as one \path|systemd-run| unit per Aveiro station so traffic follows the real path (station, nginx edge, CSMS, registry, Postgres). More real chargers were rejected because TLS cities need a per-charger certificate and re-using the same 20 cards would have triggered the fraud service. The generator sends BootNotification, StatusNotification and then Heartbeat every \path|hb| seconds; it starts no transaction. Each point is a 120 s window after settling. Latency is \path|evcharge_csms_ocpp_handle_seconds|, events per second (EPS) is the delta of Wazuh \path|events_processed|, and resources come from \texttt{kubectl top} and cgroups.
+
+\subsection{Results}
+Table~\ref{tab:load} gives the load points; N is the number of connected chargers (30 real plus synthetic).
+
+\begin{table}[tb]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabularx}{\textwidth}{@{}lrlrXrrl@{}}
+\toprule
+Point & N & Heartbeat & Msg/s & p50 / p95 / p99 (ms) & EPS & Head series & Replicas (CPU) \\
+\midrule
+Baseline & 30  & real  & 2.0 & 3.8 / 23.0 / 42.4 & 4.9 & 4500 & 2 (15\%) \\
+1        & 50  & 5 s   & 6.8 & 2.6 / 9.5 / 22.0 & 6.8 & 4502 & 2 (23\%) \\
+2        & 80  & 5 s   & 12.7 & 2.4 / 8.7 / 19.4 & 7.3 & 4502 & 2 (28\%) \\
+3        & 140 & 5 s   & 24.0 & 2.2 / 8.2 / 13.6 & 5.2 & 4463 & 3 (34\%) \\
+4        & 140 & 1 s   & 111 & 2.1 / 9.0 / 19.9 & 5.5 & 4548 & 4 (70\%) \\
+5        & 140 & 0.3 s & 169\textsuperscript{a} & 1.4 / 9.4 / 24.2 & 238 & 4622 & 4 (160\%) \\
+\bottomrule
+\end{tabularx}
+\caption{Load points. Msg/s is the CSMS message rate, EPS the Wazuh events per second, head series the Prometheus head series, replicas the CSMS replicas with the HPA CPU figure. \textsuperscript{a}169 msg/s handled, 363 inbound. N counts all connected chargers (30 real plus synthetic); the heartbeat is the generator's interval.}
+\label{tab:load}
+\end{table}
+
+Latency did not degrade with load: p95 stayed at 8 to 9 ms and p99 reached 24 ms at the top point. Higher points are below the baseline p95 because the baseline includes real sessions with billing and fraud calls, which the generator does not make. Prometheus head series stayed at about 4500 to 4600, because monitoring is per station and per city: the federated series per city stayed at 115 to 172, with federation scrape duration of 1 to 11 ms. Series grow with station count (about 6 per station exporter), which this test did not vary.
+
+\subsection{Ceilings}
+Every stopping reason was a configuration limit, not host RAM (available memory never fell below 7.9 GiB):
+\begin{enumerate}
+\item \textbf{Connections.} The edge \path|limit_conn| is 24 per source address, so one station container carries at most 24 chargers (22 synthetic plus 2 real). Five stations gave 120 connections in Aveiro (140 in total). More needs more source addresses or a higher limit. Handshake \path|limit_req| (2 r/s, burst 20) is why the generator staggers connects.
+\item \textbf{Message rate.} The per-charger rate limiter allows 1 msg/s (burst 20). At a 1 s heartbeat every charger sits at the limit and the HPA is at its maximum of 4 replicas (CPU 70\% of the 100 m request). At 0.3 s the limiter engages (\path|evcharge_csms_rate_limited_total| about 198/s against 169 msg/s handled) and the four replicas reach 160\% of request. The component that saturated is the CSMS tier at \path|maxReplicas=4|, protected by the limiter; throttled calls are answered cheaply, which is why latency stayed flat. Handled throughput is therefore about 110 msg/s sustained and about 170 msg/s peak.
+\item \textbf{Wazuh.} Because rate-limit refusals are logged, EPS rose about 45 times (5 to 238) and alerts written went from 58 to 2160 in two minutes. \path|events_dropped| stayed 0 and analysisd stayed at about 1.4 GiB, so there was headroom; alert volume, not memory, would hurt first. An abusive client is loud by design, which helps detection and costs the manager.
+\item \textbf{Prometheus} is not a limit (above).
+\end{enumerate}
+
+At the real behaviour of 0.07 msg/s per charger (30 chargers produce 2.0 msg/s), 110 msg/s corresponds to roughly 1,500 real chargers. This is an extrapolation of one measurement, not a measured scale.
+
+\subsection{Detection quality}\label{sec:detection}
+\begin{itemize}
+\item \textbf{Hijacking.} 110104 then 110131 fired on the rogue duplicate; the stolen-certificate case moved from logged to refused; the MitM was inferred through 48 \path|meter.anomaly| alerts. No false positives were recorded for these rules in the runs. Missed in the sense of not prevented: same-bridge peer traffic (section~\ref{sec:hijack}).
+\item \textbf{Fraud.} The cloned card was detected in 23 ms and blocked in 58 ms. False positives were the main cost: 24 of 26 \path|impossible_travel| alerts on honest cards, and two \path|grid_gap| quarantines of \path|pt.porto.st-002|. After hardening, the signal that drives automatic action (110210, \path|power_gap|) is the high-confidence one. The rollback, the cloned card and the scale tamper were each caught, but the cumulative \path|grid_gap| caught the scale tamper only after 76 min; the instantaneous \path|MeterUnderReporting| after 23 min.
+\item \textbf{Botnet.} Per-station 110303 and the flood rules fired; the fleet-level 110304 and \path|CityLoadSpike| did not, until the \path|global_frequency| fix, which is proven in logtest only.
+\item \textbf{Correlator.}\footnote{Evidence: \path|evidence/correlator/README.md|.} Recorded alerts of the three runs were replayed with their original spacing (Alertmanager, Wazuh and fraud posted to the same \path|/signals/*| endpoints). One incident per root cause resulted: the hijack incident (110104, 110131, \path|registry.quarantine|) was located to the charger \path|pt.porto.st-001.cp-1| in \textbf{3.55 s}; the fraud incident (\path|impossible_travel|, 110210, \path|billing.card_blocked|) to the card in \textbf{0.10 s}; the botnet incidents to their city (Lisboa 1.16 s, Aveiro 0.75 s, Porto 1.12 s). Mitigation followed in 1.65 s (hijack) and 0.07 s (fraud). The one infra incident (\path|EdgeDown|, 10.05 s, dominated by the Alertmanager \path|group_wait|) was the single incident of a live edge stop. De-duplication worked: three reposts of one 110104 alert left the incident count unchanged (signal \path|count| 1 to 4). Inhibition worked: with \texttt{aveiro-edge} stopped for about 3 min, 5 \path|ChargerOffline| alerts were suppressed by \path|EdgeDown| and never reached the correlator; 10 chargers dropped and 30/30 reconnected within about 30 s of the restart. The correlator metric \path|evcharge_correlator_time_to_locate_seconds| holds 7 observations; its p90 bucket of 300 s comes from one live \path|AuthFailureBurst|, which Prometheus reports 45 s after \path|startsAt|.
+\end{itemize}
+
+\subsection{Limits of the method}
+\begin{itemize}
+\item \textbf{One laptop.} The ceilings above are the host-configured limits of a single machine with shared CPU and RAM, not of the architecture. The generator and the system under test share cores, so absolute numbers cannot be transferred to a deployment.
+\item \textbf{Synthetic load.} The generator sends heartbeats only: no sessions, meter values, billing or fraud calls. Real traffic costs more CPU per message. Billing and fraud were measured at baseline only (dependency p95: billing 43 ms, fraud 91 ms). TLS handshake cost is not covered because only Aveiro was scaled.
+\item \textbf{Single run per point.} One 120 s window per load point, no repetition and no confidence intervals. Some 502/504 responses appeared in the edge log at the last point while replicas changed and were not analysed. \path|AuthFailureBurst| alerts for Porto and Lisboa were active and unrelated.
+\item \textbf{Replay versus live.} The correlator results come from recorded alerts replayed with shifted timestamps, not from fresh attacks, and only the \path|EdgeDown| and \path|AuthFailureBurst| signals arrived live. The locate time uses the correlator's clock, so a skew of up to 2 s can appear as a small negative offset (mitigated before located in the hijack incident). Live Wazuh forwarding after the correlator went up was not exercised.
+\item \textbf{Correlator heuristics.} A response arriving more than window plus skew (123 s) after the nearest incident member is dropped (the Porto botnet quarantine at 158 s). A fleet across cities is three incidents, since the city is the shared key and 110304 carries only one station. Open incidents are in memory and are lost on a pod restart. Rule 110300 (level 6) is below the forwarding threshold of the Wazuh integration (level 7 plus selected response ids), so the flood alerts do not reach the correlator while 110301 does.
+\end{itemize}
+
+\section{Conclusions}\label{sec:concl}
+
+\subsection{Main findings}
+\begin{itemize}
+\item One naming scheme across certificate, OCPP path, registry, metrics and logs makes every alert locatable by a single registry lookup, and this is what let the correlator join Prometheus, Wazuh and fraud signals into one incident per root cause with locate times of 0.1 to 3.6 s (replayed).
+\item Hijacking is cheap to prevent and hard to eradicate cleanly: mTLS plus station-IP enforcement and network ACLs stop the stolen-certificate and routed MitM cases, while duplicate-id detection (110131) and quarantine contain the rogue; identity correctness depends on the registry staying accurate.
+\item Fraud detection needs an independent reference. The CSMS cannot see an internally consistent under-reporting meter; the feeder-power gap can. Detecting sensitively and acting automatically only on high-confidence signals (110210, \path|power_gap|) removed the false blocks found in the live runs.
+\item Federated monitoring scales with the number of cities, not chargers, and the measured ceilings (edge \path|limit_conn|, HPA maximum, per-charger limiter) are configuration choices that protected the platform: latency stayed flat while the rate limiter absorbed excess load.
+\end{itemize}
+
+\subsection{Why the solution is not perfect}
+\begin{itemize}
+\item \textbf{Per-agent frequency blind spot, found late.} The cross-station botnet rules (110304, 110308) did not fire in the live run because Wazuh counts per agent. The \path|global_frequency| fix is proven in logtest only; the live two-node re-run was not done. Likewise the correlation of all three threats is replay-proven, not live-proven.
+\item \textbf{Bulk-quarantine collateral.} Quarantining six stations cost 21 forced session stops and zeroed Porto's charging power; quarantining a hijacked identity also locks out the genuine station; blocking a cloned card also blocks the real holder. All three recoveries are manual. Our instrument for the botnet collateral had a gap (the simulator counter) that had to be replaced by CSMS counters.
+\item \textbf{Fraud tuning.} The first thresholds produced 24 false \path|impossible_travel| alerts and two false quarantines; the fix (city-local honest cards, 110210, \path|power_gap|) was verified on normal traffic only and enforcing mode was left off. A slow clone or a short tamper remains uncaught, and the 400 km/h margin is tuned to a simulated data set.
+\item \textbf{Signals below the forwarding level.} Rule 110300 (level 6) never reaches the correlator; response signals were initially dropped for the same reason until a second integration block was added.
+\item \textbf{Containment gaps.} ACLs do not stop same-bridge peer traffic on this host (no \path|br_netfilter|); station-IP enforcement depends on registry accuracy.
+\item \textbf{Laptop ceiling and synthetic load.} The 140-charger, 170 msg/s result is the host and configuration of a single laptop and a heartbeat-only generator, not a validated capacity; the 1,500-charger figure is an extrapolation.
+\item \textbf{Correlator limits.} City-level join keys split a cross-city fleet into three incidents; open incidents are in memory.
+\end{itemize}
+
+\subsection{Future work}
+\begin{itemize}
+\item Re-run the botnet on two live Wazuh nodes with \path|global_frequency| and show 110304 and 110308 firing, and a live (non-replay) correlator run with Wazuh forwarding confirmed.
+\item Replace bulk quarantine with graduated responses: rate-limit or isolate the flood first, quarantine only after a second signal, and drain sessions before disconnecting.
+\item Persist open correlator incidents, add a cross-city join key for the fleet (the C2 address), and lower the forwarding threshold or add selected ids so 110300 reaches the correlator.
+\item Use \path|power_gap| with a per-station baseline and noise margins on real meters; add a per-card trip schedule with in-transit gaps; add a hold-before-block step for the card holder.
+\item Load \path|br_netfilter| (or an equivalent L2 filter) to close the same-bridge gap, and move station-IP enforcement to an automatic registry update path.
+\item Repeat the scalability test on dedicated hosts with an external load generator, a higher HPA maximum, Postgres pooling, multiple Wazuh managers, TLS cities scaled with certificate minting, and real sessions in the mix.
+\end{itemize}
+
+\begin{thebibliography}{99}
+\small
+\setlength{\itemsep}{0.2em}
+\bibitem{ocpp16} Open Charge Alliance. \emph{Open Charge Point Protocol 1.6 (JSON)}. Specification, 2015. \url{https://openchargealliance.org}. Accessed November 2026.
+\bibitem{ocpp201} Open Charge Alliance. \emph{Open Charge Point Protocol 2.0.1}. Specification (Security Profiles), 2020. \url{https://openchargealliance.org}. Accessed November 2026.
+\bibitem{ocpp16sec} Open Charge Alliance. \emph{OCPP 1.6 Security Whitepaper}. \url{https://openchargealliance.org}. Accessed November 2026.
+\bibitem{iso15118} International Organization for Standardization. \emph{ISO 15118, Road vehicles: Vehicle to grid communication interface}. Standard series. Accessed November 2026.
+\bibitem{mitre} MITRE. \emph{ATT\&CK Enterprise and ATT\&CK for ICS}, content version 20.1. \url{https://attack.mitre.org}. Accessed November 2026.
+\bibitem{prometheus} Prometheus Authors. \emph{Prometheus documentation}. \url{https://prometheus.io/docs}. Accessed November 2026.
+\bibitem{wazuh} Wazuh, Inc. \emph{Wazuh documentation}, version 4.14 (ruleset XML syntax, custom integrations). \url{https://documentation.wazuh.com/4.14/}. Accessed November 2026.
+\bibitem{zabbix} Zabbix LLC. \emph{Zabbix documentation}. \url{https://www.zabbix.com/documentation}. Accessed November 2026.
+\bibitem{datadog} Datadog, Inc. \emph{Datadog documentation}. \url{https://docs.datadoghq.com}. Accessed November 2026.
+\bibitem{falco} Cloud Native Computing Foundation. \emph{Falco documentation}. \url{https://falco.org/docs}. Accessed November 2026.
+\bibitem{splunk} Splunk, Inc. \emph{Splunk Enterprise Security documentation}. \url{https://docs.splunk.com}. Accessed November 2026.
+\bibitem{ossec} OSSEC Project. \emph{OSSEC documentation}. \url{https://www.ossec.net/docs}. Accessed November 2026.
+\bibitem{itum3400} ITU-T. \emph{Recommendation M.3400: TMN management functions} (FCAPS). International Telecommunication Union.
+\bibitem{schneier} B. Schneier. Attack trees. \emph{Dr.\ Dobb's Journal}, 1999.
+\bibitem{kordy} B. Kordy, S. Mauw, S. Radomirovi\'c, P. Schweitzer. Foundations of attack-defense trees. In \emph{Formal Aspects in Security and Trust (FAST 2010)}, LNCS 6561, 2010.
+\bibitem{interfaces} G. Almeida. \emph{Interfaces and contracts}. Project repository, \path|docs/interfaces.md|, 2026.
+\end{thebibliography}
+
+\end{document}

@@ -1,4 +1,4 @@
-# Scalability evaluation (rubric I)
+# Scalability evaluation (criterion I)
 
 Measured on 2026-11-10 on a single laptop (23 GiB RAM, 8 cores, about 8 GiB available during the runs; Wazuh, K3s, three city sites and all services running). Every raw query output is in `raw/<point>/` (`summary.txt`, `prom.txt`, `resources.txt`, `wazuh.txt`, `stations_cpu*.txt`, `edge_status_codes.txt`). Reproduce with `eval/scale.sh` (`up K [hb]`, `measure <label>`, `down`, `health`).
 

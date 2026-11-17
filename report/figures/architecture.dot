@@ -1,0 +1,82 @@
+digraph arch {
+  graph [rankdir=TB, fontname="Helvetica", fontsize=11, nodesep=0.14, ranksep=0.28, compound=true, newrank=true, pad=0.03, labeljust=l, splines=true];
+  node  [fontname="Helvetica", fontsize=12, shape=box, style="rounded,filled", fillcolor="#ffffff", color="#444444", margin="0.06,0.03", height=0.28];
+  edge  [fontname="Helvetica", fontsize=11, color="#444444", arrowsize=0.6];
+
+  /* attackers */
+  rogue [label="rogue\ncontainer", style="filled,dashed", fillcolor="#f8d0cc", color="#b03a2e"];
+  mitm  [label="MitM\ninterceptor", style="filled,dashed", fillcolor="#f8d0cc", color="#b03a2e"];
+  c2    [label="C2 server\nc2.incus:8099", style="filled,dashed", fillcolor="#f8d0cc", color="#b03a2e"];
+
+  subgraph cluster_porto {
+    label="Porto: Incus network, wss + mTLS"; style="rounded,filled"; fillcolor="#eaf6ea"; color="#4f8f4f";
+    pst  [label="st-001 .. st-005\n2 chargers each\nevsim, Wazuh agent"];
+    pedge [label="porto-edge\nnginx, city Prometheus,\nexporters, Wazuh agent"];
+  }
+  lisboa [label="Lisboa\nwss + mTLS\nedge, 5 stations", fillcolor="#eaf6ea", color="#4f8f4f"];
+  aveiro [label="Aveiro (legacy)\nplain ws :80\nedge, 5 stations", fillcolor="#eaf6ea", color="#4f8f4f"];
+
+  subgraph cluster_central {
+    label="Central: K3s on two Incus VMs (k3s-master, k3s-node1)"; style="rounded,filled"; fillcolor="#eef3fb"; color="#4a6fa5";
+    subgraph cluster_ev {
+      label="namespace evcharge"; style="rounded,filled"; fillcolor="#ffffff"; color="#8aa4c8";
+      csms [label="CSMS, 2-4 replicas\n(HPA), NodePort 30900"];
+      fraud [label="fraud"];
+      billing [label="billing"];
+      registry [label="registry"];
+      corr [label="correlator", fillcolor="#fff3c4", penwidth=1.6];
+      pg [label="PostgreSQL\nStatefulSet + PVC", shape=cylinder, style=filled];
+    }
+    subgraph cluster_mon {
+      label="namespace monitoring"; style="rounded,filled"; fillcolor="#ffffff"; color="#8aa4c8";
+      cprom [label="central\nPrometheus"];
+      am [label="Alertmanager"];
+      graf [label="Grafana"];
+    }
+    subgraph cluster_wz {
+      label="ns wazuh"; style="rounded,filled"; fillcolor="#ffffff"; color="#8aa4c8";
+      wds [label="agent\nDaemonSet"];
+    }
+  }
+  subgraph cluster_other {
+    label="Other Incus instances"; style="rounded,filled"; fillcolor="#f3f3f3"; color="#888888";
+    wm [label="wazuh-container\nmanager, indexer, dashboard"];
+    ca [label="lab-ca"];
+    dk [label="docker VM\nbuild, registry :5000"];
+  }
+
+  {rank=same; rogue; mitm; c2;}
+  {rank=same; pedge; lisboa; aveiro;}
+  {rank=same; csms; cprom;}
+  {rank=same; fraud; billing; registry; am;}
+  {rank=same; corr; pg; graf;}
+  {rank=same; wds;}
+  {rank=same; wm; ca; dk;}
+  pst -> pedge [style=invis];
+  graf -> wds [style=invis]; 
+  rogue -> pst [style=dashed, color="#b03a2e", fontcolor="#b03a2e", label="stolen cert"];
+  c2 -> pst [style=dashed, color="#b03a2e", constraint=false];
+  mitm -> aveiro [style=dashed, color="#b03a2e", fontcolor="#b03a2e", label="rewrite"];
+  c2 -> lisboa [style=dashed, color="#b03a2e", constraint=false, label="beacon", fontcolor="#b03a2e"];
+  rogue -> mitm [style=invis]; mitm -> c2 [style=invis];
+  
+
+  pst -> pedge [label=" wss", penwidth=1.6, color="#1f5fa8", fontcolor="#1f5fa8", constraint=false];
+  pedge -> csms [label="OCPP", penwidth=1.6, color="#1f5fa8", fontcolor="#1f5fa8"];
+  lisboa -> csms [penwidth=1.6, color="#1f5fa8"];
+  aveiro -> csms [penwidth=1.6, color="#1f5fa8"];
+  cprom -> pedge [dir=back, style=dashed, color="#2e7d32", fontcolor="#2e7d32", label="federation\ncity:*, 30 s"];
+
+  csms -> fraud; csms -> billing; csms -> registry;
+  csms -> pg [style=invis];
+  cprom -> am; am -> graf [style=invis];
+  fraud -> corr [color="#b8860b", penwidth=1.4];
+  am -> corr [color="#b8860b", penwidth=1.4];
+  wm -> corr [color="#b8860b", penwidth=1.4, label="integration", fontcolor="#b8860b", constraint=false];
+  corr -> registry [style=dotted, label="/locate", constraint=false];
+  billing -> pg [arrowhead=none];
+
+  wds -> wm [style=dashed, color="#7b3fa0"];
+  pedge -> wm [style=dashed, color="#7b3fa0", constraint=false];
+  pst -> wm [style=dashed, color="#7b3fa0", constraint=false];
+}

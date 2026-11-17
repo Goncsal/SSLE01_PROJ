@@ -1,0 +1,75 @@
+digraph adtree {
+  graph [rankdir=LR, fontname="Helvetica", nodesep=0.1, ranksep=0.3, pad=0.03, newrank=true];
+  node  [fontname="Helvetica", fontsize=12, shape=box, style="rounded,filled", margin="0.07,0.03", height=0.3];
+  edge  [color="#444444", arrowhead=none];
+
+  /* attack nodes */
+  node [fillcolor="#f8d0cc", color="#b03a2e"];
+  root [label="Disrupt or defraud\nthe regional EV\ncharging network", penwidth=2];
+  b1 [label="1. Hijack a charger\nidentity or falsify\nits signals"];
+  b2 [label="2. Defraud\naccounting"];
+  b3 [label="3. Enlist chargers\ninto a botnet"];
+  l1a [label="Reuse a charge-point id\nfrom a rogue device"];
+  l1b [label="Present a stolen client\ncertificate from\nanother host"];
+  l1c [label="Man-in-the-middle on\nplain ws, rewrite\nMeterValues"];
+  l2a [label="Cloned RFID card\nacross cities"];
+  l2b [label="Tamper the meter to\nunder-report energy"];
+  l3a [label="Beacon to an\nexternal C2"];
+  l3b [label="Flood the CSMS with\nmessages or handshakes"];
+  l3c [label="Synchronise a\nfull-power grid surge"];
+
+  root -> b1 [weight=10]; root -> b2 [weight=10]; root -> b3 [weight=10];
+  b1 -> l1a; b1 -> l1b; b1 -> l1c;
+  b2 -> l2a; b2 -> l2b;
+  b3 -> l3a; b3 -> l3b; b3 -> l3c;
+
+  /* defence nodes */
+  node [fillcolor="#d5ecd4", color="#2e7d32"];
+  d_mtls [label="mTLS, CN = hier-id,\nserial check", style="rounded,filled", fillcolor="#a9d6ab", color="#2e7d32"];
+  d_hs [label="Ten handshake checks,\nduplicate-id guard,\ncomposite 110131", style="rounded,filled", gradientangle=0, fillcolor="#a9d6ab:#e3f3e3", color="#2e7d32"];
+  d_ip [label="Station-IP\nenforcement", style="rounded,filled", fillcolor="#a9d6ab", color="#2e7d32"];
+  d_q [label="quarantine-charger", style="rounded,dashed,filled", fillcolor="#a9d6ab", color="#2e7d32", penwidth=1.6];
+  d_mig [label="Aveiro plain-to-mTLS\nmigration", style="rounded,filled", fillcolor="#a9d6ab", color="#2e7d32"];
+  d_acl [label="Incus network ACLs,\negress allow list", style="rounded,filled", fillcolor="#a9d6ab", color="#2e7d32"];
+  d_phys [label="Meter physics checks,\nmeter.anomaly 110116", style="rounded,filled", fillcolor="#e3f3e3", color="#2e7d32"];
+  d_fraud [label="Fraud service and\nWazuh fraud rules:\nimpossible travel", style="rounded,filled", fillcolor="#e3f3e3", color="#2e7d32"];
+  d_blk [label="Block via 110210", style="rounded,dashed,filled", fillcolor="#a9d6ab", color="#2e7d32", penwidth=1.6];
+  d_gap [label="power_gap vs feeder\nmeter (quarantine\ntrigger); grid_gap\nwarns only", style="rounded,filled", fillcolor="#e3f3e3", color="#2e7d32"];
+  d_net [label="netwatch C2 detection,\n110303, cross-station\n110304", style="rounded,filled", fillcolor="#e3f3e3", color="#2e7d32"];
+  d_rate [label="Per-connection rate\nlimit, edge limit_req", style="rounded,filled", fillcolor="#a9d6ab", color="#2e7d32"];
+  d_load [label="City-load alert vs\nbaselined thresholds", style="rounded,filled", fillcolor="#e3f3e3", color="#2e7d32"];
+  d_bulk [label="Bulk quarantine", style="rounded,dashed,filled", fillcolor="#a9d6ab", color="#2e7d32", penwidth=1.6];
+  d_q2 [label="quarantine-charger", style="rounded,dashed,filled", fillcolor="#a9d6ab", color="#2e7d32", penwidth=1.6];
+  d_acl2 [label="Incus network ACLs,\negress allow list", style="rounded,filled", fillcolor="#a9d6ab", color="#2e7d32"];
+  d_bulk2 [label="Bulk quarantine", style="rounded,dashed,filled", fillcolor="#a9d6ab", color="#2e7d32", penwidth=1.6];
+  d_corr [label="Correlator: one\nlocated incident", style="rounded,filled", fillcolor="#e3f3e3", color="#2e7d32"];
+
+  edge [style=dashed, color="#2e7d32", dir=back, arrowhead=normal, arrowsize=0.6, weight=1];
+  l1a -> d_mtls;
+  l1a -> d_hs;
+  l1a -> d_q;
+  l1b -> d_ip;
+  l1c -> d_mig;
+  l1c -> d_acl;
+  l1c -> d_phys;
+  l2a -> d_fraud;
+  l2a -> d_blk;
+  l2b -> d_gap;
+  l2b -> d_q2;
+  l3a -> d_net;
+  l3a -> d_acl2;
+  l3b -> d_rate;
+  l3b -> d_bulk;
+  l3c -> d_load;
+  l3c -> d_bulk2;
+  root -> d_corr;
+
+  node [shape=plaintext, style="", fontsize=11];
+  leg [label=<<table border="1" cellborder="0" cellspacing="2" cellpadding="3" color="#999999">
+    <tr><td bgcolor="#f8d0cc">attacker goal</td></tr>
+    <tr><td bgcolor="#a9d6ab">defence that prevents (P)</td></tr>
+    <tr><td bgcolor="#e3f3e3">defence that detects (D)</td></tr>
+    <tr><td>solid border: standing</td></tr>
+    <tr><td>dashed border: triggered</td></tr></table>>];
+  d_corr -> leg [style=invis];
+}

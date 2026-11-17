@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Scalability measurement (rubric I). Benign: a synthetic OCPP connection-load generator
+# Scalability measurement (criterion I). Benign: a synthetic OCPP connection-load generator
 # (eval/ocpp_load.py) is added to the five plain-ws Aveiro stations; nothing in the stations'
 # own roster, sim.env or evsim service is changed, and no TLS cert is needed.
 #

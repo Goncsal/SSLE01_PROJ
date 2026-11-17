@@ -22,7 +22,7 @@ certificate — the point of the scenario).
 | 12:14:02/05 (access)| edge     | further 403s, both srcips, while quarantined |
 | 12:14:03.198       | csms     | `ident.quarantined`, 403, srcip 10.31.0.16 |
 | 12:15:03.134       | csms     | `ident.quarantined`, 403, srcip 10.31.0.16 — end of the capture window |
-| 12:18:44.031       | registry | `registry.release` on pt.porto.st-001.cp-1, `source=operator`, reason "W6 scenario-1 validation restore" (orchestrator's manual release after the window, restoring 30/30 connected / 0 quarantined) |
+| 12:18:44.031       | registry | `registry.release` on pt.porto.st-001.cp-1, `source=operator`, reason "W6 scenario-1 validation restore" (operator's manual release after the window, restoring 30/30 connected / 0 quarantined) |
 
 ## Notes
 

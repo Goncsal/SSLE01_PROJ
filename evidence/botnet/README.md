@@ -42,10 +42,10 @@ per-charger compromise.
 
 1. **110304 (cross-station fleet correlation) did NOT fire** despite all six 110303 beacons
    to the same C2. This is the "locate the fleet in one alert" signal, and its absence is
-   the main detection gap of the run. Suspected cause: the manager's rule-matching state is
-   partitioned per agent/thread, so a frequency rule that must correlate different stations
-   (different agents) can miss them; a single-thread setting was applied but is not yet
-   proven against concurrent live agents. To fix and re-demo before the final run.
+   the main detection gap of the run. Cause: Wazuh frequency rules count per agent, and the
+   six stations are six agents. Fixed after the run by setting `global_frequency` on the
+   cross-agent frequency rules (110304, 110308 and the CSMS-fed rules); the fix passes the
+   forwarded-by-agent cases in `wazuh/tests/botnet.jsonl` but has not been re-run live.
 2. **CityLoadSpike (110308) did not reach firing state** — the quarantine cut the surge
    short before the alert's sustained-dwell window elapsed. The response beat the alert;
    either shorten the dwell or accept that the faster per-charger flood signals carry it.
