@@ -35,9 +35,9 @@ while [ $# -gt 0 ]; do
 done
 parse_global_flags "${ARGS[@]}"
 
-# Each scenario keeps its own fast default (the clone needs ~2 min for both cities'
+# Each scenario keeps its own fast default (the clone needs ~2-6 min for both cities'
 # sessions, the rollback tamper is near-instant); --duration, if given, overrides both.
-CLONE_DURATION="${USER_DURATION:-120}"
+CLONE_DURATION="${USER_DURATION:-480}"
 TAMPER_DURATION="${USER_DURATION:-90}"
 
 MODE_FLAG="--dry-run"

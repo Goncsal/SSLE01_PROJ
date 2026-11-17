@@ -23,9 +23,18 @@ containers are created, only `/etc/evcharge/sim.env` on an already-running stati
 
 Picks a non-blocked card whose home city is `--home` (default `porto`) from
 `dev/roster.yaml`, then on one station in each `--used-in` city (default
-`aveiro,lisboa`) sets `SIM_EXTRA_ARGS="--clone-card <card> --clone-sessions 2"` and
-restarts `evsim`. The same card id then authorises sessions in Aveiro and Lisboa within
-seconds -- the impossible-travel signature.
+`aveiro,lisboa`), one city after the other, sets `SIM_EXTRA_ARGS="--clone-card <card>
+--clone-sessions 1 --arrival-rate 90 --session-minutes 1"`, restarts `evsim`, waits (polling
+the CSMS log, 240 s per city) until the cloned session has started and stopped, restores
+that station's `sim.env`, then does the next city; in the last city it stops waiting at
+`session.start` (the block happens at the second start) and the exit trap restores. The two `session.start` events a couple
+of minutes apart over ~218 km are the impossible-travel signature. The sessions are
+sequential on purpose: the CSMS refuses a second concurrent transaction for one card
+(`auth.reject result=ConcurrentTx`), which prevents an overlapping clone but neither
+alerts nor blocks the card, so no second-city `session.start` would reach the fraud
+service. `--duration` (default 480 s) is the overall time-box; `--arrival-rate` and
+`--session-minutes` override the fast defaults. At the end the script prints the gap
+between the two starts and, if the billing token is available, the card's state.
 
 ```
 clone_card.sh [--home porto] [--used-in aveiro,lisboa] [--phase before|after] [--card CARD] [--run] [--duration N]
@@ -80,7 +89,7 @@ Runs `clone_card.sh --phase after` then `tamper_meter.sh --mode rollback`, with 
 before each (what, expected detection, expected response), and finishes by checking that
 every `sim.env` this run touched (`pt.aveiro.st-001`, `pt.lisboa.st-001`,
 `pt.lisboa.st-003`) is back to the content it held before this script started. Each
-scenario keeps its own fast default time-box (clone ~120 s, rollback tamper ~90 s);
+scenario keeps its own fast default time-box (clone ~2-6 min, rollback tamper ~90 s);
 `--duration` overrides both.
 
 ```
