@@ -43,7 +43,7 @@ def edge(tmp_path):
     e = E()
     e.etc, e.fake, e.log = etc, fake, log
 
-    def run(srcip, command="add", reply="continue", args=(), rule="110110"):
+    def run(srcip, command="add", reply="continue", args=(), rule="110132"):
         alert = {"id": "1730000000.333", "rule": {"id": rule}, "data": {"srcip": srcip}}
         env = dict(os.environ, EVCHARGE_EDGE_ETC=str(etc), EVCHARGE_EDGE_LOG=str(log), FAKE_DIR=str(fake),
                    PATH=str(fake) + os.pathsep + os.environ["PATH"])
@@ -81,7 +81,7 @@ def test_add_inserts_input_and_forward(edge):
     line = edge.lines()[-1]
     assert line["event"] == "ar.action" and line["result"] == "ok" and line["reason"] == "drop_added"
     assert line["srcip"] == "10.31.0.66" and line["ar_command"] == "evcharge-edge-drop"
-    assert line["rule_id"] == "110110" and line["alert_id"] == "1730000000.333"
+    assert line["rule_id"] == "110132" and line["alert_id"] == "1730000000.333"
 
 
 def test_add_twice_does_not_stack(edge):
@@ -140,3 +140,18 @@ def test_self_test_and_dry_run(edge, tmp_path):
     f.write_text(json.dumps(wazuh_message({"id": "1", "rule": {"id": "1"}, "data": {"srcip": "10.31.0.66"}})))
     res = edge.run("x", args=["--dry-run", str(f)])
     assert "-I INPUT -s 10.31.0.66" in res.stdout and edge.calls() == [] and edge.lines() == []
+
+
+def test_alert_from_a_csms_agent_blocks_the_rogue_source(edge):
+    # 110132 comes from the CSMS: data carries hier_id and the rogue srcip, no edge fields
+    alert = {"id": "1730000000.444", "rule": {"id": "110132"},
+             "data": {"event": "ident.ip_mismatch", "hier_id": "pt.porto.st-001.cp-1", "srcip": "10.31.0.66"}}
+    env = dict(os.environ, EVCHARGE_EDGE_ETC=str(edge.etc), EVCHARGE_EDGE_LOG=str(edge.log),
+               FAKE_DIR=str(edge.fake), PATH=str(edge.fake) + os.pathsep + os.environ["PATH"])
+    stdin = json.dumps(wazuh_message(alert)) + "\n" + json.dumps({"command": "continue"}) + "\n"
+    res = subprocess.run([sys.executable, str(SCRIPTS / "evcharge-edge-drop")], input=stdin,
+                         capture_output=True, text=True, env=env, timeout=30)
+    assert res.returncode == 0
+    assert [c for c in edge.calls() if " -I " in c] == [
+        "iptables -w 5 -I INPUT -s 10.31.0.66 -j DROP", "iptables -w 5 -I FORWARD -s 10.31.0.66 -j DROP"]
+    assert edge.lines()[-1]["rule_id"] == "110132"

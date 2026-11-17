@@ -30,31 +30,32 @@
     <timeout_allowed>no</timeout_allowed>
   </command>
 
-  <!-- scans and floods seen by the edge: drop at the edge that wrote the log -->
+  <!-- certificate bursts and connection floods seen by the edge: drop at the edge that wrote the log -->
   <active-response>
     <command>firewall-drop</command>
     <location>local</location>
-    <rules_id>110121,110123,110307</rules_id>
+    <rules_id>110121,110307</rules_id>
     <timeout>600</timeout>
   </active-response>
 
-  <!-- addresses seen by the CSMS: every agent is told, only the city's edge acts -->
+  <!-- 110132: address seen by the CSMS (stolen credential in use). Every agent is told, only the
+       edge whose city network contains the address acts -->
   <active-response>
     <command>evcharge-edge-drop</command>
     <location>all</location>
-    <rules_id>110110,110130</rules_id>
+    <rules_id>110132</rules_id>
     <timeout>600</timeout>
   </active-response>
 
-  <!-- isolate the identity: no timeout, release is manual -->
+  <!-- 110303: a station beacons to an unknown destination; the target is the STATION id, so every
+       charger of the station is isolated. No timeout, release is manual -->
   <active-response>
     <command>quarantine-charger</command>
     <location>server</location>
-    <rules_id>110101,110103,110130,110131</rules_id>
+    <rules_id>110303</rules_id>
   </active-response>
 
-  <!-- only 110210: it honours the fraud service dry-run flag. 110203/110206 are native
-       cross-city alerts without that flag, so they alert but do not block -->
+  <!-- 110210 honours the fraud service dry-run flag -->
   <active-response>
     <command>block-card</command>
     <location>server</location>

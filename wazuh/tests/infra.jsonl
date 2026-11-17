@@ -23,34 +23,6 @@
 {"ts":"2026-11-06T10:00:22.000Z","level":"error","service":"csms","instance":"csms-7d9f5-abcde","event":"dependency.error","msg":"dependency error","dependency":"dep9","reason":"timeout"}
 {"ts":"2026-11-06T10:00:23.000Z","level":"error","service":"csms","instance":"csms-7d9f5-abcde","event":"dependency.error","msg":"dependency error","dependency":"dep10","reason":"timeout"}
 {"_session":"reset"}
-{"ts":"2026-11-06T10:00:25.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"api.auth_failed","msg":"api auth_failed","srcip":"198.51.100.10","path":"/nodes","method":"GET"}
-{"ts":"2026-11-06T10:00:26.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"service.log","msg":"service log","logger":"x"}
-{"_session":"reset"}
-{"ts":"2026-11-06T10:00:28.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"api.auth_failed","msg":"api auth_failed","srcip":"198.51.100.10","path":"/nodes","method":"GET"}
-{"ts":"2026-11-06T10:00:29.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"api.auth_failed","msg":"api auth_failed","srcip":"198.51.100.10","path":"/nodes","method":"GET"}
-{"ts":"2026-11-06T10:00:30.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"api.auth_failed","msg":"api auth_failed","srcip":"198.51.100.10","path":"/nodes","method":"GET"}
-{"ts":"2026-11-06T10:00:31.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"api.auth_failed","msg":"api auth_failed","srcip":"198.51.100.10","path":"/nodes","method":"GET"}
-{"ts":"2026-11-06T10:00:32.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"api.auth_failed","msg":"api auth_failed","srcip":"198.51.100.10","path":"/nodes","method":"GET"}
-{"ts":"2026-11-06T10:00:33.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"api.auth_failed","msg":"api auth_failed","srcip":"198.51.100.10","path":"/nodes","method":"GET"}
-{"ts":"2026-11-06T10:00:34.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"api.auth_failed","msg":"api auth_failed","srcip":"198.51.100.10","path":"/nodes","method":"GET"}
-{"ts":"2026-11-06T10:00:35.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"api.auth_failed","msg":"api auth_failed","srcip":"198.51.100.10","path":"/nodes","method":"GET"}
-{"ts":"2026-11-06T10:00:36.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"api.auth_failed","msg":"api auth_failed","srcip":"198.51.100.10","path":"/nodes","method":"GET"}
-{"ts":"2026-11-06T10:00:37.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"api.auth_failed","msg":"api auth_failed","srcip":"198.51.100.10","path":"/nodes","method":"GET"}
-{"_session":"reset"}
-{"ts":"2026-11-06T10:00:39.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"api.auth_failed","msg":"api auth_failed","srcip":"198.51.100.71","path":"/nodes","method":"GET"}
-{"ts":"2026-11-06T10:00:40.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"api.auth_failed","msg":"api auth_failed","srcip":"198.51.100.72","path":"/nodes","method":"GET"}
-{"ts":"2026-11-06T10:00:41.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"api.auth_failed","msg":"api auth_failed","srcip":"198.51.100.73","path":"/nodes","method":"GET"}
-{"ts":"2026-11-06T10:00:42.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"api.auth_failed","msg":"api auth_failed","srcip":"198.51.100.74","path":"/nodes","method":"GET"}
-{"ts":"2026-11-06T10:00:43.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"api.auth_failed","msg":"api auth_failed","srcip":"198.51.100.75","path":"/nodes","method":"GET"}
-{"ts":"2026-11-06T10:00:44.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"api.auth_failed","msg":"api auth_failed","srcip":"198.51.100.76","path":"/nodes","method":"GET"}
-{"ts":"2026-11-06T10:00:45.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"api.auth_failed","msg":"api auth_failed","srcip":"198.51.100.77","path":"/nodes","method":"GET"}
-{"ts":"2026-11-06T10:00:46.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"api.auth_failed","msg":"api auth_failed","srcip":"198.51.100.78","path":"/nodes","method":"GET"}
-{"ts":"2026-11-06T10:00:47.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"api.auth_failed","msg":"api auth_failed","srcip":"198.51.100.79","path":"/nodes","method":"GET"}
-{"ts":"2026-11-06T10:00:48.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"api.auth_failed","msg":"api auth_failed","srcip":"198.51.100.80","path":"/nodes","method":"GET"}
-{"_session":"reset"}
-{"ts":"2026-11-06T10:00:50.000Z","level":"warning","service":"registry","instance":"registry","event":"registry.write_denied","msg":"registry write_denied","hier_id":"pt.porto.st-003.cp-1","operator":"city-lisboa","srcip":"198.51.100.10"}
-{"ts":"2026-11-06T10:00:51.000Z","level":"info","service":"registry","instance":"registry","event":"registry.write","msg":"registry write","hier_id":"pt.porto.st-003.cp-1","op":"update","operator":"city-porto"}
-{"_session":"reset"}
 {"ts":"2026-11-06T10:00:53.000Z","level":"warning","service":"registry","instance":"registry","event":"registry.quarantine","msg":"registry quarantine","hier_id":"pt.porto.st-003.cp-1","reason":"x","source":"wazuh","incident_id":"1"}
 {"ts":"2026-11-06T10:00:54.000Z","level":"info","service":"registry","instance":"registry","event":"registry.release","msg":"registry release","hier_id":"pt.porto.st-003.cp-1","reason":"x","source":"operator","operator":"alice"}
 {"ts":"2026-11-06T10:00:55.000Z","level":"info","service":"registry","instance":"registry","event":"registry.write","msg":"registry write","hier_id":"pt.porto.st-003.cp-1","op":"update","operator":"alice"}

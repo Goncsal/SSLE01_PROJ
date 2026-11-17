@@ -70,7 +70,7 @@ put "$OSSEC/etc/decoders/evcharge_decoders.xml" 660 root:wazuh <"$WAZUH/decoders
 for f in "$WAZUH"/rules/evcharge_*.xml; do
   put "$OSSEC/etc/rules/$(basename "$f")" 660 root:wazuh <"$f"
 done
-for f in evcharge-plain-cities evcharge-ip-exceptions evcharge-card-allowlist; do
+for f in evcharge-ip-exceptions evcharge-card-allowlist; do
   put "$OSSEC/etc/lists/$f" 660 wazuh:wazuh <"$WAZUH/lists/$f"
 done
 

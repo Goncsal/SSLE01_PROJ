@@ -1,227 +1,68 @@
 1 110100  # 110100 duplicate_id
 2 110091  # 110100 negative: charger.boot
-3 reset  # new session
-4 110101  # 110101 cert_mismatch
-5 110102  # 110101 negative: ident.cert_serial_mismatch
-6 reset  # new session
-7 110102  # 110102 cert_serial_mismatch
-8 110101  # 110102 negative: ident.cert_mismatch
-9 reset  # new session
-10 110103  # 110103 city_mismatch
-11 110106  # 110103 negative: ident.untrusted_peer
-12 reset  # new session
-13 110104  # 110104 ip_mismatch
-14 110105  # 110104 negative: ident.no_cert
-15 reset  # new session
-16 110105  # 110105 no_cert
-17 110104  # 110105 negative: ident.ip_mismatch
-18 reset  # new session
-19 110106  # 110106 untrusted_peer
-20 110107  # 110106 negative: ident.spoofed_header
-21 reset  # new session
-22 110107  # 110107 spoofed_header
-23 110106  # 110107 negative: ident.untrusted_peer
-24 reset  # new session
-25 110108  # 110108 ident.unknown
-26 110109  # 110108 negative: ident.bad_id
-27 reset  # new session
-28 110109  # 110109 ident.bad_id
-29 110108  # 110109 negative: ident.unknown
-30 reset  # 110110 positive: 10 scans from one source
-31 110108  # scan (1 of 10)
-32 110108  # scan (2 of 10)
-33 110108  # scan (3 of 10)
-34 110108  # scan (4 of 10)
-35 110110  # scan (5 of 10)
-36 110108  # scan (6 of 10)
-37 110108  # scan (7 of 10)
-38 110108  # scan (8 of 10)
-39 110108  # scan (9 of 10)
-40 110110  # scan (10 of 10)
-41 reset  # 110110 negative: 10 scans from ten sources
-42 110108  # scan (1 of 10)
-43 110108  # scan (2 of 10)
-44 110108  # scan (3 of 10)
-45 110108  # scan (4 of 10)
-46 110108  # scan (5 of 10)
-47 110108  # scan (6 of 10)
-48 110108  # scan (7 of 10)
-49 110108  # scan (8 of 10)
-50 110108  # scan (9 of 10)
-51 110108  # scan (10 of 10)
-52 reset  # 110110 mixed ident.unknown and ident.bad_id count together
-53 110108  # scan mixed (1 of 10)
-54 110109  # scan mixed (2 of 10)
-55 110108  # scan mixed (3 of 10)
-56 110109  # scan mixed (4 of 10)
-57 110110  # scan mixed (5 of 10)
-58 110109  # scan mixed (6 of 10)
-59 110108  # scan mixed (7 of 10)
-60 110109  # scan mixed (8 of 10)
-61 110108  # scan mixed (9 of 10)
-62 110110  # scan mixed (10 of 10)
-63 reset  # new session
-64 110111  # 110111 quarantined
-65 110105  # 110111 negative: ident.no_cert
-66 reset  # 110112 positive: 5 retries of one id
-67 110111  # retry (1 of 5)
-68 110111  # retry (2 of 5)
-69 110111  # retry (3 of 5)
-70 110111  # retry (4 of 5)
-71 110112  # retry (5 of 5)
-72 reset  # 110112 negative: 5 retries of five ids
-73 110111  # retry (1 of 5)
-74 110111  # retry (2 of 5)
-75 110111  # retry (3 of 5)
-76 110111  # retry (4 of 5)
-77 110111  # retry (5 of 5)
-78 reset  # new session
-79 110113  # 110113 boot_mismatch
-80 110091  # 110113 negative: charger.fault
-81 reset  # new session
-82 110114  # 110114 ocpp.invalid
-83 110105  # 110114 negative: ident.no_cert
-84 reset  # 110115 positive: 20 invalid messages of one id
-85 110114  # invalid (1 of 20)
-86 110114  # invalid (2 of 20)
-87 110114  # invalid (3 of 20)
-88 110114  # invalid (4 of 20)
-89 110114  # invalid (5 of 20)
-90 110114  # invalid (6 of 20)
-91 110114  # invalid (7 of 20)
-92 110114  # invalid (8 of 20)
-93 110114  # invalid (9 of 20)
-94 110114  # invalid (10 of 20)
-95 110114  # invalid (11 of 20)
-96 110114  # invalid (12 of 20)
-97 110114  # invalid (13 of 20)
-98 110114  # invalid (14 of 20)
-99 110114  # invalid (15 of 20)
-100 110114  # invalid (16 of 20)
-101 110114  # invalid (17 of 20)
-102 110114  # invalid (18 of 20)
-103 110114  # invalid (19 of 20)
-104 110115  # invalid (20 of 20)
-105 reset  # 110115 negative: 20 invalid messages of twenty ids
-106 110114  # invalid (1 of 20)
-107 110114  # invalid (2 of 20)
-108 110114  # invalid (3 of 20)
-109 110114  # invalid (4 of 20)
-110 110114  # invalid (5 of 20)
-111 110114  # invalid (6 of 20)
-112 110114  # invalid (7 of 20)
-113 110114  # invalid (8 of 20)
-114 110114  # invalid (9 of 20)
-115 110114  # invalid (10 of 20)
-116 110114  # invalid (11 of 20)
-117 110114  # invalid (12 of 20)
-118 110114  # invalid (13 of 20)
-119 110114  # invalid (14 of 20)
-120 110114  # invalid (15 of 20)
-121 110114  # invalid (16 of 20)
-122 110114  # invalid (17 of 20)
-123 110114  # invalid (18 of 20)
-124 110114  # invalid (19 of 20)
-125 110114  # invalid (20 of 20)
-126 reset  # 110116 plain city
-127 110116  # 110116 meter.anomaly in aveiro (no TLS)
-128 110204  # 110116 negative: porto is 110204
-129 reset  # 110120 edge cert verify failed
-130 110120  # 110120 cert rejected
-131 110091  # 110120 negative: 400 without verify failure
-132 reset  # 110121 positive: 5 rejected certs from one source
-133 110120  # cert (1 of 5)
-134 110120  # cert (2 of 5)
-135 110120  # cert (3 of 5)
-136 110120  # cert (4 of 5)
-137 110121  # cert (5 of 5)
-138 reset  # 110121 negative: 5 rejected certs from five sources
-139 110120  # cert (1 of 5)
-140 110120  # cert (2 of 5)
-141 110120  # cert (3 of 5)
-142 110120  # cert (4 of 5)
-143 110120  # cert (5 of 5)
-144 reset  # new session
-145 110122  # 110122 404
-146 110091  # 110122 negative: 429 stays 110091
-147 reset  # 110123 positive: 20 x 404 from one source
-148 110122  # 404 (1 of 20)
-149 110122  # 404 (2 of 20)
-150 110122  # 404 (3 of 20)
-151 110122  # 404 (4 of 20)
-152 110122  # 404 (5 of 20)
-153 110122  # 404 (6 of 20)
-154 110122  # 404 (7 of 20)
-155 110122  # 404 (8 of 20)
-156 110122  # 404 (9 of 20)
-157 110122  # 404 (10 of 20)
-158 110122  # 404 (11 of 20)
-159 110122  # 404 (12 of 20)
-160 110122  # 404 (13 of 20)
-161 110122  # 404 (14 of 20)
-162 110122  # 404 (15 of 20)
-163 110122  # 404 (16 of 20)
-164 110122  # 404 (17 of 20)
-165 110122  # 404 (18 of 20)
-166 110122  # 404 (19 of 20)
-167 110123  # 404 (20 of 20)
-168 reset  # 110123 negative: 20 x 404 from twenty sources
-169 110122  # 404 (1 of 20)
-170 110122  # 404 (2 of 20)
-171 110122  # 404 (3 of 20)
-172 110122  # 404 (4 of 20)
-173 110122  # 404 (5 of 20)
-174 110122  # 404 (6 of 20)
-175 110122  # 404 (7 of 20)
-176 110122  # 404 (8 of 20)
-177 110122  # 404 (9 of 20)
-178 110122  # 404 (10 of 20)
-179 110122  # 404 (11 of 20)
-180 110122  # 404 (12 of 20)
-181 110122  # 404 (13 of 20)
-182 110122  # 404 (14 of 20)
-183 110122  # 404 (15 of 20)
-184 110122  # 404 (16 of 20)
-185 110122  # 404 (17 of 20)
-186 110122  # 404 (18 of 20)
-187 110122  # 404 (19 of 20)
-188 110122  # 404 (20 of 20)
-189 reset  # 110130 positive: duplicate_id then ip_mismatch
-190 110100  # 110130 step 1 duplicate_id
-191 110130  # 110130 step 2 ip_mismatch, same id
-192 reset  # 110130 negative: ip_mismatch of another id
-193 110100  # 110130 neg step 1 duplicate_id
-194 110104  # 110130 neg step 2 ip_mismatch other id
-195 reset  # 110131 positive: ip_mismatch then duplicate_id
-196 110104  # 110131 step 1 ip_mismatch
-197 110131  # 110131 step 2 duplicate_id, same id
-198 reset  # 110131 negative: duplicate_id of another id
-199 110104  # 110131 neg step 1 ip_mismatch
-200 110100  # 110131 neg step 2 duplicate_id other id
-201 reset  # whitelist: listed id then duplicate_id gives no composite
-202 110013  # 110013 silenced mismatch
-203 110100  # 110013 then duplicate_id stays 110100
-204 reset  # 110112 positive: 5 retries of one id (events from two agents)
-205 110111  # retry (1 of 5)
-206 110111  # retry (2 of 5)
-207 110111  # retry (3 of 5)
-208 110111  # retry (4 of 5)
-209 110112  # retry (5 of 5)
-210 reset  # 110112 negative: 5 retries of five ids (events from two agents)
-211 110111  # retry (1 of 5)
-212 110111  # retry (2 of 5)
-213 110111  # retry (3 of 5)
-214 110111  # retry (4 of 5)
-215 110111  # retry (5 of 5)
-216 reset  # 110130 positive: duplicate_id then ip_mismatch (events from two agents)
-217 110100  # 110130 step 1 duplicate_id
-218 110130  # 110130 step 2 ip_mismatch, same id
-219 reset  # 110130 negative: ip_mismatch of another id (events from two agents)
-220 110100  # 110130 neg step 1 duplicate_id
-221 110104  # 110130 neg step 2 ip_mismatch other id
-222 reset  # 110131 positive: ip_mismatch then duplicate_id (events from two agents)
-223 110104  # 110131 step 1 ip_mismatch
-224 110131  # 110131 step 2 duplicate_id, same id
-225 reset  # 110131 negative: duplicate_id of another id (events from two agents)
-226 110104  # 110131 neg step 1 ip_mismatch
-227 110100  # 110131 neg step 2 duplicate_id other id
+3 reset  # 110120 edge cert verify failed
+4 110120  # 110120 cert rejected
+5 110091  # 110120 negative: 400 without verify failure
+6 reset  # 110121 positive: 5 rejected certs from one source
+7 110120  # cert (1 of 5)
+8 110120  # cert (2 of 5)
+9 110120  # cert (3 of 5)
+10 110120  # cert (4 of 5)
+11 110121  # cert (5 of 5)
+12 reset  # 110121 negative: 5 rejected certs from five sources
+13 110120  # cert (1 of 5)
+14 110120  # cert (2 of 5)
+15 110120  # cert (3 of 5)
+16 110120  # cert (4 of 5)
+17 110120  # cert (5 of 5)
+18 reset  # whitelist: listed id then duplicate_id gives no composite
+19 110013  # 110013 silenced mismatch
+20 110100  # 110013 then duplicate_id stays 110100
+21 reset  # 110101 positive: cert_mismatch
+22 110101  # ident refusal cert_mismatch
+23 reset  # 110101 positive: cert_serial_mismatch
+24 110101  # ident refusal cert_serial_mismatch
+25 reset  # 110101 positive: city_mismatch
+26 110101  # ident refusal city_mismatch
+27 reset  # 110101 positive: no_cert
+28 110101  # ident refusal no_cert
+29 reset  # 110101 positive: untrusted_peer
+30 110101  # ident refusal untrusted_peer
+31 reset  # 110101 positive: spoofed_header
+32 110101  # ident refusal spoofed_header
+33 reset  # 110101 positive: unknown
+34 110101  # ident refusal unknown
+35 reset  # 110101 positive: bad_id
+36 110101  # ident refusal bad_id
+37 reset  # 110101 positive: quarantined
+38 110101  # ident refusal quarantined
+39 reset  # 110101 positive: boot_mismatch
+40 110101  # ident refusal boot_mismatch
+41 reset  # 110101 negative: ip_mismatch is 110104, not 110101
+42 110104  # ip_mismatch
+43 110100  # duplicate_id
+44 reset  # 110101 negative: ocpp.invalid and charger.fault are only catch-alls
+45 110091  # ocpp.invalid
+46 110091  # charger.fault
+47 reset  # 110132 positive: 3 refused connections from one source
+48 110104  # refused (1 of 3)
+49 110104  # refused (2 of 3)
+50 110132  # refused (3 of 3) -> evcharge-edge-drop
+51 reset  # 110132 negative: 3 refused connections from three sources
+52 110104  # refused src A
+53 110104  # refused src B
+54 110104  # refused src C
+55 reset  # 110132 negative: only 2 refused connections from one source
+56 110104  # refused (1 of 2)
+57 110104  # refused (2 of 2)
+58 reset  # 110132 positive: 3 refused connections from one source (events from two agents)
+59 110104  # refused (1 of 3)
+60 110104  # refused (2 of 3)
+61 110132  # refused (3 of 3) -> evcharge-edge-drop
+62 reset  # 110132 negative: 3 refused connections from three sources (events from two agents)
+63 110104  # refused src A
+64 110104  # refused src B
+65 110104  # refused src C
+66 reset  # 110132 negative: only 2 refused connections from one source (events from two agents)
+67 110104  # refused (1 of 2)
+68 110104  # refused (2 of 2)

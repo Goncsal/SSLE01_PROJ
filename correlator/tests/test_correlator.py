@@ -62,18 +62,18 @@ def test_without_skew_the_edge_case_splits():
 def test_srcip_only_signals_bind_through_an_earlier_pair(api):
     api.wazuh("charger.duplicate_id", "110100", 10, "hijack", at=0, hier_id=CHARGER, srcip=ROGUE_IP)
     # srcip only: no hier_id at all
-    api.wazuh("netwatch.scan", "110305", 7, "hijack", at=60, srcip=ROGUE_IP)
-    api.wazuh("netwatch.scan", "110306", 7, "hijack", at=100, srcip=ROGUE_IP)   # 100 s from the first only
+    api.wazuh("netwatch.scan", "110120", 8, "hijack", at=60, srcip=ROGUE_IP)
+    api.wazuh("netwatch.scan", "110307", 10, "hijack", at=100, srcip=ROGUE_IP)   # 100 s from the first only
     (inc,) = api.incidents()
     assert len(inc["signals"]) == 3
     assert inc["keys"] == {"hier_id": [CHARGER], "srcip": [ROGUE_IP]}
 
 
 def test_incidents_that_a_later_signal_connects_are_merged(api):
-    api.wazuh("a", "110101", 10, "hijack", at=0, hier_id=CHARGER)
-    api.wazuh("b", "110102", 8, "hijack", at=1, srcip=ROGUE_IP)
+    api.wazuh("a", "110101", 9, "hijack", at=0, hier_id=CHARGER)
+    api.wazuh("b", "110120", 8, "hijack", at=1, srcip=ROGUE_IP)
     assert len(api.incidents()) == 2
-    api.wazuh("c", "110103", 10, "hijack", at=2, hier_id=CHARGER, srcip=ROGUE_IP)
+    api.wazuh("c", "110101", 9, "hijack", at=2, hier_id=CHARGER, srcip=ROGUE_IP)
     (inc,) = api.incidents()
     assert len(inc["signals"]) == 3
 
@@ -105,7 +105,7 @@ def test_fraud_on_one_charger_stays_on_the_charger(api):
 def test_signals_of_several_stations_point_at_the_city(api):
     for n, st in enumerate(("pt.porto.st-001.cp-1", "pt.porto.st-002.cp-1", "pt.porto.st-003.cp-1")):
         api.clock.set(n * 5)
-        api.wazuh("ocpp.rate_limited", "110302", 12, "botnet", at=n * 5, hier_id=st, city="porto", wid=f"w{n}")
+        api.wazuh("ocpp.rate_limited", "110304", 12, "botnet", at=n * 5, hier_id=st, city="porto", wid=f"w{n}")
     (inc,) = api.incidents()
     rc = inc["root_cause"]
     assert inc["kind"] == "botnet" and rc["hier_id"] == "pt.porto" and rc["city"] == "porto"
@@ -121,8 +121,8 @@ def test_city_alert_joins_its_stations_of_the_same_kind_only(api):
 
 
 def test_botnets_in_two_cities_stay_apart(api):
-    api.wazuh("ocpp.rate_limited", "110302", 12, "botnet", at=0, hier_id="pt.porto.st-001.cp-1", city="porto")
-    api.wazuh("ocpp.rate_limited", "110302", 12, "botnet", at=1, hier_id="pt.lisboa.st-001.cp-1", city="lisboa")
+    api.wazuh("ocpp.rate_limited", "110304", 12, "botnet", at=0, hier_id="pt.porto.st-001.cp-1", city="porto")
+    api.wazuh("ocpp.rate_limited", "110304", 12, "botnet", at=1, hier_id="pt.lisboa.st-001.cp-1", city="lisboa")
     assert len(api.incidents()) == 2
 
 

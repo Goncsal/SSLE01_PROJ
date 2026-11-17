@@ -14,7 +14,7 @@ the credentials files. The course-guide rules in `local_rules.xml` are not touch
 | `wazuh/active-response/{quarantine-charger,block-card,evcharge-edge-drop}` | `/var/ossec/active-response/bin/` |
 | `wazuh/integrations/custom-correlator` | `/var/ossec/integrations/` |
 | `ossec-evcharge.xml` | block between `<!-- evcharge begin -->` and `<!-- evcharge end -->` at the end of `ossec.conf` |
-| `ruleset-lines.xml` | three `<list>` lines and one `<decoder_exclude>` line inside the existing `<ruleset>`, each tagged `<!-- evcharge -->` |
+| `ruleset-lines.xml` | two `<list>` lines and one `<decoder_exclude>` line inside the existing `<ruleset>`, each tagged `<!-- evcharge -->` |
 | generated | `etc/authd.pass` (0640 root:wazuh), `etc/evcharge/ar.env` (0640 root:wazuh), `etc/evcharge/card-allowlist`, `etc/evcharge/quarantine-allowlist` (created empty, never overwritten) |
 
 Notes on the two parts outside the block:
@@ -42,12 +42,10 @@ every replaced file to `/var/ossec/etc/evcharge/backup/<time>/`, runs
 `wazuh-analysisd -t` and restarts `wazuh-manager` only if it passes; otherwise the files
 touched in that run are restored. A second run changes nothing and does not restart.
 
-Rule 110304 (fan-in of 3 stations to one destination) needs `<global_frequency>yes</global_frequency>`:
-frequency rules count per agent by default and each station is its own agent, so it never fired live.
-`logtest_driver.py` replays lines marked `"_agent":"<name>"` as forwarded by that agent to cover this.
-
-The same applies to the CSMS-fed correlations 110302, 110308, 110112, 110130, 110131, 110201, 110203,
-110206 and 110401 (pods on two nodes = two agents); they carry `global_frequency` and have `_agent` cases.
+Frequency rules count per agent unless `<global_frequency>yes</global_frequency>` is set. The CSMS
+pods and the stations are separate agents, so 110132, 110304, 110308 and 110401 carry it and have
+`_agent` cases in the logtest files. `deploy_manager.sh` also sets `analysisd.rule_matching_threads=1`
+(`local_internal_options.conf`) so cross-agent counters live in one thread.
 
 ## Test
 
@@ -61,55 +59,32 @@ Every rule has a positive and a negative case. Exit status 1 on any mismatch.
 The list `evcharge-ip-exceptions` holds one spare id (`pt.spare.st-999.cp-1`) so the
 whitelist 110013 can be shown silent.
 
-## Rules (61)
+## Rules (36) and responses
 
-| Block | IDs | Count |
+| Block | IDs |
+|---|---|
+| base | 110000, 110010-110015 (level 0 whitelists: 110010, 110012, 110013, 110014) |
+| hijack | 110100, 110101 (any identity refusal, reason = event name), 110104, 110120, 110121, 110132 |
+| fraud | 110200, 110204, 110207, 110208, 110209, 110210 |
+| botnet | 110300, 110301, 110303, 110304, 110306, 110307, 110308 |
+| infra | 110400, 110401, 110405, 110406, 110410, 110411, 110412 and catch-alls 110090-110092 |
+
+| Response | Triggered by | Acts on |
 |---|---|---|
-| base | 110000, 110010-110015, 110090-110092 (catch-alls are in `evcharge_infra.xml`, counted there) | 7 + 3 |
-| hijack | 110100-110116, 110120-110123, 110130, 110131 | 23 |
-| fraud | 110200, 110201, 110203-110209 | 9 |
-| botnet | 110300-110308 | 9 |
-| infra | 110400-110406, 110410-110412 and the catch-alls | 13 |
+| `evcharge-edge-drop` (all agents, 600 s) | 110132: 3 x `ident.ip_mismatch` from one `srcip` in 60 s | `iptables` DROP of `srcip` on the edge of that city |
+| `block-card` (manager) | 110210: `fraud.alert` with `auto_action=block_card`, `dry_run=false` | billing card block |
+| `quarantine-charger` (manager) | 110303: `host.new_outbound` outside the allow list; `hier_id` is the **station** | registry quarantine of the station, CSMS stop and disconnect for each of its chargers |
+| `firewall-drop` (edge, 600 s) | 110121, 110307 | source address of the edge log line |
 
-Differences from the contract table: 110406 (`command.result` with `source` wazuh) is
-split from 110405 (registry quarantine/release); 110412 keeps `ar.evidence` lines quiet;
-110305 also alerts on the first output of a new station.
+The fraud service quarantines on its own (`power_gap`); that audit is visible as 110208 (alert),
+110405 (registry quarantine) and 110209 (billing), so there is no second Wazuh response for it.
+110300 is level 7 so the correlator receives it. The correlator gets every alert of level 7 or more
+in group `evcharge`, plus 110405, 110410 and 110209 (response audit, levels 4-5).
 
-## Tuning after the live run (2026-11-06)
-
-- Wazuh counts a frequency rule **per agent**. The two CSMS pods are two agents, so 110110 now
-  uses 5 within 60 s (a scan of 10 or more ids spread over both pods reaches it).
-- 110203 and 110206 use 120 s windows. The simulated drivers are city-local (a card is only
-  used in its home city; see sim/README), so one card in two cities within two minutes is a
-  clone and these rules no longer fire on honest traffic.
-- **Fraud-service alerts and the block-card response (2026-11-09).** A live run showed 110207
-  (any `impossible_travel` alert, 200 km/h) blocking honest roaming cards, and the response
-  ran for real while the fraud service was in dry run (dry run only gates the service's own
-  API calls). 110207 is now alert-only. The response is attached to 110210, a child that also
-  requires the log line's `auto_action` to be `block_card` (overlapping sessions or speed at
-  `FRAUD_BLOCK_KMH`) and `dry_run` to be `false`; the fraud service writes both fields on every
-  `fraud.alert`. A line without them never blocks. 110203 and 110206 key on the CSMS logs, which carry no
-  dry-run flag, so they are alert-only too and 110210 is the single block path.
-- The `station-sockets` command is `netwatch.py --sockets`: only destinations outside the
-  allow file, so queue sizes, pids and ephemeral ports no longer change the output (the raw
-  `ss` output made 110305 fire about 250 times per hour).
-- **110304 cross-agent fix (2026-11-10).** `analysisd.rule_matching_threads` defaults to one
-  thread per core; events are assigned to a thread by agent, and frequency/composite rule
-  state (the `if_matched_sid` counters) lives per thread, not globally. 110304 correlates
-  three *different* stations (three different agents) within one window, so it could silently
-  miss agents hashed to a different thread even though logtest (one pseudo-agent, no thread
-  split) always showed it firing. `deploy_manager.sh` now installs
-  `analysisd.rule_matching_threads=1` in `local_internal_options.conf` (single-threaded rule
-  matching; the lab's ~21 agents need none of the parallelism). `wazuh/tests/botnet.expect`
-  gained a cross-city positive case (porto+lisboa+aveiro stations, one dstip) alongside the
-  existing same-city one. Logtest cannot exercise the real multi-agent/multi-thread path
-  (it has no agent concept), so this remains unverified against genuinely concurrent agents;
-  watch 110304 the first time it must fire live in W8.
-- **Correlator outbox (2026-11-10).** `evcharge-correlator-outbox.json` grows unbounded
-  (capped only at 10 MB) while no correlator is deployed to receive the forwarded alerts.
-  Backed up to a timestamped `.bak-<UTC>` copy next to it and truncated to empty before the
-  W9 replay; `custom-correlator` always opens it in append mode per call, so truncating it
-  out of band is safe and does not race a concurrent writer.
+Outbound whitelist for 110303: `netwatch.py` already drops destinations in `/etc/evcharge/netwatch-allow.txt`
+on the station; 110012 ignores package managers (apt, apt-get, http, https, gpgv). The manager alert
+history held 110303 only from botnet runs (process `python`, destinations 10.255.255.x), so nothing
+else is whitelisted. Add a station's honest destination to its allow file, not here.
 
 ## Roll back
 

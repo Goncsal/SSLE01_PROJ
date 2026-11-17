@@ -5,7 +5,7 @@ from conftest import TOKENS, ar_lines, run_script, wazuh_message
 CARD = "04A1B2C3D4E5F6"
 
 
-def alert(card=CARD, tid=1042, aid="1730000000.222", rule="110203"):
+def alert(card=CARD, tid=1042, aid="1730000000.222", rule="110210"):
     data = {"card": card, "hier_id": "pt.porto.st-003.cp-2"}
     if tid is not None:
         data["transaction_id"] = tid
@@ -29,7 +29,7 @@ def test_happy_path_with_flag(layout, services):
     lines = ar_lines(layout)
     assert [x["event"] for x in lines] == ["ar.evidence", "ar.action"]
     assert lines[-1]["result"] == "ok" and lines[-1]["card"] == CARD and lines[-1]["ar_command"] == "block-card"
-    assert lines[-1]["rule_id"] == "110203" and lines[-1]["alert_id"] == "1730000000.222"
+    assert lines[-1]["rule_id"] == "110210" and lines[-1]["alert_id"] == "1730000000.222"
 
 
 def test_no_flag_without_transaction(layout, services):

@@ -1,7 +1,12 @@
-<!-- EV charging network: botnet (IDs 110300-110399). -->
+<!--
+  EV charging network: botnet (IDs 110300-110399).
+  110303 (station opens an outbound connection to a destination outside its allow list)
+  triggers quarantine-charger at STATION level; 110304 is the fleet alert (3 stations, one
+  destination); 110307 (nginx connection flood) triggers firewall-drop at the edge.
+-->
 <group name="evcharge,botnet,">
 
-  <rule id="110300" level="6">
+  <rule id="110300" level="7">
     <if_sid>110000</if_sid>
     <field name="event">^ocpp\.rate_limited$</field>
     <description>Botnet: $(hier_id) over its message budget ($(msg_rate) msg/s, $(dropped) dropped) (T0814).</description>
@@ -15,21 +20,6 @@
     <field name="reason">^rate_limit$</field>
     <description>Botnet: $(hier_id) disconnected for flooding (T0814).</description>
     <mitre><id>T1499</id></mitre>
-    <group>mitre_ics_T0814,</group>
-  </rule>
-
-  <!-- global_frequency: the CSMS pods run on two nodes (two agents) and frequency counts are per agent.
-       Set on every rule fed by CSMS/service events that can arrive via either pod (110302, 110308,
-       110112, 110130/1, 110201, 110203, 110206, 110401). Left per agent on purpose: edge-fed rules
-       (110121, 110123, 110307: one edge sees a source), and 110115/110205, 110403 (one connection or
-       one api pod). 110110 keeps its halved threshold. -->
-  <rule id="110302" level="12" frequency="3" timeframe="60">
-    <if_matched_sid>110300</if_matched_sid>
-    <global_frequency>yes</global_frequency>
-    <same_field>city</same_field>
-    <different_field>hier_id</different_field>
-    <description>Botnet: 3 chargers of $(city) flooding within 60 s, coordinated fleet (T0814).</description>
-    <mitre><id>T1498</id></mitre>
     <group>mitre_ics_T0814,</group>
   </rule>
 
@@ -52,16 +42,6 @@
     <different_field>hier_id</different_field>
     <description>Botnet: 3 stations contacting $(dstip) within 5 minutes, command and control (T0869).</description>
     <mitre><id>T1071.001</id></mitre>
-    <group>mitre_ics_T0869,</group>
-  </rule>
-
-  <!-- station socket table changed between two runs of the full_command -->
-  <rule id="110305" level="7">
-    <if_sid>530</if_sid>
-    <match>^ossec: output: 'station-sockets'</match>
-    <check_diff />
-    <description>Botnet: established connections of a station changed (T0869).</description>
-    <mitre><id>T1071</id></mitre>
     <group>mitre_ics_T0869,</group>
   </rule>
 

@@ -1,5 +1,5 @@
 <!--
-  EV charging network: platform and response audit (IDs 110400-110499), then the
+  EV charging network: platform health and response audit (IDs 110400-110499), then the
   catch-alls 110090-110092. This file is loaded last, so the catch-alls come after
   every specific sibling.
 -->
@@ -17,27 +17,6 @@
     <same_field>dependency</same_field>
     <description>Platform: dependency $(dependency) failing repeatedly (10 errors in 120 s).</description>
     <mitre><id>T1499</id></mitre>
-  </rule>
-
-  <rule id="110402" level="6">
-    <if_sid>110000</if_sid>
-    <field name="event">^api\.auth_failed$</field>
-    <description>API: bad token on $(service) $(method) $(path) from $(srcip).</description>
-    <mitre><id>T1110</id></mitre>
-  </rule>
-
-  <rule id="110403" level="10" frequency="10" timeframe="120">
-    <if_matched_sid>110402</if_matched_sid>
-    <same_source_ip />
-    <description>API: 10 bad tokens from $(srcip) within 120 s, token guessing.</description>
-    <mitre><id>T1110</id></mitre>
-  </rule>
-
-  <rule id="110404" level="10">
-    <if_sid>110000</if_sid>
-    <field name="event">^registry\.write_denied$</field>
-    <description>Registry: write to $(hier_id) denied for operator $(operator) from $(srcip), delegation abuse.</description>
-    <mitre><id>T1078</id></mitre>
   </rule>
 
   <rule id="110405" level="4">

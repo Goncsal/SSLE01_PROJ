@@ -1,15 +1,22 @@
 #!/var/ossec/framework/python/bin/python3
-"""quarantine-charger: isolate a charger and keep the evidence (manager, location server).
+"""quarantine-charger: isolate a charger, or every charger of a station, and keep the evidence
+(manager, location server).
 
 Wazuh active-response protocol (4.x): one JSON message on stdin, e.g.
   {"version":1,"origin":{...},"command":"add","parameters":{"extra_args":[],"alert":{...}}}
 The alert carries our decoded log fields under "data" (hier_id, srcip, ...).
 
+The target is the alert's hier_id: a charger (pt.city.st-001.cp-1) or a station (pt.city.st-001).
 Steps (each independent, a failure does not stop the next one):
-  1. evidence: CSMS GET /connections/{id} and registry GET /nodes/{id} (ar.evidence lines)
-  2. registry POST /quarantine/{id}                  (isolation, source=wazuh)
-  3. CSMS remote-stop (409 and 404 tolerated), change-availability Inoperative, disconnect
-  4. append a revocation request for an operator (pki/process_revocations.sh)
+  1. evidence: CSMS GET /connections/{id} (station: GET /connections?prefix={id}) and
+     registry GET /nodes/{id} (ar.evidence lines)
+  2. registry POST /quarantine/{id}                  (isolation, source=wazuh). For a station
+     this is one call: the registry gives every charger below it the effective state quarantined
+  3. a station only: registry GET /locate/{id}?kind=charger lists its chargers (fallback: CSMS
+     GET /connections?prefix={id}); the next step runs for each of them
+  4. CSMS remote-stop (409 and 404 tolerated), change-availability Inoperative, disconnect
+  5. append a revocation request per charger for an operator (pki/process_revocations.sh)
+Release: POST /quarantine/{id}/release on the same id (admin token).
 No revocation, no release, no delete. Standard library only; runs on the manager interpreter.
 
 Manual use:  quarantine-charger --self-test [FILE]   parse a sample alert, print the plan
@@ -40,16 +47,17 @@ STATE = os.path.join(RUN, "evcharge-quarantine-rate.json")
 
 HTTP_TIMEOUT = 5.0      # seconds per call
 TOTAL_TIMEOUT = 30.0    # seconds for the whole response
-RATE_LIMIT = 5          # distinct chargers ...
+RATE_LIMIT = 5          # distinct targets (charger or station) ...
 RATE_WINDOW = 600       # ... per 10 minutes
 
-CHARGER_RE = re.compile(r"^pt\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.st-(?!000)[0-9]{3}\.cp-[1-9][0-9]?$")
+STATION_RE = re.compile(r"^pt\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.st-(?!000)[0-9]{3}$")
+CHARGER_RE = re.compile(STATION_RE.pattern[:-1] + r"\.cp-[1-9][0-9]?$")
 URL_KEY = {"registry": "REGISTRY_URL", "csms": "CSMS_API_URL", "billing": "BILLING_URL"}
 FALLBACK_HOST = ("k3s-master.incus", "k3s-node1.incus")
 
 SAMPLE_ALERT = {
     "id": "1730000000.123456",
-    "rule": {"id": "110101", "level": 12, "description": "self-test sample alert"},
+    "rule": {"id": "110303", "level": 8, "description": "self-test sample alert"},
     "data": {"hier_id": "pt.porto.st-005.cp-9", "srcip": "127.0.0.1"},
 }
 
@@ -105,7 +113,13 @@ class Ctx:
         self.alert_id = clean(alert.get("id", ""), 64)
         self.description = clean(rule.get("description", ""), 120)
         self.raw_id = data.get("hier_id", "")
-        self.hier_id = self.raw_id if isinstance(self.raw_id, str) and CHARGER_RE.match(self.raw_id) else None
+        self.hier_id = None
+        self.is_station = False
+        if isinstance(self.raw_id, str):
+            if CHARGER_RE.match(self.raw_id):
+                self.hier_id = self.raw_id
+            elif STATION_RE.match(self.raw_id):
+                self.hier_id, self.is_station = self.raw_id, True
         self.srcip = None
         try:
             self.srcip = str(ipaddress.ip_address(str(data.get("srcip", ""))))
@@ -254,20 +268,41 @@ def rate_guard(key, record):
         os.close(fd)
 
 
-def plan(ctx):
+def meta_of(ctx):
     meta = {"reason": ctx.reason(), "source": "wazuh"}
     if ctx.alert_id:
         meta["incident_id"] = ctx.alert_id
+    return meta
+
+
+def head_plan(ctx):
+    """Evidence and registry isolation of the target (a charger or a whole station)."""
     hid = ctx.hier_id
+    evidence = "/connections?prefix=%s" % hid if ctx.is_station else "/connections/%s" % hid
     return [
-        ("csms", "CSMS_RESPONDER_TOKEN", "GET", "/connections/%s" % hid, None, "evidence"),
+        ("csms", "CSMS_RESPONDER_TOKEN", "GET", evidence, None, "evidence"),
         ("registry", "REGISTRY_RESPONDER_TOKEN", "GET", "/nodes/%s" % hid, None, "evidence"),
-        ("registry", "REGISTRY_RESPONDER_TOKEN", "POST", "/quarantine/%s" % hid, dict(meta), "quarantine"),
+        ("registry", "REGISTRY_RESPONDER_TOKEN", "POST", "/quarantine/%s" % hid, meta_of(ctx), "quarantine"),
+    ]
+
+
+def charger_plan(ctx, hid):
+    """The CSMS commands for one charger."""
+    meta = meta_of(ctx)
+    return [
         ("csms", "CSMS_RESPONDER_TOKEN", "POST", "/commands/%s/remote-stop" % hid, dict(meta), "remote-stop"),
         ("csms", "CSMS_RESPONDER_TOKEN", "POST", "/commands/%s/change-availability" % hid,
          dict(meta, connector_id=0, type="Inoperative"), "change-availability"),
         ("csms", "CSMS_RESPONDER_TOKEN", "POST", "/commands/%s/disconnect" % hid, dict(meta), "disconnect"),
     ]
+
+
+def plan(ctx):
+    """Static plan: for a station the chargers are only known after the registry lookup."""
+    steps = head_plan(ctx)
+    if not ctx.is_station:
+        steps += charger_plan(ctx, ctx.hier_id)
+    return steps
 
 
 def guards(ctx, record):
@@ -278,17 +313,16 @@ def guards(ctx, record):
         return False, "refused", "allowlisted"
     try:
         if not rate_guard(ctx.hier_id, record):
-            return False, "refused", "rate_guard: more than %d chargers in %d min" % (RATE_LIMIT, RATE_WINDOW // 60)
+            return False, "refused", "rate_guard: more than %d targets in %d min" % (RATE_LIMIT, RATE_WINDOW // 60)
     except OSError as exc:
         return False, "error", "rate_state_unavailable: %s" % clean(exc, 80)
     return True, "ok", ""
 
 
-def execute(ctx, env):
-    api = Api(env, time.monotonic() + TOTAL_TIMEOUT)
-    failures = []
+def run_steps(api, steps, failures, ctx):
+    """Run plan steps; returns True when the registry accepted the quarantine."""
     quarantined = False
-    for svc, tok, method, path, body, step in plan(ctx):
+    for svc, tok, method, path, body, step in steps:
         status, parsed, err = api.call(svc, tok, method, path, body)
         if step == "evidence":
             log_evidence(ctx, "connection" if svc == "csms" else "node",
@@ -305,15 +339,54 @@ def execute(ctx, env):
             pass        # accepted; no open transaction; charger already gone
         else:
             failures.append("%s: http %d" % (step, status))
+    return quarantined
+
+
+def station_chargers(api, ctx, failures):
+    """Chargers below the station: registry /locate, else the connected ones from the CSMS."""
+    found = []
+    status, parsed, err = api.call("registry", "REGISTRY_RESPONDER_TOKEN", "GET",
+                                   "/locate/%s?kind=charger" % ctx.hier_id)
+    if err is None and status == 200 and isinstance(parsed, dict):
+        for m in parsed.get("matches") or []:
+            hid = m.get("hier_id") if isinstance(m, dict) else None
+            if isinstance(hid, str) and CHARGER_RE.match(hid) and hid.startswith(ctx.hier_id + "."):
+                found.append(hid)
+    else:
+        failures.append("locate: %s" % (err or "http %s" % status))
+        status, parsed, err = api.call("csms", "CSMS_RESPONDER_TOKEN", "GET",
+                                       "/connections?prefix=%s" % ctx.hier_id)
+        if err is None and status == 200 and isinstance(parsed, dict):
+            for m in parsed.get("items") or []:
+                hid = m.get("hier_id") if isinstance(m, dict) else None
+                if isinstance(hid, str) and CHARGER_RE.match(hid) and hid.startswith(ctx.hier_id + "."):
+                    found.append(hid)
+    skip = read_list(ALLOWLIST)
+    return sorted({h for h in found if h not in skip})
+
+
+def execute(ctx, env):
+    api = Api(env, time.monotonic() + TOTAL_TIMEOUT)
+    failures = []
+    quarantined = run_steps(api, head_plan(ctx), failures, ctx)
+    chargers = [ctx.hier_id]
+    if ctx.is_station:
+        chargers = station_chargers(api, ctx, failures)
+    for hid in chargers:
+        run_steps(api, charger_plan(ctx, hid), failures, ctx)
     if quarantined:
-        try:
-            append_line(REVOCATIONS, {"hier_id": ctx.hier_id, "alert_id": ctx.alert_id,
-                                      "rule_id": ctx.rule_id, "ts": now_iso(),
-                                      "reason": ctx.reason()}, 0o600)
-        except OSError as exc:
-            failures.append("revocation_request: %s" % clean(exc, 80))
+        for hid in chargers:
+            try:
+                append_line(REVOCATIONS, {"hier_id": hid, "alert_id": ctx.alert_id,
+                                          "rule_id": ctx.rule_id, "ts": now_iso(),
+                                          "reason": ctx.reason()}, 0o600)
+            except OSError as exc:
+                failures.append("revocation_request: %s" % clean(exc, 80))
+                break
     if failures:
         log_action(ctx, "error", "; ".join(failures))
+    elif ctx.is_station:
+        log_action(ctx, "ok", "station quarantined, %d chargers isolated, revocation requested" % len(chargers))
     else:
         log_action(ctx, "ok", "quarantined, commands sent, revocation requested")
 
@@ -324,7 +397,11 @@ def print_plan(ctx, env=None):
         if env is not None:
             base = (Api(env, 0).bases(svc) or ["<%s url missing>" % svc])[0]
         print("  %-5s %s%s%s" % (method, base or svc + ":", path, " " + json.dumps(body) if body else ""))
-    print("  FILE  append revocation request for %s" % ctx.hier_id)
+    if ctx.is_station:
+        print("  GET   registry:/locate/%s?kind=charger  -> for each charger below:" % ctx.hier_id)
+        for _svc, _tok, method, path, body, _step in charger_plan(ctx, ctx.hier_id + ".cp-N"):
+            print("  %-5s csms:%s %s" % (method, path, json.dumps(body)))
+    print("  FILE  append revocation request for %s" % ("each charger of " + ctx.hier_id if ctx.is_station else ctx.hier_id))
 
 
 def extract_alert(msg):
@@ -350,7 +427,7 @@ def manual(mode, path):
     if ctx.hier_id is None:
         print("%s: invalid charger id %r: would refuse" % (NAME, clean(ctx.raw_id)))
         return 0 if mode == "--dry-run" else 1
-    print("%s %s: charger %s rule %s alert %s" % (NAME, mode[2:], ctx.hier_id, ctx.rule_id, ctx.alert_id))
+    print("%s %s: %s %s rule %s alert %s" % (NAME, mode[2:], "station" if ctx.is_station else "charger", ctx.hier_id, ctx.rule_id, ctx.alert_id))
     if mode == "--self-test":
         print_plan(ctx)
         print("self-test ok (interpreter %s)" % sys.version.split()[0])

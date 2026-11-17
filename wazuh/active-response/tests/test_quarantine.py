@@ -5,7 +5,7 @@ from conftest import TOKENS, ar_lines, run_script, wazuh_message
 HID = "pt.porto.st-005.cp-9"
 
 
-def alert(hier_id=HID, aid="1730000000.111", rule="110101"):
+def alert(hier_id=HID, aid="1730000000.111", rule="110303"):
     return {"id": aid, "rule": {"id": rule, "description": "duplicate charger id"},
             "data": {"hier_id": hier_id, "srcip": "10.31.0.66"}}
 
@@ -34,7 +34,7 @@ def test_happy_path(layout, services):
     assert [x["event"] for x in lines] == ["ar.evidence", "ar.evidence", "ar.action"]
     act = lines[-1]
     assert act["result"] == "ok" and act["ar_command"] == "quarantine-charger"
-    assert act["hier_id"] == HID and act["rule_id"] == "110101" and act["alert_id"] == "1730000000.111"
+    assert act["hier_id"] == HID and act["rule_id"] == "110303" and act["alert_id"] == "1730000000.111"
     assert act["srcip"] == "10.31.0.66"
     req = ar_lines(layout, "evcharge-revocation-requests.json")
     assert len(req) == 1 and req[0]["hier_id"] == HID and req[0]["alert_id"] == "1730000000.111"
@@ -100,7 +100,7 @@ def test_missing_env_is_error(layout):
 
 
 def test_invalid_id_refused(layout, services):
-    for bad in ["pt.porto.edge", "pt.porto.st-005", "../etc/passwd", "pt.porto.st-005.cp-0", "", "pt.Porto.st-001.cp-1"]:
+    for bad in ["pt.porto.edge", "pt.porto", "../etc/passwd", "pt.porto.st-005.cp-0", "", "pt.Porto.st-001.cp-1"]:
         res = run(layout, alert(hier_id=bad))
         assert res.returncode == 0
     lines = ar_lines(layout)
@@ -157,3 +157,91 @@ def test_self_test_and_dry_run(layout, services):
     assert "reg-tok" not in res.stdout
     assert services.calls == [] and ar_lines(layout) == []
     assert not (layout.run / "evcharge-quarantine-rate.json").exists()
+
+
+# ---- station level (rule 110303) -------------------------------------------------------
+
+STATION = "pt.lisboa.st-001"
+CHARGERS = [STATION + ".cp-1", STATION + ".cp-2"]
+
+
+def station_alert(aid="1730000000.777"):
+    return {"id": aid, "rule": {"id": "110303", "description": "station opened a new outbound connection"},
+            "data": {"hier_id": STATION, "dstip": "10.255.255.173", "dstport": "8099"}}
+
+
+def locate_body(ids):
+    return {"query": STATION, "count": len(ids), "truncated": False,
+            "matches": [{"hier_id": h, "kind": "charger"} for h in ids]}
+
+
+def test_station_quarantines_the_station_and_isolates_each_charger(layout, services):
+    services.responses[("GET", "/locate/%s?kind=charger" % STATION)] = (200, locate_body(CHARGERS))
+    res = run(layout, station_alert())
+    assert res.returncode == 0
+    assert json.loads(res.stdout.splitlines()[0])["parameters"]["keys"] == [STATION]
+    paths = services.paths()
+    assert paths[:3] == [("GET", "/connections?prefix=" + STATION), ("GET", "/nodes/" + STATION),
+                         ("POST", "/quarantine/" + STATION)]
+    assert paths[3] == ("GET", "/locate/%s?kind=charger" % STATION)
+    for hid in CHARGERS:
+        for cmd in ("remote-stop", "change-availability", "disconnect"):
+            assert ("POST", "/commands/%s/%s" % (hid, cmd)) in paths
+    # one registry quarantine, for the station only (the registry propagates it to the chargers)
+    assert [p for m, p in paths if p.startswith("/quarantine/")] == ["/quarantine/" + STATION]
+    act = ar_lines(layout)[-1]
+    assert act["result"] == "ok" and act["hier_id"] == STATION and act["rule_id"] == "110303"
+    assert "2 chargers" in act["reason"]
+    req = ar_lines(layout, "evcharge-revocation-requests.json")
+    assert [r["hier_id"] for r in req] == CHARGERS
+
+
+def test_station_falls_back_to_csms_connections_when_locate_fails(layout, services):
+    services.responses[("GET", "/locate/%s?kind=charger" % STATION)] = (500, {"detail": "boom"})
+    services.responses[("GET", "/connections?prefix=" + STATION)] = (200, {"items": [{"hier_id": CHARGERS[0]}]})
+    run(layout, station_alert())
+    assert ("POST", "/commands/%s/disconnect" % CHARGERS[0]) in services.paths()
+    last = ar_lines(layout)[-1]
+    assert last["result"] == "error" and "locate" in last["reason"]
+
+
+def test_station_with_no_chargers_still_quarantines(layout, services):
+    services.responses[("GET", "/locate/%s?kind=charger" % STATION)] = (200, locate_body([]))
+    run(layout, station_alert())
+    assert ("POST", "/quarantine/" + STATION) in services.paths()
+    assert not [p for m, p in services.paths() if p.startswith("/commands/")]
+    assert ar_lines(layout)[-1]["result"] == "ok"
+
+
+def test_station_ignores_foreign_chargers_in_the_answer(layout, services):
+    services.responses[("GET", "/locate/%s?kind=charger" % STATION)] = (
+        200, locate_body([CHARGERS[0], "pt.porto.st-001.cp-1", "../x"]))
+    run(layout, station_alert())
+    cmds = [p for m, p in services.paths() if p.startswith("/commands/")]
+    assert cmds and all(p.startswith("/commands/%s/" % CHARGERS[0]) for p in cmds)
+
+
+def test_station_allowlisted_and_rate_guard(layout, services):
+    (layout.etc / "quarantine-allowlist").write_text(STATION + "\n")
+    run(layout, station_alert())
+    assert ar_lines(layout)[-1]["reason"] == "allowlisted" and services.calls == []
+    (layout.etc / "quarantine-allowlist").write_text("")
+    for n in range(1, 6):
+        run(layout, {"id": "s%d" % n, "rule": {"id": "110303"}, "data": {"hier_id": "pt.lisboa.st-00%d" % n}})
+    before = len(services.calls)
+    run(layout, {"id": "s6", "rule": {"id": "110303"}, "data": {"hier_id": "pt.lisboa.st-006"}})
+    assert ar_lines(layout)[-1]["reason"].startswith("rate_guard") and len(services.calls) == before
+
+
+def test_station_dry_run_prints_plan(layout, services):
+    f = layout.root / "s.json"
+    f.write_text(json.dumps(wazuh_message(station_alert())))
+    res = run_script("quarantine-charger", layout, None, args=["--dry-run", str(f)], stdin_text="")
+    assert res.returncode == 0 and "station " + STATION in res.stdout and "/quarantine/" + STATION in res.stdout
+    assert services.calls == [] and ar_lines(layout) == []
+
+
+def test_station_id_shapes(layout, services):
+    for bad in ["pt.lisboa.st-000", "pt.lisboa", "pt.lisboa.st-1", "pt.lisboa.st-001.x"]:
+        run(layout, {"id": "b", "rule": {"id": "110303"}, "data": {"hier_id": bad}})
+    assert all(x["reason"] == "invalid_id" for x in ar_lines(layout)) and services.calls == []

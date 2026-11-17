@@ -23,7 +23,7 @@
     <description>Edge: WebSocket session ended normally.</description>
   </rule>
 
-  <!-- normal traffic, counted by 110203 -->
+  <!-- normal traffic, kept at level 2 so the catch-alls leave it alone -->
   <rule id="110011" level="2">
     <if_sid>110000</if_sid>
     <field name="event">^auth\.reject$</field>
@@ -54,7 +54,7 @@
     <description>Station controller event, ignored.</description>
   </rule>
 
-  <!-- counted by 110206 and 110308 -->
+  <!-- counted by 110308 -->
   <rule id="110015" level="2">
     <if_sid>110000</if_sid>
     <field name="event">^session\.start$</field>

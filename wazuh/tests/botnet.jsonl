@@ -4,18 +4,6 @@
 {"ts":"2026-11-06T10:00:03.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"conn.kicked","msg":"conn kicked","hier_id":"pt.porto.st-003.cp-1","srcip":"198.51.100.10","reason":"rate_limit","city":"porto"}
 {"ts":"2026-11-06T10:00:04.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"conn.kicked","msg":"conn kicked","hier_id":"pt.porto.st-003.cp-1","srcip":"198.51.100.10","reason":"quarantine","city":"porto"}
 {"_session":"reset"}
-{"ts":"2026-11-06T10:00:06.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"ocpp.rate_limited","msg":"ocpp rate_limited","hier_id":"pt.porto.st-001.cp-1","srcip":"198.51.100.1","msg_rate":80.0,"dropped":12,"city":"porto"}
-{"ts":"2026-11-06T10:00:07.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"ocpp.rate_limited","msg":"ocpp rate_limited","hier_id":"pt.porto.st-002.cp-1","srcip":"198.51.100.2","msg_rate":80.0,"dropped":12,"city":"porto"}
-{"ts":"2026-11-06T10:00:08.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"ocpp.rate_limited","msg":"ocpp rate_limited","hier_id":"pt.porto.st-003.cp-1","srcip":"198.51.100.3","msg_rate":80.0,"dropped":12,"city":"porto"}
-{"_session":"reset"}
-{"ts":"2026-11-06T10:00:10.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"ocpp.rate_limited","msg":"ocpp rate_limited","hier_id":"pt.porto.st-003.cp-1","srcip":"198.51.100.10","msg_rate":80.0,"dropped":12,"city":"porto"}
-{"ts":"2026-11-06T10:00:11.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"ocpp.rate_limited","msg":"ocpp rate_limited","hier_id":"pt.porto.st-003.cp-1","srcip":"198.51.100.10","msg_rate":80.0,"dropped":12,"city":"porto"}
-{"ts":"2026-11-06T10:00:12.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"ocpp.rate_limited","msg":"ocpp rate_limited","hier_id":"pt.porto.st-003.cp-1","srcip":"198.51.100.10","msg_rate":80.0,"dropped":12,"city":"porto"}
-{"_session":"reset"}
-{"ts":"2026-11-06T10:00:14.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"ocpp.rate_limited","msg":"ocpp rate_limited","hier_id":"pt.porto.st-001.cp-1","srcip":"198.51.100.1","msg_rate":80.0,"dropped":12,"city":"porto"}
-{"ts":"2026-11-06T10:00:15.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"ocpp.rate_limited","msg":"ocpp rate_limited","hier_id":"pt.lisboa.st-001.cp-1","srcip":"198.51.100.2","msg_rate":80.0,"dropped":12,"city":"lisboa"}
-{"ts":"2026-11-06T10:00:16.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"ocpp.rate_limited","msg":"ocpp rate_limited","hier_id":"pt.aveiro.st-001.cp-1","srcip":"198.51.100.3","msg_rate":80.0,"dropped":12,"city":"aveiro"}
-{"_session":"reset"}
 {"ts":"2026-11-06T10:00:18.000Z","level":"warning","service":"netwatch","instance":"netwatch","event":"host.new_outbound","msg":"host new_outbound","process":"python3","dstip":"203.0.113.50","dstport":4444,"hier_id":"pt.porto.st-001"}
 {"ts":"2026-11-06T10:00:19.000Z","level":"warning","service":"netwatch","instance":"netwatch","event":"host.new_outbound","msg":"host new_outbound","process":"apt","dstip":"203.0.113.50","dstport":443,"hier_id":"pt.porto.st-001"}
 {"_session":"reset"}
@@ -30,10 +18,6 @@
 {"ts":"2026-11-06T10:00:29.000Z","level":"warning","service":"netwatch","instance":"netwatch","event":"host.new_outbound","msg":"host new_outbound","process":"python3","dstip":"203.0.113.50","dstport":4444,"hier_id":"pt.porto.st-001"}
 {"ts":"2026-11-06T10:00:30.000Z","level":"warning","service":"netwatch","instance":"netwatch","event":"host.new_outbound","msg":"host new_outbound","process":"python3","dstip":"203.0.113.50","dstport":4444,"hier_id":"pt.lisboa.st-002"}
 {"ts":"2026-11-06T10:00:31.000Z","level":"warning","service":"netwatch","instance":"netwatch","event":"host.new_outbound","msg":"host new_outbound","process":"python3","dstip":"203.0.113.50","dstport":4444,"hier_id":"pt.aveiro.st-003"}
-{"_session":"reset"}
-ossec: output: 'station-sockets': ESTAB 0 0 10.31.0.16:41000 10.31.0.2:443 users:(("python3",pid=210,fd=5))
-ossec: output: 'station-sockets': ESTAB 0 0 10.31.0.16:41000 10.31.0.2:443 users:(("python3",pid=210,fd=5)) | ESTAB 0 0 10.31.0.16:41022 203.0.113.50:4444 users:(("nc",pid=300,fd=3))
-ossec: output: 'station-sockets': ESTAB 0 0 10.31.0.16:41000 10.31.0.2:443 users:(("python3",pid=210,fd=5)) | ESTAB 0 0 10.31.0.16:41022 203.0.113.50:4444 users:(("nc",pid=300,fd=3))
 {"_session":"reset"}
 2026/11/06 10:02:41 [error] 812#812: *4410 limiting requests, excess: 5.540 by zone "evc_req", client: 198.51.100.10, server: _, request: "GET /ocpp/pt.porto.st-001.cp-1 HTTP/1.1", host: "edge"
 2026/11/06 10:02:41 [error] 812#812: *4411 limiting connections by zone "evc_conn", client: 198.51.100.10, server: _, request: "GET /ocpp/pt.porto.st-001.cp-1 HTTP/1.1", host: "edge"
@@ -98,18 +82,6 @@ ossec: output: 'station-sockets': ESTAB 0 0 10.31.0.16:41000 10.31.0.2:443 users
 {"_agent":"pt.aveiro.st-002","ts":"2026-11-10T18:05:51.368Z","level":"warning","service":"netwatch","instance":"pt.aveiro.st-002","event":"host.new_outbound","msg":"new outbound connection to 10.255.255.172:8099 by python","hier_id":"pt.aveiro.st-002","dstip":"10.255.255.172","dstport":8099,"process":"python","city":"aveiro","station":"st-002"}
 {"_agent":"pt.lisboa.st-001","ts":"2026-11-10T18:05:52.368Z","level":"warning","service":"netwatch","instance":"pt.lisboa.st-001","event":"host.new_outbound","msg":"new outbound connection to 10.255.255.173:8099 by python","hier_id":"pt.lisboa.st-001","dstip":"10.255.255.173","dstport":8099,"process":"python","city":"lisboa","station":"st-001"}
 {"_session":"reset"}
-{"ts":"2026-11-06T10:00:06.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"ocpp.rate_limited","msg":"ocpp rate_limited","hier_id":"pt.porto.st-001.cp-1","srcip":"198.51.100.1","msg_rate":80.0,"dropped":12,"city":"porto","_agent":"pt.central.k3s-master"}
-{"ts":"2026-11-06T10:00:07.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"ocpp.rate_limited","msg":"ocpp rate_limited","hier_id":"pt.porto.st-002.cp-1","srcip":"198.51.100.2","msg_rate":80.0,"dropped":12,"city":"porto","_agent":"pt.central.k3s-node1"}
-{"ts":"2026-11-06T10:00:08.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"ocpp.rate_limited","msg":"ocpp rate_limited","hier_id":"pt.porto.st-003.cp-1","srcip":"198.51.100.3","msg_rate":80.0,"dropped":12,"city":"porto","_agent":"pt.central.k3s-master"}
-{"_session":"reset"}
-{"ts":"2026-11-06T10:00:10.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"ocpp.rate_limited","msg":"ocpp rate_limited","hier_id":"pt.porto.st-003.cp-1","srcip":"198.51.100.10","msg_rate":80.0,"dropped":12,"city":"porto","_agent":"pt.central.k3s-master"}
-{"ts":"2026-11-06T10:00:11.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"ocpp.rate_limited","msg":"ocpp rate_limited","hier_id":"pt.porto.st-003.cp-1","srcip":"198.51.100.10","msg_rate":80.0,"dropped":12,"city":"porto","_agent":"pt.central.k3s-node1"}
-{"ts":"2026-11-06T10:00:12.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"ocpp.rate_limited","msg":"ocpp rate_limited","hier_id":"pt.porto.st-003.cp-1","srcip":"198.51.100.10","msg_rate":80.0,"dropped":12,"city":"porto","_agent":"pt.central.k3s-master"}
-{"_session":"reset"}
-{"ts":"2026-11-06T10:00:14.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"ocpp.rate_limited","msg":"ocpp rate_limited","hier_id":"pt.porto.st-001.cp-1","srcip":"198.51.100.1","msg_rate":80.0,"dropped":12,"city":"porto","_agent":"pt.central.k3s-master"}
-{"ts":"2026-11-06T10:00:15.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"ocpp.rate_limited","msg":"ocpp rate_limited","hier_id":"pt.lisboa.st-001.cp-1","srcip":"198.51.100.2","msg_rate":80.0,"dropped":12,"city":"lisboa","_agent":"pt.central.k3s-node1"}
-{"ts":"2026-11-06T10:00:16.000Z","level":"warning","service":"csms","instance":"csms-7d9f5-abcde","event":"ocpp.rate_limited","msg":"ocpp rate_limited","hier_id":"pt.aveiro.st-001.cp-1","srcip":"198.51.100.3","msg_rate":80.0,"dropped":12,"city":"aveiro","_agent":"pt.central.k3s-master"}
-{"_session":"reset"}
 {"ts":"2026-11-06T10:00:59.000Z","level":"info","service":"csms","instance":"csms-7d9f5-abcde","event":"session.start","msg":"session start","hier_id":"pt.porto.st-001.cp-1","card":"04A000000001","city":"porto","transaction_id":1,"_agent":"pt.central.k3s-master"}
 {"ts":"2026-11-06T10:01:00.000Z","level":"info","service":"csms","instance":"csms-7d9f5-abcde","event":"session.start","msg":"session start","hier_id":"pt.porto.st-002.cp-1","card":"04A000000002","city":"porto","transaction_id":2,"_agent":"pt.central.k3s-node1"}
 {"ts":"2026-11-06T10:01:01.000Z","level":"info","service":"csms","instance":"csms-7d9f5-abcde","event":"session.start","msg":"session start","hier_id":"pt.porto.st-003.cp-1","card":"04A000000003","city":"porto","transaction_id":3,"_agent":"pt.central.k3s-master"}
@@ -131,3 +103,12 @@ ossec: output: 'station-sockets': ESTAB 0 0 10.31.0.16:41000 10.31.0.2:443 users
 {"ts":"2026-11-06T10:01:17.000Z","level":"info","service":"csms","instance":"csms-7d9f5-abcde","event":"session.start","msg":"session start","hier_id":"pt.aveiro.st-001.cp-1","card":"04A000000008","city":"aveiro","transaction_id":8,"_agent":"pt.central.k3s-node1"}
 {"ts":"2026-11-06T10:01:18.000Z","level":"info","service":"csms","instance":"csms-7d9f5-abcde","event":"session.start","msg":"session start","hier_id":"pt.porto.st-001.cp-1","card":"04A000000009","city":"porto","transaction_id":9,"_agent":"pt.central.k3s-master"}
 {"ts":"2026-11-06T10:01:19.000Z","level":"info","service":"csms","instance":"csms-7d9f5-abcde","event":"session.start","msg":"session start","hier_id":"pt.lisboa.st-001.cp-1","card":"04A000000010","city":"lisboa","transaction_id":10,"_agent":"pt.central.k3s-node1"}
+{"_session":"reset"}
+{"ts":"2026-11-06T10:00:21.000Z","level":"warning","service":"netwatch","instance":"netwatch","event":"host.new_outbound","msg":"host new_outbound","process":"python3","dstip":"203.0.113.50","dstport":4444,"hier_id":"pt.lisboa.st-001"}
+{"ts":"2026-11-06T10:00:21.000Z","level":"warning","service":"netwatch","instance":"netwatch","event":"host.new_outbound","msg":"host new_outbound","process":"python","dstip":"10.255.255.173","dstport":4444,"hier_id":"pt.lisboa.st-002"}
+{"_session":"reset"}
+{"ts":"2026-11-06T10:00:21.000Z","level":"warning","service":"netwatch","instance":"netwatch","event":"host.new_outbound","msg":"host new_outbound","process":"apt","dstip":"198.51.100.7","dstport":4444,"hier_id":"pt.lisboa.st-001"}
+{"ts":"2026-11-06T10:00:21.000Z","level":"warning","service":"netwatch","instance":"netwatch","event":"host.new_outbound","msg":"host new_outbound","process":"apt-get","dstip":"198.51.100.7","dstport":4444,"hier_id":"pt.lisboa.st-001"}
+{"ts":"2026-11-06T10:00:21.000Z","level":"warning","service":"netwatch","instance":"netwatch","event":"host.new_outbound","msg":"host new_outbound","process":"http","dstip":"198.51.100.7","dstport":4444,"hier_id":"pt.lisboa.st-001"}
+{"ts":"2026-11-06T10:00:21.000Z","level":"warning","service":"netwatch","instance":"netwatch","event":"host.new_outbound","msg":"host new_outbound","process":"https","dstip":"198.51.100.7","dstport":4444,"hier_id":"pt.lisboa.st-001"}
+{"ts":"2026-11-06T10:00:21.000Z","level":"warning","service":"netwatch","instance":"netwatch","event":"host.new_outbound","msg":"host new_outbound","process":"gpgv","dstip":"198.51.100.7","dstport":4444,"hier_id":"pt.lisboa.st-001"}

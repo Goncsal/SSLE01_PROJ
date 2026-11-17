@@ -1,4 +1,10 @@
-<!-- EV charging network: fraud (IDs 110200-110299). -->
+<!--
+  EV charging network: fraud (IDs 110200-110299).
+  The fraud service decides and acts by itself (block card, quarantine on power_gap) and logs
+  fraud.alert, fraud.action and, through the registry and billing, the audit lines: those are
+  seen here as 110207/110208 (alert), 110405 (registry quarantine) and 110209 (billing).
+  The only Wazuh response in this file is block-card on 110210.
+-->
 <group name="evcharge,fraud,">
 
   <rule id="110200" level="4">
@@ -9,54 +15,12 @@
     <mitre><id>T1078</id></mitre>
   </rule>
 
-  <rule id="110201" level="10" frequency="5" timeframe="600">
-    <if_matched_sid>110200</if_matched_sid>
-    <global_frequency>yes</global_frequency>
-    <same_field>card</same_field>
-    <description>Fraud: card $(card) refused 5 times within 10 minutes (blocked card in use).</description>
-    <mitre><id>T1078</id></mitre>
-  </rule>
-
-  <!-- the simulated drivers are city-local (cards are issued per city), so one card in a
-       transaction in two cities within two minutes is a cloned card. Alert only: the block
-       decision is 110210, which honours the fraud service dry-run flag -->
-  <rule id="110203" level="10" frequency="2" timeframe="120">
-    <if_matched_sid>110011</if_matched_sid>
-    <global_frequency>yes</global_frequency>
-    <same_field>card</same_field>
-    <different_field>city</different_field>
-    <description>Fraud: card $(card) in a transaction in two cities at once, cloned card (T0859 valid accounts).</description>
-    <mitre><id>T1078</id></mitre>
-    <group>mitre_ics_T0859,</group>
-  </rule>
-
-  <!-- meter.anomaly in a city without TLS is 110116 (hijack file) -->
   <rule id="110204" level="7">
     <if_sid>110000</if_sid>
     <field name="event">^meter\.anomaly$</field>
     <description>Fraud: meter anomaly ($(reason)) at $(hier_id), card $(card) (T0856 spoof reporting message).</description>
     <mitre><id>T1565.002</id></mitre>
     <group>mitre_ics_T0856,</group>
-  </rule>
-
-  <rule id="110205" level="11" frequency="3" timeframe="600">
-    <if_matched_sid>110204</if_matched_sid>
-    <same_field>hier_id</same_field>
-    <description>Fraud: 3 meter anomalies at $(hier_id) within 10 minutes, tampered meter (T0856).</description>
-    <mitre><id>T1565.002</id></mitre>
-    <group>mitre_ics_T0856,</group>
-  </rule>
-
-  <!-- 120 s window: honest cards never leave their home city, so a card starting sessions in
-       two cities within two minutes is a clone. Alert only (no active response); the
-       distance-aware check and the block decision are the fraud service (110207, 110210) -->
-  <rule id="110206" level="10" frequency="2" timeframe="120">
-    <if_matched_sid>110015</if_matched_sid>
-    <global_frequency>yes</global_frequency>
-    <same_field>card</same_field>
-    <different_field>city</different_field>
-    <description>Fraud: card $(card) starts sessions in two cities within 30 minutes, impossible travel.</description>
-    <mitre><id>T1078</id></mitre>
   </rule>
 
   <!-- the ALERT for every impossible_travel above FRAUD_MAX_KMH; no active response is attached

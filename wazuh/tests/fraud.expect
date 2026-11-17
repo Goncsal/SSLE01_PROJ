@@ -5,95 +5,27 @@
 5 110200  # 110200 auth.reject Expired
 6 reset  # new session
 7 110090  # 110200 negative: auth.accept
-8 reset  # 110201 positive: 5 refusals of one card
-9 110200  # refused (1 of 5)
-10 110200  # refused (2 of 5)
-11 110200  # refused (3 of 5)
-12 110200  # refused (4 of 5)
-13 110201  # refused (5 of 5)
-14 reset  # 110201 negative: 5 refusals of five cards
-15 110200  # refused (1 of 5)
-16 110200  # refused (2 of 5)
-17 110200  # refused (3 of 5)
-18 110200  # refused (4 of 5)
-19 110200  # refused (5 of 5)
-20 reset  # 110203 positive: ConcurrentTx for one card in two cities
-21 110011  # 110203 step 1 porto
-22 110203  # 110203 step 2 lisboa
-23 reset  # 110203 negative: both in the same city
-24 110011  # 110203 neg step 1 porto
-25 110011  # 110203 neg step 2 porto again
-26 reset  # 110203 negative: two cities, two cards
-27 110011  # 110203 neg step 1 card A
-28 110011  # 110203 neg step 2 card B
-29 reset  # 110204 meter anomaly outside the plain city
-30 110204  # 110204 meter.anomaly porto
-31 110091  # 110204 negative: charger.fault
-32 reset  # 110205 positive: 3 anomalies at one charger
-33 110204  # anomaly (1 of 3)
-34 110204  # anomaly (2 of 3)
-35 110205  # anomaly (3 of 3)
-36 reset  # 110205 negative: 3 anomalies at three chargers
-37 110204  # anomaly (1 of 3)
-38 110204  # anomaly (2 of 3)
-39 110204  # anomaly (3 of 3)
-40 reset  # 110206 positive: session.start in two cities
-41 110015  # 110206 step 1 porto
-42 110206  # 110206 step 2 lisboa
-43 reset  # 110206 negative: same city
-44 110015  # 110206 neg step 1 porto
-45 110015  # 110206 neg step 2 porto
-46 reset  # 110206 negative: different cards
-47 110015  # 110206 neg step 1 card A
-48 110015  # 110206 neg step 2 card B
-49 reset  # new session
-50 110207  # 110207 impossible_travel
-51 110208  # 110207 negative: other rule is 110208
-52 reset  # new session
-53 110208  # 110208 other fraud.alert
-54 110091  # 110208 negative: fraud.action is not an alert
-55 reset  # new session
-56 110209  # 110209 billing.card_blocked
-57 110209  # 110209 billing.card_unblocked
-58 110209  # 110209 billing.session_flagged
-59 110090  # 110209 negative: billing.session_closed
-60 reset  # new session
-61 110210  # 110210 high-confidence live: block-card
-62 reset  # new session
-63 110207  # 110210 negative: dry_run true stays an alert (no AR)
-64 reset  # new session
-65 110207  # 110210 negative: 201 km/h alert only (no AR)
-66 reset  # new session
-67 110207  # 110210 negative: alert only in dry run
-68 reset  # new session
-69 110208  # 110208 power_gap alert (quarantine is the service's own action)
-70 reset  # 110201 positive: 5 refusals of one card (events from two agents)
-71 110200  # refused (1 of 5)
-72 110200  # refused (2 of 5)
-73 110200  # refused (3 of 5)
-74 110200  # refused (4 of 5)
-75 110201  # refused (5 of 5)
-76 reset  # 110201 negative: 5 refusals of five cards (events from two agents)
-77 110200  # refused (1 of 5)
-78 110200  # refused (2 of 5)
-79 110200  # refused (3 of 5)
-80 110200  # refused (4 of 5)
-81 110200  # refused (5 of 5)
-82 reset  # 110203 positive: ConcurrentTx for one card in two cities (events from two agents)
-83 110011  # 110203 step 1 porto
-84 110203  # 110203 step 2 lisboa
-85 reset  # 110203 negative: both in the same city (events from two agents)
-86 110011  # 110203 neg step 1 porto
-87 110011  # 110203 neg step 2 porto again
-88 reset  # 110203 negative: two cities, two cards (events from two agents)
-89 110011  # 110203 neg step 1 card A
-90 110011  # 110203 neg step 2 card B
-91 reset  # 110206 positive: session.start in two cities (events from two agents)
-92 110015  # 110206 step 1 porto
-93 110206  # 110206 step 2 lisboa
-94 reset  # 110206 negative: same city (events from two agents)
-95 110015  # 110206 neg step 1 porto
-96 110015  # 110206 neg step 2 porto
-97 reset  # 110206 negative: different cards (events from two agents)
-98 110015  # 110206 neg step 1 card A
-99 110015  # 110206 neg step 2 card B
+8 reset  # 110204 meter anomaly outside the plain city
+9 110204  # 110204 meter.anomaly porto
+10 110091  # 110204 negative: charger.fault
+11 reset  # new session
+12 110207  # 110207 impossible_travel
+13 110208  # 110207 negative: other rule is 110208
+14 reset  # new session
+15 110208  # 110208 other fraud.alert
+16 110091  # 110208 negative: fraud.action is not an alert
+17 reset  # new session
+18 110209  # 110209 billing.card_blocked
+19 110209  # 110209 billing.card_unblocked
+20 110209  # 110209 billing.session_flagged
+21 110090  # 110209 negative: billing.session_closed
+22 reset  # new session
+23 110210  # 110210 high-confidence live: block-card
+24 reset  # new session
+25 110207  # 110210 negative: dry_run true stays an alert (no AR)
+26 reset  # new session
+27 110207  # 110210 negative: 201 km/h alert only (no AR)
+28 reset  # new session
+29 110207  # 110210 negative: alert only in dry run
+30 reset  # new session
+31 110208  # 110208 power_gap alert (quarantine is the service's own action)

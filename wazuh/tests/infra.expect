@@ -23,70 +23,42 @@
 23 110400  # dep (9 of 10)
 24 110400  # dep (10 of 10)
 25 reset  # new session
-26 110402  # 110402 api.auth_failed
-27 110091  # 110402 negative: other warning
-28 reset  # 110403 positive: 10 bad tokens from one source
-29 110402  # token (1 of 10)
-30 110402  # token (2 of 10)
-31 110402  # token (3 of 10)
-32 110402  # token (4 of 10)
-33 110402  # token (5 of 10)
-34 110402  # token (6 of 10)
-35 110402  # token (7 of 10)
-36 110402  # token (8 of 10)
-37 110402  # token (9 of 10)
-38 110403  # token (10 of 10)
-39 reset  # 110403 negative: 10 bad tokens from ten sources
-40 110402  # token (1 of 10)
-41 110402  # token (2 of 10)
-42 110402  # token (3 of 10)
-43 110402  # token (4 of 10)
-44 110402  # token (5 of 10)
-45 110402  # token (6 of 10)
-46 110402  # token (7 of 10)
-47 110402  # token (8 of 10)
-48 110402  # token (9 of 10)
-49 110402  # token (10 of 10)
-50 reset  # new session
-51 110404  # 110404 write_denied
-52 110090  # 110404 negative: registry.write
-53 reset  # new session
-54 110405  # 110405 registry.quarantine
-55 110405  # 110405 registry.release
-56 110090  # 110405 negative: registry.write
-57 reset  # new session
-58 110406  # 110406 command.result from wazuh
-59 110090  # 110406 negative: command.result without wazuh
-60 reset  # new session
-61 110410  # 110410 ar.action ok
-62 110090  # 110410 negative: ar.action skipped
-63 reset  # new session
-64 110411  # 110411 ar.action refused
-65 110411  # 110411 ar.action error
-66 110410  # 110411 negative: ok is 110410
-67 reset  # new session
-68 110412  # 110412 ar.evidence
-69 110412  # 110412 ar.evidence warning stays quiet
-70 110090  # 110412 negative: other info event
-71 reset  # 110401 positive: 10 errors of one dependency (events from two agents)
-72 110400  # dep (1 of 10)
-73 110400  # dep (2 of 10)
-74 110400  # dep (3 of 10)
-75 110400  # dep (4 of 10)
-76 110400  # dep (5 of 10)
-77 110400  # dep (6 of 10)
-78 110400  # dep (7 of 10)
-79 110400  # dep (8 of 10)
-80 110400  # dep (9 of 10)
-81 110401  # dep (10 of 10)
-82 reset  # 110401 negative: 10 errors of ten dependencies (events from two agents)
-83 110400  # dep (1 of 10)
-84 110400  # dep (2 of 10)
-85 110400  # dep (3 of 10)
-86 110400  # dep (4 of 10)
-87 110400  # dep (5 of 10)
-88 110400  # dep (6 of 10)
-89 110400  # dep (7 of 10)
-90 110400  # dep (8 of 10)
-91 110400  # dep (9 of 10)
-92 110400  # dep (10 of 10)
+26 110405  # 110405 registry.quarantine
+27 110405  # 110405 registry.release
+28 110090  # 110405 negative: registry.write
+29 reset  # new session
+30 110406  # 110406 command.result from wazuh
+31 110090  # 110406 negative: command.result without wazuh
+32 reset  # new session
+33 110410  # 110410 ar.action ok
+34 110090  # 110410 negative: ar.action skipped
+35 reset  # new session
+36 110411  # 110411 ar.action refused
+37 110411  # 110411 ar.action error
+38 110410  # 110411 negative: ok is 110410
+39 reset  # new session
+40 110412  # 110412 ar.evidence
+41 110412  # 110412 ar.evidence warning stays quiet
+42 110090  # 110412 negative: other info event
+43 reset  # 110401 positive: 10 errors of one dependency (events from two agents)
+44 110400  # dep (1 of 10)
+45 110400  # dep (2 of 10)
+46 110400  # dep (3 of 10)
+47 110400  # dep (4 of 10)
+48 110400  # dep (5 of 10)
+49 110400  # dep (6 of 10)
+50 110400  # dep (7 of 10)
+51 110400  # dep (8 of 10)
+52 110400  # dep (9 of 10)
+53 110401  # dep (10 of 10)
+54 reset  # 110401 negative: 10 errors of ten dependencies (events from two agents)
+55 110400  # dep (1 of 10)
+56 110400  # dep (2 of 10)
+57 110400  # dep (3 of 10)
+58 110400  # dep (4 of 10)
+59 110400  # dep (5 of 10)
+60 110400  # dep (6 of 10)
+61 110400  # dep (7 of 10)
+62 110400  # dep (8 of 10)
+63 110400  # dep (9 of 10)
+64 110400  # dep (10 of 10)
