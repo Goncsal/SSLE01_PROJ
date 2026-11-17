@@ -1572,7 +1572,7 @@ CA level only (an intermediate CA is future work).
 
 ### 12.3 CRL
 
-`crl.pem`, `default_crl_days 7`. Rebuilt on every revocation and by `pki/crl.sh`
+`crl.pem`, `default_crl_days 30`. Rebuilt on every revocation and by `pki/crl.sh`
 (run at every city deploy). An expired CRL makes nginx refuse **every** client
 certificate, so `pki/crl.sh` + `gateway/push_crl.sh` must run at least weekly (limitation).
 

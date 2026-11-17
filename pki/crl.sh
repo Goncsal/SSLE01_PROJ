@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Regenerate crl.pem (valid 7 days).
+# Regenerate crl.pem (valid 30 days).
 set -euo pipefail
 . "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 need_ca

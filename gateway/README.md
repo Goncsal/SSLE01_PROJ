@@ -56,7 +56,7 @@ whole session in `duration_s`; refusals are logged at once.
 ## Limitations
 
 - The edge-to-CSMS link is plain HTTP inside the lab; TLS with the edge certificate is future work.
-- An expired CRL (7 days) makes nginx refuse every client certificate: run `pki/crl.sh` and
+- An expired CRL (30 days) makes nginx refuse every client certificate: run `pki/crl.sh` and
   `push_crl.sh` at least weekly.
 - A reload applies a new CRL to new handshakes only; open WebSockets stay on the old worker, so
   the revoke flow also disconnects the charger through the CSMS.

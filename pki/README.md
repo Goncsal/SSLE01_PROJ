@@ -28,7 +28,7 @@ zeros (the form kept in the registry's `cert_serial`).
 | `issue.sh <hier_id> [--force]` / `issue.sh --roster PATH [--city X] [--force]` | issue; prints `<hier_id> <SERIAL>`; skips valid certificates; `--force` revokes the old one first; refuses ids that are not charger or edge ids |
 | `serial.sh <hier_id>` | current serial |
 | `export.sh <hier_id> <instance> [--dir D] [--group GID] [--crl]` | write `ca.crt`, `<id>.crt`, `<id>.key` (0640 root:GID with `--group`, else 0600) and optionally `crl.pem`; `export.sh --public` copies `ca.crt` and `crl.pem` to `pki/out/` |
-| `crl.sh` | regenerate the CRL (`default_crl_days 7`) |
+| `crl.sh` | regenerate the CRL (`default_crl_days 30`) |
 | `revoke.sh <hier_id> [reason]` | revoke (default `keyCompromise`), regenerate the CRL, run `gateway/push_crl.sh` if executable, print the serial |
 
 Exit codes: 0 success, 1 failure (unknown id or certificate, missing CA), 2 usage error.
@@ -44,7 +44,7 @@ restart `evsim`, release the quarantine.
 ## Limitations
 
 - One CA level only; an intermediate CA is future work.
-- The CRL expires after 7 days and nginx then refuses every client certificate, so
+- The CRL expires after 30 days and nginx then refuses every client certificate, so
   `crl.sh` and the CRL push must run at least weekly.
 - No OCSP; revocation is only as fresh as the last CRL push.
 - Keys are generated centrally and copied to the device, not generated on the device
