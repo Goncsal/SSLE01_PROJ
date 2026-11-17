@@ -366,7 +366,7 @@ quar; conn pt
 1. Stop attacker containers (the scripts delete their own on exit; this covers an interrupted run):
    `for i in $(incus list -f csv -c n | grep -E '^(porto|lisboa|aveiro)-rogue$|^c2$|mitm'); do incus delete -f $i; done`
 2. Restore every station `sim.env` and restart where changed:
-   - botnet: `EVCHARGE_BASELINE_DONE=1 poc/botnet/compromise.sh --restore --run` (reads `/tmp/evcharge-botnet-compromise.state`; if the file is missing it restores nothing).
+   - botnet: `EVCHARGE_BASELINE_DONE=1 poc/botnet/compromise.sh --restore --run` (it detects the compromise flag on the instances themselves and cleans every affected station, so it works after a reboot and is safe to run when nothing is compromised).
    - verify all 15 stations (must print nothing):
      ```bash
      for c in porto lisboa aveiro; do for n in 1 2 3 4 5; do
@@ -392,12 +392,21 @@ quar; conn pt
    curl -s -X POST -H "Authorization: Bearer $BILLING_API_TOKEN" -H 'Content-Type: application/json' \
         -d '{"reason":"demo reset","source":"operator"}' http://$N:30802/cards/E3EE5BE2ED4120/unblock | jq -c '{card,status}'
    ```
-5. Re-apply the city ACLs and check them: `EVCHARGE_BASELINE_DONE=1 infra/08_acls.sh apply --run` then `infra/08_acls.sh check` (it builds the station list from the current addresses; run it after every container re-creation).
-6. Aveiro back to plain ws: nothing is changed by the demo, so just verify `conn pt.aveiro` shows `tls:[false]`, 10 connected. If Aveiro was ever moved to mTLS in a rehearsal, revert with `gateway/deploy_edge.sh aveiro --plain`, re-apply the Aveiro ACL, and restore `SIM_CSMS_URL=ws://edge.aveiro.pt.lab/ocpp` in each Aveiro `sim.env`.
-7. The hijack script restarts the real station's `evsim` itself; check `incus exec porto-st-004 -- systemctl is-active evsim`.
-8. Check the end state: `eval/scale.sh health` must show `connected_all=30`, `quarantined=0`; `conn pt`, `quar`; no firing alert after a few minutes; `incus list -f csv -c n | grep -E 'rogue|c2'` empty.
-9. Correlator noise: open incidents close themselves after 600 s of quiet (`CORRELATOR_CLOSE_S`); closed history stays. Filter with `inc $T0` rather than deleting anything. Rule 110300 (level 6) does not reach the correlator, so flood alerts never appear there.
-10. Wazuh guards that persist across rehearsals: `block-card` allows 10 distinct cards per hour and `quarantine-charger` 5 distinct chargers per 10 minutes. The demo uses one card and the botnet quarantine is done through the API, so neither limit is reached; do not rehearse more than twice in an hour with extra cards.
+5. Flush stale edge firewall drops. The hijack response (`evcharge-edge-drop` on 110132) and `firewall-drop` add `iptables DROP` rules on a city edge; the response removes them after 600 s, but an interrupted run leaves them, and a leftover rule for a station address blocks that whole station from the edge (seen in practice: all of Porto and Lisboa cut off). Clear them on every edge and confirm none remain:
+   ```bash
+   for e in porto-edge lisboa-edge aveiro-edge; do for ch in INPUT FORWARD; do
+     while incus exec $e -- iptables -S $ch | grep -q -- '-j DROP'; do
+       incus exec $e -- sh -c "iptables \$(iptables -S $ch | grep -- '-j DROP' | head -1 | sed 's/^-A /-D /')"
+     done; done; done
+   for e in porto-edge lisboa-edge aveiro-edge; do printf '%s ' $e; incus exec $e -- sh -c 'iptables -S | grep -c -- "-j DROP"'; done   # each must print 0
+   ```
+6. Certificate revocation list fresh. It is now valid 30 days, but check it has not lapsed: `incus exec porto-edge -- openssl crl -in /etc/evcharge/pki/crl.pem -noout -nextupdate`. If expired or close, `pki/crl.sh && gateway/push_crl.sh`, then restart evsim on the Porto and Lisboa stations so they reconnect without waiting out the backoff.
+7. Re-apply the city ACLs and check them: `EVCHARGE_BASELINE_DONE=1 infra/08_acls.sh apply --run` then `infra/08_acls.sh check` (it builds the station list from the current addresses; run it after every container re-creation).
+8. Aveiro back to plain ws: nothing is changed by the demo, so just verify `conn pt.aveiro` shows `tls:[false]`, 10 connected. If Aveiro was ever moved to mTLS in a rehearsal, revert with `gateway/deploy_edge.sh aveiro --plain`, re-apply the Aveiro ACL, and restore `SIM_CSMS_URL=ws://edge.aveiro.pt.lab/ocpp` in each Aveiro `sim.env`.
+9. The hijack script restarts the real station's `evsim` itself; check `incus exec porto-st-004 -- systemctl is-active evsim`.
+10. Check the end state: `eval/scale.sh health` must show `connected_all=30`, `quarantined=0`; `conn pt`, `quar`; no firing alert after a few minutes; `incus list -f csv -c n | grep -E 'rogue|c2'` empty.
+11. Correlator noise: open incidents close themselves after 600 s of quiet (`CORRELATOR_CLOSE_S`); closed history stays. Filter with `inc $T0` rather than deleting anything. Rule 110300 (level 6) does not reach the correlator, so flood alerts never appear there.
+12. Wazuh guards that persist across rehearsals: `block-card` allows 10 distinct cards per hour and `quarantine-charger` 5 distinct chargers per 10 minutes. The demo uses one card and the botnet quarantine is done through the API, so neither limit is reached; do not rehearse more than twice in an hour with extra cards.
 
 ### 3.3 What to leave for the demo itself
 
