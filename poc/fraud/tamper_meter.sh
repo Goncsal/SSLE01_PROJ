@@ -17,14 +17,14 @@
 # left at its default (every charger at the station) to keep the PoC simple.
 #
 # Default: --dry-run (prints the plan, changes nothing). --run is refused unless
-# EVCHARGE_BASELINE_DONE=1 (set by the matching W7-run card).
+# EVCHARGE_BASELINE_DONE=1 (set in the environment before the live run).
 set -euo pipefail
 # shellcheck source=./lib.sh
 . "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 
 CITY=lisboa
 STATION=""
-MODE=scale
+MODE=rollback
 FACTOR=0.5
 EXTRA=""
 
@@ -50,7 +50,7 @@ while [ $# -gt 0 ]; do
     *) ARGS+=("$1"); shift ;;
   esac
 done
-DURATION="${DURATION:-180}"
+DURATION="${DURATION:-90}"
 parse_global_flags "${ARGS[@]}"
 
 case "$MODE" in
@@ -74,17 +74,20 @@ echo "== fraud PoC 2: meter tamper ($MODE) on $STATION ($INST) =="
 echo "  tamper args          : $TAMPER_ARGS"
 echo "  time-box             : ${DURATION}s"
 case "$MODE" in
+  rollback)
+    echo "  expected detections : the register jumps back 500 Wh -> CSMS meter.anomaly"
+    echo "                        (reason=backwards); fraud meter_backwards; Wazuh 110204"
+    echo "                        (meter anomaly at the charger). The fast, blunt case the"
+    echo "                        CSMS anomaly check catches on its own -- the default here"
+    echo "  expected response    : quarantine-charger (operator-applied: isolate + flag the"
+    echo "                        station's recent sessions; the card is innocent)"
+    ;;
   scale)
     echo "  expected detections : invisible to the CSMS anomaly check (the readings stay"
     echo "                        internally consistent) -- caught by the feeder-meter"
     echo "                        power_gap fraud rule and Prometheus MeterUnderReporting"
-    echo "                        (city:station_power_gap_watts)"
-    echo "  expected response    : quarantine-charger"
-    ;;
-  rollback)
-    echo "  expected detections : CSMS meter.anomaly (reason=backwards); fraud"
-    echo "                        meter_backwards; Wazuh 110204/110205 (meter.anomaly"
-    echo "                        frequency per charger)"
+    echo "                        (city:station_power_gap_watts). Slower: needs enough"
+    echo "                        charging samples, so it is not the default"
     echo "  expected response    : quarantine-charger"
     ;;
   freeze)

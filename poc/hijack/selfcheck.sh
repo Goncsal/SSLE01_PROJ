@@ -19,10 +19,6 @@ check() {
 }
 
 check "rogue_dupe.sh --dry-run" "$HIJACK_DIR/rogue_dupe.sh" --dry-run
-check "stolen_cert.sh --dry-run (before)" "$HIJACK_DIR/stolen_cert.sh" --dry-run --phase before
-check "stolen_cert.sh --dry-run (after)" "$HIJACK_DIR/stolen_cert.sh" --dry-run --phase after
-check "mitm_aveiro.sh --dry-run" "$HIJACK_DIR/mitm_aveiro.sh" --dry-run
-check "mitm_aveiro.sh --dry-run --after" "$HIJACK_DIR/mitm_aveiro.sh" --dry-run --after
 check "run.sh --dry-run" "$HIJACK_DIR/run.sh" --dry-run
 
 echo

@@ -26,3 +26,6 @@ eval/results/raw/
 .vscode/
 .idea/
 .DS_Store
+
+# PoC runtime state
+poc/**/.botnet-compromise.state

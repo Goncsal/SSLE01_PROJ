@@ -16,22 +16,29 @@ print_usage() {
   cat <<EOF
 usage: $(basename "$0") [--run] [--duration SECONDS] [--dry-run]
 
-Runs, in order: clone_card.sh --phase after (the detector-acting case), then
-tamper_meter.sh --mode scale. Each prints its own banner and detail; this script only
-sequences them and checks every sim.env this run touched comes back unchanged.
+Runs, in order: clone_card.sh --phase after (the enforcing case, the default), then
+tamper_meter.sh --mode rollback (the fast meter-tamper case). Each prints its own banner
+and detail; this script only sequences them and checks every sim.env this run touched
+comes back unchanged.
 EOF
   usage_common
 }
 
 ARGS=()
+USER_DURATION=""
 while [ $# -gt 0 ]; do
   case "$1" in
     -h|--help) print_usage; exit 0 ;;
+    --duration) USER_DURATION="$2"; ARGS+=("$1" "$2"); shift 2 ;;
     *) ARGS+=("$1"); shift ;;
   esac
 done
-DURATION="${DURATION:-180}"
 parse_global_flags "${ARGS[@]}"
+
+# Each scenario keeps its own fast default (the clone needs ~2 min for both cities'
+# sessions, the rollback tamper is near-instant); --duration, if given, overrides both.
+CLONE_DURATION="${USER_DURATION:-120}"
+TAMPER_DURATION="${USER_DURATION:-90}"
 
 MODE_FLAG="--dry-run"
 [ "$DRY_RUN" = 1 ] || MODE_FLAG="--run"
@@ -61,15 +68,15 @@ else
   done
 fi
 
-banner "1/2 cloned card (impossible travel)" \
-       "fraud impossible_travel; Wazuh 110203/110206" \
-       "block-card"
-"$FRAUD_DIR/clone_card.sh" --phase after --duration "$DURATION" "$MODE_FLAG"
+banner "1/2 cloned card (impossible travel, Aveiro -> Lisboa within seconds)" \
+       "fraud impossible_travel; Wazuh 110207/110208" \
+       "110210 -> block-card"
+"$FRAUD_DIR/clone_card.sh" --phase after --duration "$CLONE_DURATION" "$MODE_FLAG"
 
-banner "2/2 meter tamper (scale, under-report)" \
-       "invisible to the CSMS; Prometheus MeterUnderReporting; fraud power_gap" \
-       "quarantine-charger"
-"$FRAUD_DIR/tamper_meter.sh" --mode scale --duration "$DURATION" "$MODE_FLAG"
+banner "2/2 meter tamper (rollback, register jumps back)" \
+       "CSMS meter.anomaly (reason=backwards); Wazuh 110204" \
+       "quarantine-charger (operator-applied)"
+"$FRAUD_DIR/tamper_meter.sh" --mode rollback --duration "$TAMPER_DURATION" "$MODE_FLAG"
 
 echo
 if [ "$DRY_RUN" = 1 ]; then

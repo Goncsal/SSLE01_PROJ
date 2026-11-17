@@ -5,7 +5,7 @@
 # path". The compromise must outlive this script's own process (the C2 schedule drives
 # flood/surge, detection and the bulk quarantine step afterwards) so it is NOT undone on
 # normal exit; it is recorded in a state file and undone only by --restore (which the
-# RUN card calls once the scenario is over) or, if this script itself is interrupted
+# run script calls once the scenario is over) or, if this script itself is interrupted
 # mid-loop, for the stations it had already touched this invocation.
 #
 #   compromise.sh [--stations N] [--cities porto,lisboa,aveiro] [--port 8099]
@@ -17,24 +17,28 @@ set -euo pipefail
 # shellcheck source=./lib.sh
 . "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 
-STATIONS_N=6
-CITIES_CSV="porto,lisboa,aveiro"
+STATIONS_N=3
+CITIES_CSV=""   # default filled per mode: "lisboa" to compromise, all cities to restore
 PORT="${C2_PORT:-8099}"
 BEACON=15
 RESTORE=0
-STATE_FILE="${EVCHARGE_BOTNET_STATE:-/tmp/evcharge-botnet-compromise.state}"
+# A durable, repo-local record of what was touched. The real restore does not depend on it
+# (it detects compromise on the instances directly), so a lost file never strands a station.
+STATE_FILE="${EVCHARGE_BOTNET_STATE:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/.botnet-compromise.state}"
 
 print_usage() {
   cat <<EOF
-usage: $(basename "$0") [--stations N] [--cities porto,lisboa,aveiro] [--port N] \\
+usage: $(basename "$0") [--stations N] [--cities lisboa] [--port N] \\
        [--beacon-interval N] [--state-file PATH] [--restore] \\
        [--run] [--duration SECONDS] [--dry-run]
 
 Sets SIM_EXTRA_ARGS="--compromised --c2-url http://c2.incus:<port> --beacon-interval <N>"
-on N stations spread round-robin across the given cities, restarts evsim on each, and
-prints the per-station and cross-station detections expected. The original sim.env of
-each touched station is saved to --state-file. --restore undoes it on every station in
-that file (no --stations/--cities needed) and removes the file.
+on N stations spread round-robin across the given cities (3 Lisboa stations by default),
+restarts evsim on each, and prints the per-station and cross-station detections expected.
+Each touched station keeps a pre-compromise copy of its sim.env inside the instance, so
+--restore works after a host reboot. --restore scans every station in --cities (all three
+cities by default) and cleans any that still carry the compromise flag; no --stations
+needed, and it is safe to run when nothing is compromised.
 EOF
   usage_common
 }
@@ -53,32 +57,39 @@ while [ $# -gt 0 ]; do
 done
 parse_common_args "${ARGS[@]}"
 
+# restore cleans every city by default (so a blind --restore un-strands any station);
+# compromise defaults to Lisboa.
+if [ -z "$CITIES_CSV" ]; then
+  [ "$RESTORE" = 1 ] && CITIES_CSV="porto,lisboa,aveiro" || CITIES_CSV="lisboa"
+fi
+
 C2_URL="$(c2_url "$PORT")"
 EXTRA="--compromised --c2-url $C2_URL --beacon-interval $BEACON"
 
-# --- restore mode: undo a previous compromise, from the state file it left behind ---
+# --- restore mode: detect compromise on the instances themselves and undo it. This does
+# not read the host state file, so it still works after a reboot or if the file is gone,
+# and it cleans stations stranded by an earlier run. ---
 if [ "$RESTORE" = 1 ]; then
   echo "== botnet PoC: restore sim.env on compromised stations =="
-  if [ ! -f "$STATE_FILE" ]; then
-    echo "  no state file at $STATE_FILE; nothing to restore"
-    exit 0
-  fi
-  while IFS= read -r line; do
-    [ -n "$line" ] || continue
-    inst="${line%%|*}"
-    content="${line#*|}"
-    content="${content//$'\x01'/$'\n'}"
+  restored=0
+  # read the whole station list up front: the incus calls below would otherwise drain a
+  # streamed stdin and cut the loop short after the first station.
+  mapfile -t ALL_STATIONS < <(all_stations_in "$CITIES_CSV")
+  for s in "${ALL_STATIONS[@]}"; do
+    [ -n "$s" ] || continue
+    inst="$(station_instance "$s")"
+    station_is_compromised "$inst" || continue
     echo "  restoring $inst"
     if [ "$DRY_RUN" = 1 ]; then
-      would "incus exec $inst -- sh -c 'cat > /etc/evcharge/sim.env' (original content)"
+      would "restore $SIM_ENV_PATH on $inst from its in-instance backup (or strip SIM_EXTRA_ARGS)"
       would "incus exec $inst -- systemctl restart evsim"
     else
-      write_sim_env "$inst" "$content"
-      restart_evsim "$inst"
+      restore_sim_env "$inst"
     fi
-  done < "$STATE_FILE"
+    restored=$((restored + 1))
+  done
   [ "$DRY_RUN" = 1 ] || rm -f "$STATE_FILE"
-  echo "restore: done"
+  echo "restore: done ($restored station(s) cleaned)"
   exit 0
 fi
 
@@ -91,12 +102,13 @@ echo "  c2                       : $C2_URL"
 echo "  beacon every             : ${BEACON}s"
 echo "  stations                 :"
 for s in "${STATIONS[@]}"; do echo "    - $s ($(station_instance "$s"))"; done
-echo "  expected (per station)   : host.new_outbound to $C2_URL -> netwatch 110303"
+echo "  expected (per station)   : host.new_outbound to $C2_URL -> netwatch 110303 ->" \
+     "quarantine-charger fires automatically on that station (station-level response)"
 echo "  expected (cross-station) : 110304 (freq 3/300, same_field dstip, different_field" \
      "hier_id -- names the fleet beaconing to $C2_URL, the 'locate the fleet' signal)"
 echo "  expected (once flood/surge land) : ocpp.rate_limited/conn.kicked -> 110300/110301," \
-     "cross-city 110302, edge limit_req -> 110306/110307; session.start burst per city ->" \
-     "110308, joined with CityLoadSpike"
+     "edge limit_req -> 110306/110307; session.start burst per city -> 110308, joined with" \
+     "CityLoadSpike; the correlator folds these into one incident keyed on the city"
 echo
 
 # touched this invocation, for a partial undo only if we are interrupted mid-loop
@@ -108,6 +120,7 @@ restore_touched_sofar() {
     content="${entry#*|}"
     content="${content//$'\x01'/$'\n'}"
     write_sim_env "$inst" "$content" || true
+    incus exec "$inst" -- rm -f "$SIM_ENV_BACKUP" 2>/dev/null || true
     restart_evsim "$inst" || true
   done
 }
@@ -117,11 +130,12 @@ if [ "$DRY_RUN" = 0 ]; then : > "$STATE_FILE.tmp"; fi
 for s in "${STATIONS[@]}"; do
   inst="$(station_instance "$s")"
   if [ "$DRY_RUN" = 1 ]; then
-    would "backup sim.env on $inst"
+    would "copy sim.env to $SIM_ENV_BACKUP inside $inst (restore point)"
     would "incus exec $inst -- sh -c 'cat > /etc/evcharge/sim.env'  # SIM_EXTRA_ARGS=\"$EXTRA\""
     would "incus exec $inst -- systemctl restart evsim"
   else
     orig="$(read_sim_env "$inst")"
+    backup_sim_env "$inst" "$orig"     # durable copy inside the instance (reboot-proof)
     TOUCHED_SOFAR+=("$inst|${orig//$'\n'/$'\x01'}")
     printf '%s|%s\n' "$inst" "${orig//$'\n'/$'\x01'}" >> "$STATE_FILE.tmp"
     new="$(set_extra_args "$orig" "$EXTRA")"

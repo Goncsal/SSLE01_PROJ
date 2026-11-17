@@ -6,7 +6,7 @@
 #
 # Every script here defaults to --dry-run: it prints the sim.env it would write and the
 # commands it would run, and changes nothing. A live run needs --run *and* the environment
-# variable EVCHARGE_BASELINE_DONE=1 (set by the matching W7-run card, never by this one):
+# variable EVCHARGE_BASELINE_DONE=1 (set in the environment before the live run, never by this script):
 # see require_baseline() below. Only incus is needed on the host, and a dry run never
 # calls it.
 set -euo pipefail
@@ -61,11 +61,11 @@ run_or_plan() {
   fi
 }
 
-# Refuses a live run unless the RUN card's flag is set. Call once --run has been parsed.
+# Refuses a live run unless the baseline-done flag is set. Call once --run has been parsed.
 require_baseline() {
   if [ "${EVCHARGE_BASELINE_DONE:-}" != "1" ]; then
     echo "refusing --run: EVCHARGE_BASELINE_DONE is not set to 1." >&2
-    echo "A live baseline recording must not be disturbed; the W7-run card sets this" \
+    echo "A live baseline recording must not be disturbed; set this in the environment" \
          "once the baseline is captured. Use --dry-run to check the script without it." >&2
     exit 1
   fi

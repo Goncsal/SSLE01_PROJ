@@ -14,18 +14,18 @@
 # on signal -- see save_sim_env/restore_sim_env in lib.sh).
 #
 # --phase only changes the printed expectation; this script never starts or stops the
-# fraud service itself (the RUN card does that between --phase before and --phase after
+# fraud service itself (the operator does that between --phase before and --phase after
 # calls, per DESIGN-fraud.md "Before / after").
 #
 # Default: --dry-run (prints the plan, changes nothing). --run is refused unless
-# EVCHARGE_BASELINE_DONE=1 (set by the matching W7-run card).
+# EVCHARGE_BASELINE_DONE=1 (set in the environment before the live run).
 set -euo pipefail
 # shellcheck source=./lib.sh
 . "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 
 HOME_CITY=porto
 USED_IN=aveiro,lisboa
-PHASE=before
+PHASE=after
 CLONE_SESSIONS=2
 CARD=""
 
@@ -51,7 +51,7 @@ while [ $# -gt 0 ]; do
     *) ARGS+=("$1"); shift ;;
   esac
 done
-DURATION="${DURATION:-400}"
+DURATION="${DURATION:-120}"
 parse_global_flags "${ARGS[@]}"
 
 case "$PHASE" in
@@ -73,13 +73,15 @@ if [ "$PHASE" = before ]; then
   echo "                         sessions complete unflagged (no block-card); this is the"
   echo "                         detector-off baseline for the before/after comparison"
 else
-  echo "  after                : fraud service running, FRAUD_DRY_RUN=false -- expect"
-  echo "                         fraud.alert impossible_travel, then fraud.action block_card"
+  echo "  after (default)      : fraud service running, FRAUD_DRY_RUN=false (the lab"
+  echo "                         default) -- expect fraud.alert impossible_travel, then"
+  echo "                         fraud.action block_card"
 fi
 echo "  expected detections  : fraud impossible_travel (distance_km, speed_kmh >"
-echo "                         FRAUD_MAX_KMH); Wazuh 110203 (ConcurrentTx across cities),"
-echo "                         110206 (session.start across cities)"
-echo "  expected response    : block-card (billing: card Blocked + the sessions flagged)"
+echo "                         FRAUD_MAX_KMH, city coordinates from the registry); Wazuh"
+echo "                         110207 (impossible travel), 110208 (fraud service alert)"
+echo "  expected response    : 110210 (high-confidence cloned card) -> block-card"
+echo "                         (billing: card Blocked + the sessions flagged)"
 echo
 
 declare -a INSTANCES=()

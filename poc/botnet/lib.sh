@@ -6,7 +6,7 @@
 #
 # Every script here defaults to --dry-run: it prints the commands and target names it
 # would use and changes nothing. A live run needs --run *and* the environment variable
-# EVCHARGE_BASELINE_DONE=1 (set by the matching W8-run card, never by this one): see
+# EVCHARGE_BASELINE_DONE=1 (set in the environment before the live run, never by this script): see
 # require_baseline() below. Only `incus` is needed on the host.
 set -euo pipefail
 
@@ -18,6 +18,9 @@ ROOT="$(cd "$BOTNET_DIR/../.." && pwd)"
 CITY_IMG="evcharge-city"
 ROSTER="${ROSTER:-$ROOT/dev/roster.yaml}"
 SIM_ENV_PATH="/etc/evcharge/sim.env"
+# A pre-compromise copy kept inside each station instance, so a restore never depends on
+# host-side state and survives a host reboot (the earlier /tmp state file did not).
+SIM_ENV_BACKUP="${SIM_ENV_BACKUP:-/etc/evcharge/sim.env.pre-botnet}"
 C2_NAME="c2"
 
 # --- shared flag state; each script's own getopts loop sets these ---
@@ -56,11 +59,11 @@ run_or_plan() {
   fi
 }
 
-# Refuses a live run unless the RUN card's flag is set. Call once --run has been parsed.
+# Refuses a live run unless the baseline-done flag is set. Call once --run has been parsed.
 require_baseline() {
   if [ "${EVCHARGE_BASELINE_DONE:-}" != "1" ]; then
     echo "refusing --run: EVCHARGE_BASELINE_DONE is not set to 1." >&2
-    echo "A live baseline recording must not be disturbed; the W8-run card sets this" \
+    echo "A live baseline recording must not be disturbed; set this in the environment" \
          "once the baseline is captured. Use --dry-run to check the script without it." >&2
     exit 1
   fi
@@ -116,6 +119,41 @@ set_extra_args() {
   else
     printf '%s\nSIM_EXTRA_ARGS="%s"\n' "$content" "$extra"
   fi
+}
+
+# --- durable restore: the backup lives with the thing it backs up, inside the instance ---
+# save a pre-compromise copy once (never overwrite an existing backup)
+backup_sim_env() {
+  local inst="$1" content="$2"
+  incus exec "$inst" -- sh -c "test -f $SIM_ENV_BACKUP" 2>/dev/null && return 0
+  printf '%s\n' "$content" | incus exec "$inst" -- sh -c "cat > $SIM_ENV_BACKUP"
+}
+# is the station still carrying the compromise flag?
+station_is_compromised() {
+  incus exec "$1" -- grep -q -- '--compromised' "$SIM_ENV_PATH" 2>/dev/null
+}
+# restore one station: prefer its in-instance backup, else strip SIM_EXTRA_ARGS to the
+# honest baseline. Removes the backup and restarts evsim.
+restore_sim_env() {
+  local inst="$1" content
+  if incus exec "$inst" -- test -f "$SIM_ENV_BACKUP" 2>/dev/null; then
+    content="$(incus exec "$inst" -- cat "$SIM_ENV_BACKUP")"
+    write_sim_env "$inst" "$content"
+    incus exec "$inst" -- rm -f "$SIM_ENV_BACKUP"
+  else
+    content="$(read_sim_env "$inst")"
+    write_sim_env "$inst" "$(set_extra_args "$content" "")"
+  fi
+  restart_evsim "$inst"
+}
+# every station hier-id in the given cities (all cities when none given)
+all_stations_in() {
+  local cities_csv="${1:-porto,lisboa,aveiro}"
+  local -a cities; IFS=',' read -r -a cities <<< "$cities_csv"
+  local c i
+  for c in "${cities[@]}"; do
+    for i in $(seq 1 "$STATIONS_PER_CITY"); do printf 'pt.%s.st-%03d\n' "$c" "$i"; done
+  done
 }
 
 # --- Prometheus (7.2/7.3/14.1): read-only queries, run from inside the lab instance that

@@ -5,7 +5,7 @@
 #
 # Every script here defaults to --dry-run: it prints the commands and target names it
 # would use and changes nothing. A live run needs --run *and* the environment variable
-# EVCHARGE_BASELINE_DONE=1 (set by the matching RUN card, never by this one): see
+# EVCHARGE_BASELINE_DONE=1 (set in the environment before the live run, never by this script): see
 # require_baseline() below. Only `incus` is needed on the host.
 set -euo pipefail
 
@@ -16,19 +16,6 @@ ROOT="$(cd "$HIJACK_DIR/../.." && pwd)"
 
 CITY_IMG="evcharge-city"
 ROSTER="${ROSTER:-$ROOT/dev/roster.yaml}"
-
-# wait_exec_ready <instance>: waits only until `incus exec` on <instance> succeeds (its
-# agent channel is up) -- WITHOUT infra/lib.sh's wait_ready, whose second phase is an
-# external DNS lookup (`getent hosts deb.debian.org`). That phase would spin for its full
-# timeout and then fail on an instance that has been moved onto a deliberately isolated,
-# no-internet-by-design network (mitm_aveiro.sh's aveiro-mitm) until something else (the
-# interceptor, forwarding) gives it a path out. Use this right after such a move; use the
-# full wait_ready again once the instance is back on a network with real internet access.
-wait_exec_ready() {
-  local i
-  for i in $(seq 1 90); do incus exec "$1" -- true >/dev/null 2>&1 && return 0; sleep 2; done
-  echo "instance $1 not exec-ready" >&2; return 1
-}
 
 # --- shared flag state; each script's own getopts loop sets these ---
 DRY_RUN=1
@@ -235,45 +222,11 @@ except Exception as e:
   fi
 }
 
-# report_target_state <hier_id> <city>: read-only report of whether an earlier scenario
-# left this charger's registry entry quarantined and/or its real station's current
-# address firewall-dropped at the edge (the composite 110130 response, docs/interfaces.md
-# v6 15.2). Prints what it finds; changes nothing. Scoped to detect+report only -- an
-# automatic reset is left for a later change. Dry-run prints the plan and does nothing.
-report_target_state() {
-  local hier="$1" city="$2" prefix station_ip fw_out fw_rc
-  prefix="$(echo "$hier" | cut -d. -f1-3)"
-  if [ "$DRY_RUN" = 1 ]; then
-    would "report_target_state $hier $city (registry quarantine + edge firewall, read-only)"
-    return 0
-  fi
-  echo "-- inter-scenario state check: $hier --"
-  if [ -n "${REGISTRY_ADMIN_TOKEN:-}" ]; then
-    curl -s -H "Authorization: Bearer $REGISTRY_ADMIN_TOKEN" \
-      "http://10.255.255.80:30801/quarantine?prefix=$prefix" | sed 's/^/  registry: /'
-  else
-    echo "  registry: not checked (REGISTRY_ADMIN_TOKEN not in this shell; see secrets/platform.env)"
-  fi
-  station_ip="$(ipof "$(station_instance "$prefix")" 2>/dev/null)" && : || station_ip=""
-  if [ -n "$station_ip" ]; then
-    fw_out="$(incus exec "$city-edge" -- sh -c "iptables -L -n 2>/dev/null | grep -F '$station_ip'")" && fw_rc=0 || fw_rc=$?
-    if [ "$fw_rc" -eq 0 ] && [ -n "$fw_out" ]; then
-      echo "  edge firewall: DROP rule present for $station_ip:"
-      echo "$fw_out" | sed 's/^/    /'
-    else
-      echo "  edge firewall: no rule found for $station_ip"
-    fi
-  else
-    echo "  edge firewall: not checked (could not resolve the station's current address)"
-  fi
-  echo
-}
-
-# Refuses a live run unless the RUN card's flag is set. Call once --run has been parsed.
+# Refuses a live run unless the baseline-done flag is set. Call once --run has been parsed.
 require_baseline() {
   if [ "${EVCHARGE_BASELINE_DONE:-}" != "1" ]; then
     echo "refusing --run: EVCHARGE_BASELINE_DONE is not set to 1." >&2
-    echo "A live baseline recording must not be disturbed; the W6-run card sets this" \
+    echo "A live baseline recording must not be disturbed; set this in the environment" \
          "once the baseline is captured. Use --dry-run to check the script without it." >&2
     exit 1
   fi

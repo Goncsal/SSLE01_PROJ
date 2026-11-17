@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
-# Orchestrates the three identity-hijacking PoC scenarios in order, with a banner before
-# each (what, expected detection, expected response) and a final cleanup. See README.md
-# for the before/after mitigation steps the RUN card performs between calls.
+# Runs the identity-hijacking PoC: one scenario, a rogue in Porto with a stolen
+# certificate connecting from a foreign address against station-IP enforcement. Prints a
+# banner (what, expected detection, expected response) and relies on the sub-script's own
+# cleanup. See README.md for the precondition (CSMS_ENFORCE_STATION_IP=true) and the ACL
+# concession the live run needs.
 #
 #   run.sh [--run] [--duration N]
 #
-# Default: --dry-run (runs every sub-script with --dry-run too). --run is refused unless
-# EVCHARGE_BASELINE_DONE=1 (checked here and again by each sub-script).
+# Default: --dry-run (runs the sub-script with --dry-run too). --run is refused unless
+# EVCHARGE_BASELINE_DONE=1 (checked here and again by the sub-script).
 set -euo pipefail
 # shellcheck source=./lib.sh
 . "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
@@ -15,8 +17,8 @@ print_usage() {
   cat <<EOF
 usage: $(basename "$0") [--run] [--duration SECONDS] [--dry-run]
 
-Runs, in order: rogue_dupe.sh (Porto), stolen_cert.sh --phase before (Porto), mitm_aveiro.sh
-(Aveiro). Each prints its own banner and detail; this script only sequences them.
+Runs rogue_dupe.sh (Porto): a rogue presents a stolen certificate from a foreign address
+while the genuine station stays up. This script only prints the banner and sequences it.
 EOF
   usage_common
 }
@@ -34,33 +36,10 @@ banner() {
   echo "################################################################"
 }
 
-pause_between() {
-  if [ "$DRY_RUN" = 1 ]; then
-    would "pause 5s between scenarios"
-  else
-    sleep 5
-  fi
-}
-
-banner "1/3 rogue duplicate id (Porto, TLS city)" \
-       "ident.no_cert (110105); ident.ip_mismatch (110104); charger.duplicate_id (110100)" \
-       "composite 110130/110131 -> quarantine-charger (+ edge IP drop only for 110130)"
+banner "rogue with a stolen certificate (Porto, TLS city, station-IP enforcement on)" \
+       "ident.ip_mismatch (110104) per refusal; 3 refusals same srcip / 60 s -> 110132" \
+       "evcharge-edge-drop blocks the rogue address at the Porto edge; genuine charger stays up"
 "$HIJACK_DIR/rogue_dupe.sh" --duration "$DURATION" "$MODE_FLAG"
-# Read-only: report (not yet auto-reset) whether scenario 1 left the target quarantined
-# or edge-firewalled, so scenario 2's result stays interpretable.
-report_target_state "pt.porto.st-001.cp-1" "porto"
-pause_between
-
-banner "2/3 stolen certificate from another host (Porto)" \
-       "ident.ip_mismatch (110104), before/after CSMS_ENFORCE_STATION_IP" \
-       "before: logged only; after: 403 refusal at the handshake"
-"$HIJACK_DIR/stolen_cert.sh" --phase before --duration "$DURATION" "$MODE_FLAG"
-pause_between
-
-banner "3/3 routed MitM on the plain-ws Aveiro link" \
-       "meter.anomaly (110116, plain city)" \
-       "quarantine-charger on the affected id; before/after Aveiro -> mTLS"
-"$HIJACK_DIR/mitm_aveiro.sh" --duration "$DURATION" "$MODE_FLAG"
 
 echo
-echo "run.sh: all three scenarios done; each sub-script cleaned up its own instances"
+echo "run.sh: scenario done; the rogue was deleted by the sub-script's own cleanup"

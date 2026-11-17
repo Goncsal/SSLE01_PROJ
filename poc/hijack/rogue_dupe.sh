@@ -1,13 +1,23 @@
 #!/usr/bin/env bash
-# Hijacking PoC 1: a rogue charge point reuses a real charger id against a TLS city
-# edge, first with no client certificate, then with a certificate stolen (copied) from
-# the real station while it is connected. See DESIGN-hijacking.md §"Duplicate id" and
+# Hijacking PoC: a rogue charge point in Porto presents a certificate stolen (copied)
+# from a real station and connects to the city edge from a foreign address, while the
+# genuine station stays up. With station-IP enforcement on (CSMS_ENFORCE_STATION_IP=true,
+# the lab default), the CSMS refuses every attempt at the handshake. See
 # docs/interfaces.md v6 5.2 (identity checks 6-10), 12.4 (pki/export.sh), 9.2 (evsim).
 #
 #   rogue_dupe.sh [--city porto] [--station pt.porto.st-001] [--run] [--duration N]
 #
+# What it shows, end to end:
+#   - mTLS proves key possession, not location: the stolen certificate is accepted at the
+#     edge (it is validly signed and not yet revoked), so the rogue reaches the CSMS.
+#   - the CSMS checks the source address against the registry and refuses: 403,
+#     ident.ip_mismatch -> Wazuh 110104 per attempt.
+#   - evsim retries, so three refusals from the same source address land inside 60 s ->
+#     Wazuh 110132 -> the evcharge-edge-drop active response blocks the rogue's address at
+#     the Porto edge. The genuine pt.porto.st-001.cp-1 keeps charging throughout.
+#
 # Default: --dry-run (prints the plan, changes nothing). --run is refused unless
-# EVCHARGE_BASELINE_DONE=1 (set by the W6-run card).
+# EVCHARGE_BASELINE_DONE=1 (set in the environment before the live run).
 set -euo pipefail
 # shellcheck source=./lib.sh
 . "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
@@ -16,10 +26,11 @@ print_usage() {
   cat <<EOF
 usage: $(basename "$0") [--city CITY] [--station HIER_ID] [--run] [--duration SECONDS] [--dry-run]
 
-(a) connects the rogue with only ca.crt (no client cert) -> expect refusal (ident.no_cert).
-(b) copies the real station's certificate into the rogue (stolen cert) and connects
-    while the real station stays up -> expect ident.ip_mismatch, and charger.duplicate_id
-    for whichever of the two the CSMS sees connect second.
+Copies the real station's certificate and key into a throwaway rogue container on the
+same city network (straight from lab-ca, pki/export.sh) and connects with it while the
+real station stays running. With CSMS_ENFORCE_STATION_IP=true the CSMS refuses each
+attempt (403, ident.ip_mismatch); three refusals from the same address within 60 s raise
+110132 and the edge drops that address.
 EOF
   usage_common
 }
@@ -30,22 +41,30 @@ CHARGER="$STATION.cp-1"
 EDGE_URL="$(edge_url "$CITY")"
 ROGUE="$(rogue_name "$CITY")"
 STATION_INST="$(station_instance "$STATION")"
-PKI_NOCERT=/etc/evcharge/pki-nocert
 PKI_STOLEN=/etc/evcharge/pki-stolen
 EDGE_HOST="$(edge_host "$CITY")"
 if is_plain_city "$CITY"; then EDGE_PORT=80; TLS_FLAG=0; else EDGE_PORT=443; TLS_FLAG=1; fi
+# evsim's default --reject-backoff is 60 s, so a rogue refused with 403 would retry only
+# once a minute and never put three refusals inside the 110132 window (freq 3 / 60 s). A
+# genuinely stolen credential driven by a real attacker would reconnect aggressively, so
+# the rogue uses a short backoff here: four refusals land within the first minute and
+# 110132 fires -> evcharge-edge-drop. Kept comfortably above a per-request flood so this
+# stays the stolen-credential story (110104/110132), not the handshake-flood one (110307).
+REJECT_BACKOFF=15
 
-echo "== hijacking PoC 1: rogue duplicate id =="
-echo "  charger id      : $CHARGER"
-echo "  edge url        : $EDGE_URL"
+echo "== hijacking PoC: rogue with a stolen certificate from a foreign address =="
+echo "  charger id       : $CHARGER"
+echo "  edge url         : $EDGE_URL"
 echo "  rogue instance   : $ROGUE  (city network: city-$CITY)"
-echo "  real station     : $STATION_INST"
-echo "  expected (a)     : ident.no_cert (110105), refused before the OCPP upgrade"
-echo "  expected (b)     : ident.ip_mismatch (110104); charger.duplicate_id (110100) for"
-echo "                      whichever of the rogue/real connects second; composite"
-echo "                      110130 (duplicate id + foreign srcip) or 110131 (reverse order)"
-echo "                      if both land within 300 s"
-echo "  time-box          : ${DURATION}s per evsim run"
+echo "  real station     : $STATION_INST (left running on purpose: the genuine charger"
+echo "                      must stay up while the rogue is refused and edge-dropped)"
+echo "  precondition     : CSMS_ENFORCE_STATION_IP=true (the lab default; set in the"
+echo "                      csms-edge ConfigMap, not by this script)"
+echo "  expected per try : ident.ip_mismatch (110104), refused 403 at the handshake"
+echo "  expected (3/60s) : stolen credential in use from one address, 3 refusals within"
+echo "                      60 s -> 110132 -> evcharge-edge-drop blocks the rogue address"
+echo "                      at the $CITY edge (self-expiring edge rule, no session touched)"
+echo "  time-box         : ${DURATION}s"
 echo
 
 if [ "$DRY_RUN" = 1 ]; then
@@ -73,45 +92,30 @@ else
 fi
 echo
 
-echo "-- (a) no certificate --"
-if [ "$DRY_RUN" = 1 ]; then
-  would "copy ca.crt only from lab-ca into $ROGUE:$PKI_NOCERT (no client cert presented)"
-  would "incus exec -n -T $ROGUE -- python -m evsim --roster /etc/evcharge/roster.yaml" \
-        "--station $STATION --chargers cp-1 --csms-url $EDGE_URL" \
-        "--pki-dir $PKI_NOCERT --metrics-port 0 --duration 20"
-else
-  incus exec "$ROGUE" -- mkdir -p "$PKI_NOCERT"
-  incus exec lab-ca -- cat /root/ca/ca.crt \
-    | incus exec "$ROGUE" -- sh -c "umask 077; cat > $PKI_NOCERT/ca.crt"
-  # A refusal (ident.no_cert) is the expected outcome, so a non-zero evsim exit here must
-  # not abort the script under set -e -- see run_evsim in lib.sh. time-boxed defensively
-  # even though --duration already bounds it, same as part (b) below. -n -T: evsim reads
-  # no stdin and needs no tty; without them, running under `timeout` inside the
-  # operator's own interactive-stdin pipeline sets up an exec control channel that can
-  # drop (incusd: "close 1006 (abnormal closure)"), which kills evsim outright -- not a
-  # detection, not evsim's own fault, a pure transport artifact of the invocation shape.
-  run_evsim timeout 30 incus exec -n -T "$ROGUE" -- /opt/evcharge/venv/bin/python -m evsim \
-    --roster /etc/evcharge/roster.yaml --station "$STATION" --chargers cp-1 \
-    --csms-url "$EDGE_URL" --pki-dir "$PKI_NOCERT" --metrics-port 0 --duration 20
-fi
-
-echo "-- (b) stolen certificate, real station left running --"
+echo "-- stolen certificate, real station left running --"
 if [ "$DRY_RUN" = 1 ]; then
   would "$ROOT/pki/export.sh $CHARGER $ROGUE --dir $PKI_STOLEN  # stolen cert, straight from lab-ca"
   would "incus exec -n -T $ROGUE -- python -m evsim --roster /etc/evcharge/roster.yaml" \
         "--station $STATION --chargers cp-1 --csms-url $EDGE_URL" \
-        "--pki-dir $PKI_STOLEN --metrics-port 0 --duration $DURATION"
+        "--pki-dir $PKI_STOLEN --metrics-port 0 --reject-backoff $REJECT_BACKOFF" \
+        "--duration $DURATION"
 else
   "$ROOT/pki/export.sh" "$CHARGER" "$ROGUE" --dir "$PKI_STOLEN"
-  # ident.ip_mismatch / charger.duplicate_id (or the connection simply being refused/
-  # dropped) are expected outcomes here, not script failures -- see run_evsim in lib.sh.
-  # This is the call whose non-zero exit used to abort run.sh before scenarios 2/3 ran.
-  # -n -T: see the comment on part (a)'s evsim call above -- same control-channel risk.
+  # A 403 refusal (ident.ip_mismatch, CSMS_ENFORCE_STATION_IP=true) is the expected
+  # outcome of every attempt, not a script failure -- evsim's own retry loop swallows the
+  # refusals and still exits 0 once --duration elapses, so the detection outcome is read
+  # from the evidence check (verify.sh), never from this exit code (see run_evsim in
+  # lib.sh). The retries are what put three refusals from the same address inside 60 s and
+  # raise 110132. -n -T: evsim reads no stdin and needs no tty; without them, running
+  # under `timeout` inside the operator's own interactive-stdin pipeline sets up an exec
+  # control channel that can drop (incusd: "close 1006 (abnormal closure)"), killing evsim
+  # outright -- a transport artifact of the invocation shape, not a detection.
   run_evsim timeout "$((DURATION + 10))" incus exec -n -T "$ROGUE" -- \
     /opt/evcharge/venv/bin/python -m evsim \
     --roster /etc/evcharge/roster.yaml --station "$STATION" --chargers cp-1 \
-    --csms-url "$EDGE_URL" --pki-dir "$PKI_STOLEN" --metrics-port 0 --duration "$DURATION"
+    --csms-url "$EDGE_URL" --pki-dir "$PKI_STOLEN" --metrics-port 0 \
+    --reject-backoff "$REJECT_BACKOFF" --duration "$DURATION"
 fi
 
 echo
-echo "rogue_dupe: done (rogue will be deleted on exit)"
+echo "rogue_dupe: done (rogue will be deleted on exit; the genuine station was never touched)"

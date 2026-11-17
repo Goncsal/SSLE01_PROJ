@@ -7,7 +7,7 @@ flags), 13.3 (station runtime, `sim.env`).
 Every script here defaults to `--dry-run`: it prints the exact `sim.env` it would write
 and the commands it would run, and changes nothing -- a dry run never calls `incus`. A
 live run additionally needs `--run` *and* the environment variable
-`EVCHARGE_BASELINE_DONE=1` (set only by the matching `W7-run` card, once the baseline
+`EVCHARGE_BASELINE_DONE=1` (set in the environment, once the baseline
 recording is captured). Every live scenario is time-boxed (`--duration`) and restores the
 station's `sim.env` to exactly what it held before, on exit, success, failure or
 `INT`/`TERM` -- a station is never left cloning or tampering.
@@ -24,8 +24,8 @@ containers are created, only `/etc/evcharge/sim.env` on an already-running stati
 Picks a non-blocked card whose home city is `--home` (default `porto`) from
 `dev/roster.yaml`, then on one station in each `--used-in` city (default
 `aveiro,lisboa`) sets `SIM_EXTRA_ARGS="--clone-card <card> --clone-sessions 2"` and
-restarts `evsim`. The same card id then authorises sessions in two cities within
-minutes -- the impossible-travel signature.
+restarts `evsim`. The same card id then authorises sessions in Aveiro and Lisboa within
+seconds -- the impossible-travel signature.
 
 ```
 clone_card.sh [--home porto] [--used-in aveiro,lisboa] [--phase before|after] [--card CARD] [--run] [--duration N]
@@ -34,49 +34,54 @@ clone_card.sh [--home porto] [--used-in aveiro,lisboa] [--phase before|after] [-
 `--card` pins the card instead of taking the first roster card of `--home`.
 
 - **Expected detections**: fraud `impossible_travel` (`distance_km`, `speed_kmh` >
-  `FRAUD_MAX_KMH`, city coordinates from the registry); Wazuh **110203** (`ConcurrentTx`
-  across cities) and **110206** (`session.start` across cities).
-- **Expected response**: `block-card` (billing: card `Blocked` + the sessions flagged).
+  `FRAUD_MAX_KMH`, city coordinates from the registry); Wazuh **110207** (impossible
+  travel) and **110208** (fraud service alert).
+- **Expected response**: Wazuh **110210** (high-confidence cloned card) -> `block-card`
+  (billing: card `Blocked` + the sessions flagged).
+- **`--phase after`** (the default): the fraud service is running with
+  `FRAUD_DRY_RUN=false` (the lab default) -- expect `fraud.alert impossible_travel` then
+  `fraud.action block_card`.
 - **`--phase before`**: the fraud service is stopped, or running with
-  `FRAUD_DRY_RUN=true` -- the cloned sessions complete unflagged. This is the
-  detector-off baseline.
-- **`--phase after`**: the fraud service is running with `FRAUD_DRY_RUN=false` -- expect
-  `fraud.alert impossible_travel` then `fraud.action block_card`. This script only
-  changes the printed expectation; the RUN card starts/stops the fraud service itself
-  between the two calls.
+  `FRAUD_DRY_RUN=true` -- the cloned sessions complete unflagged, the detector-off
+  baseline for the before/after comparison. This script only changes the printed
+  expectation; the operator starts/stops the fraud service between the two calls.
 
 ### 2. `tamper_meter.sh` -- meter tamper
 
 Sets `SIM_EXTRA_ARGS` on one station's `sim.env` (default `pt.lisboa.st-003`) to
-`--tamper F --tamper-mode scale|rollback|freeze` and restarts `evsim`.
+`--tamper F --tamper-mode rollback|scale|freeze` and restarts `evsim`.
 
 ```
-tamper_meter.sh [--city lisboa] [--station pt.lisboa.st-003] [--mode scale|rollback] [--factor 0.5] [--extra-args "SIM FLAGS"] [--run] [--duration N]
+tamper_meter.sh [--city lisboa] [--station pt.lisboa.st-003] [--mode rollback|scale|freeze] [--factor 0.5] [--extra-args "SIM FLAGS"] [--run] [--duration N]
 ```
 
 `--extra-args` appends simulator flags to the tamper flags (for example
 `"--session-minutes 3 --arrival-rate 30"`: short, frequent sessions so `power_gap` has enough
-completed sessions inside the window).
+completed sessions inside the window -- useful for the `scale` mode).
 
-- **`--mode scale`** (under-report, default): the readings the charger sends stay
-  internally consistent, so the **CSMS anomaly check cannot see it** -- it is caught by
-  the **real-time `power_gap` fraud rule** (feeder power vs reported power) and Prometheus `MeterUnderReporting`
-  (`city:station_power_gap_watts`). **Tampering under-reporting is invisible to the
-  CSMS and caught only by the independent out-of-band feeder-meter gap** -- the point of
-  this PoC.
-- **`--mode rollback`** (register decreases): CSMS `meter.anomaly` (`reason=backwards`),
-  fraud `meter_backwards`, Wazuh 110204/110205 (meter.anomaly frequency per charger).
+- **`--mode rollback`** (register jumps back 500 Wh, the default): the fast, blunt case
+  the **CSMS anomaly check does catch on its own** -- CSMS `meter.anomaly`
+  (`reason=backwards`), fraud `meter_backwards`, Wazuh **110204** (meter anomaly at the
+  charger). Default because it shows a result in seconds, not after a run-up of samples.
+- **`--mode scale`** (under-report): the readings the charger sends stay internally
+  consistent, so the **CSMS anomaly check cannot see it** -- it is caught only by the
+  **real-time `power_gap` fraud rule** (feeder power vs reported power) and Prometheus
+  `MeterUnderReporting` (`city:station_power_gap_watts`). The point of this mode is that
+  under-reporting is invisible to the CSMS and caught only by the independent out-of-band
+  feeder-meter gap; it needs enough charging samples, so it is slower and not the default.
 - **`--mode freeze`** (register stops mid-session): fraud `peer_deviation` (station well
   below its city peers) and `grid_gap` against the feeder meter.
-- **Expected response** (all modes): `quarantine-charger` (isolate + flag the station's
-  recent sessions for review -- not a card block, the card is innocent).
+- **Expected response** (all modes): `quarantine-charger` (operator-applied: isolate +
+  flag the station's recent sessions for review -- not a card block, the card is innocent).
 
 ### `run.sh` -- both scenarios in order
 
-Runs `clone_card.sh --phase after` then `tamper_meter.sh --mode scale`, with a banner
+Runs `clone_card.sh --phase after` then `tamper_meter.sh --mode rollback`, with a banner
 before each (what, expected detection, expected response), and finishes by checking that
 every `sim.env` this run touched (`pt.aveiro.st-001`, `pt.lisboa.st-001`,
-`pt.lisboa.st-003`) is back to the content it held before this script started.
+`pt.lisboa.st-003`) is back to the content it held before this script started. Each
+scenario keeps its own fast default time-box (clone ~120 s, rollback tamper ~90 s);
+`--duration` overrides both.
 
 ```
 run.sh [--run] [--duration N]
@@ -87,7 +92,7 @@ run.sh [--run] [--duration N]
 Runs every script above on its `--dry-run` path, checks each exits 0 and prints a plan,
 and checks that `--run` is refused without `EVCHARGE_BASELINE_DONE=1`. Changes nothing.
 
-## Before/after steps the RUN card performs, in order
+## Before/after steps the run performs, in order
 
 1. **Baseline**, nothing from this PoC has run yet. `EVCHARGE_BASELINE_DONE` unset; the
    fraud service is either stopped or running with `FRAUD_DRY_RUN=true`.
@@ -96,16 +101,17 @@ and checks that `--run` is refused without `EVCHARGE_BASELINE_DONE=1`. Changes n
 3. Start the fraud service with `FRAUD_DRY_RUN=false` (or restart it that way).
 4. `clone_card.sh --run --phase after`: same scenario, now blocked -- the value of the
    detector, captured as a before/after pair.
-5. `tamper_meter.sh --run --mode scale`: show the CSMS does not flag it (no
-   `meter.anomaly`) while Prometheus `MeterUnderReporting` and the fraud `grid_gap` alert
-   both fire -- the CSMS-anomaly-check-vs-grid-gap comparison from `DESIGN-fraud.md`.
-6. `tamper_meter.sh --run --mode rollback` (separately): the blunt case the CSMS anomaly
-   check *does* catch, for contrast.
+5. `tamper_meter.sh --run --mode rollback` (the default): the blunt case the CSMS anomaly
+   check *does* catch -- CSMS `meter.anomaly` (`reason=backwards`), Wazuh 110204, then the
+   `quarantine-charger` response. Fast to show.
+6. `tamper_meter.sh --run --mode scale` (optional contrast): show the CSMS does *not* flag
+   it (no `meter.anomaly`) while Prometheus `MeterUnderReporting` and the fraud `power_gap`
+   alert both fire -- the CSMS-anomaly-check-vs-feeder-gap comparison from `DESIGN-fraud.md`.
 7. Capture evidence per `DESIGN-fraud.md` "Evidence to capture" into `evidence/fraud/`:
    the cloned-card sessions in both cities, the `impossible_travel` alert, the Wazuh
-   110203/110206 alert, the `block-card` `ar.action`, billing showing the card `Blocked`;
-   the feeder-vs-reported power gap, the `grid_gap` alert, the quarantine; the
-   detect -> locate -> mitigate timeline.
+   110207/110208 alert, the `block-card` `ar.action` (110210), billing showing the card
+   `Blocked`; the meter.anomaly / feeder-vs-reported power gap, the `quarantine-charger`
+   response; the detect -> locate -> mitigate timeline.
 8. `run.sh` itself is also available to run both scenarios back to back with one
    command, for a combined timeline.
 

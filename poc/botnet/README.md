@@ -6,7 +6,7 @@ sections 9.4 (compromised mode, C2 protocol), 13.3 (`sim.env`), 15.1 (netwatch),
 
 Every script here defaults to `--dry-run`: it prints the exact commands and target names
 it would use and changes nothing. A live run additionally needs `--run` *and* the
-environment variable `EVCHARGE_BASELINE_DONE=1` (set only by the matching `W8-run` card,
+environment variable `EVCHARGE_BASELINE_DONE=1` (set in the environment,
 once the baseline recording is captured). All scripts are time-boxed (`--duration`,
 default 300 s) and restore every `sim.env` they changed and delete the `c2` container on
 exit and on `INT`/`TERM`.
@@ -38,28 +38,32 @@ deploy_c2.sh [--port 8099] [--idle-s 30] [--flood-s 60] [--flood-rate-hz 20]
 ### 2. `compromise.sh` -- enrol N stations into the fleet
 
 Sets `SIM_EXTRA_ARGS="--compromised --c2-url http://c2.incus:<port> --beacon-interval
-<N>"` on `--stations N` stations, spread round-robin across `--cities`, and restarts
-`evsim` on each (13.3). The original `sim.env` of every touched station is saved to a
-state file (`--state-file`, default under `/tmp`); `--restore` reads it back, writes the
-original content, restarts `evsim`, and deletes the file. The compromise is deliberately
-**not** undone when `compromise.sh` itself exits -- it must outlive this one invocation
-while the C2 schedule drives flood and surge and the fleet is detected and quarantined.
-Only `--restore` (called by `run.sh` at the end, or by the RUN card directly) undoes it;
-if this script is interrupted mid-loop, the stations it had already touched *this*
-invocation are rolled back immediately.
+<N>"` on `--stations N` stations, spread round-robin across `--cities` (**3 Lisboa
+stations, `st-001..003`, by default**), and restarts `evsim` on each (13.3). The original
+`sim.env` of every touched station is saved to a state file (`--state-file`, default under
+`/tmp`); `--restore` reads it back, writes the original content, restarts `evsim`, and
+deletes the file. The compromise is deliberately **not** undone when `compromise.sh`
+itself exits -- it must outlive this one invocation while the C2 schedule drives flood and
+surge and the fleet is detected and quarantined. Only `--restore` (called by `run.sh` at
+the end, or by the operator directly) undoes it; if this script is interrupted mid-loop,
+the stations it had already touched *this* invocation are rolled back immediately.
 
-Expected detections, printed by the script:
+Expected detections and response, printed by the script:
 
-- **per station**: `host.new_outbound` to the C2 address -> netwatch **110303**.
+- **per station**: `host.new_outbound` to the C2 address -> netwatch **110303** -> the
+  **`quarantine-charger` active response fires automatically** on that station
+  (station-level, bound to 110303). This is the automatic response: a station seen
+  beaconing to a C2 is quarantined without waiting for an operator.
 - **cross-station**: **110304** (freq 3/300, `same_field dstip`, `different_field
-  hier_id`) -- several stations beaconing to the *same* new address, the "locate the
-  fleet" signal and the botnet's signature.
+  hier_id`) -- the three stations beaconing to the *same* new address, the "locate the
+  fleet" signal and the botnet's signature (a fleet alert, no separate response).
 - **once the C2 schedule reaches flood/surge**: `ocpp.rate_limited`/`conn.kicked` ->
-  **110300/110301**, cross-city **110302**, edge `limit_req` refusals **110306/110307**;
-  a `session.start` burst per city -> **110308**, joined with `CityLoadSpike`.
+  **110300/110301**, edge `limit_req` refusals **110306/110307**; a `session.start` burst
+  per city -> **110308**, joined with `CityLoadSpike`. The correlator folds these and the
+  110303/110304 beacons into **one incident keyed on the city** (`lisboa`).
 
 ```
-compromise.sh [--stations N] [--cities porto,lisboa,aveiro] [--port 8099]
+compromise.sh [--stations N] [--cities lisboa] [--port 8099]
               [--beacon-interval 15] [--restore] [--run] [--duration N]
 ```
 
@@ -96,18 +100,21 @@ measure_collateral.sh --phase before|after [--cities porto,lisboa,aveiro]
 ### `run.sh` -- orchestrates the whole scenario
 
 ```
-run.sh [--run] [--stations N] [--cities porto,lisboa,aveiro] [--duration N]
+run.sh [--run] [--stations N] [--cities lisboa] [--duration N]
 ```
 
 1. `deploy_c2.sh` (backgrounded, so its schedule runs alongside the rest).
-2. `compromise.sh --stations N --cities ...`.
-3. `measure_collateral.sh --phase before`.
-4. wait while the C2 schedule drives idle -> flood -> surge -> stop; the **bulk
-   quarantine itself is not performed here** -- the W8-run card runs the actual
-   `quarantine-charger` calls (or confirms the active response fired from
-   `evcharge-ar.json`) during this window.
-5. `measure_collateral.sh --phase after`; then `compromise.sh --restore` and the C2 is
-   stopped (its own trap deletes the container).
+2. `measure_collateral.sh --phase before` -- the healthy baseline, taken **before** the
+   compromise: the automatic quarantine fires on the first beacon, so a snapshot taken
+   after the compromise would race it.
+3. `compromise.sh --stations 3 --cities lisboa`: each station beacons -> 110303 ->
+   `quarantine-charger` fires **automatically** on that station; 110304 names the fleet.
+4. wait while the C2 schedule drives idle -> flood -> surge -> stop and the automatic
+   quarantine takes the named stations off line (confirm the AR fired from
+   `evcharge-ar.json`).
+5. `measure_collateral.sh --phase after` -- the collateral of that automatic quarantine;
+   then `compromise.sh --restore` and the C2 is stopped (its own trap deletes the
+   container).
 
 ### `selfcheck.sh`
 
@@ -116,18 +123,21 @@ and checks that `--run` is refused without `EVCHARGE_BASELINE_DONE=1`. Exits non
 anything failed. Creates and changes nothing -- no instance, no `sim.env` edit, no incus
 write call.
 
-## Why bulk quarantine is the most disruptive response in the project
+## Why the automatic quarantine is the most disruptive response in the project
 
 Flood traffic from one address gets `firewall-drop`/`evcharge-edge-drop`, a 600 s,
 self-expiring edge rule -- no legitimate session is touched. The botnet's actual harms
 (the message flood, the grid surge) come from many *otherwise legitimate* stations acting
-in concert, so the only response that stops the surge is to take every named station off
-line: `quarantine-charger` per charger (110304 or 110302 confirmed), which remote-stops
-and disables them. Every real driver plugged into one of those chargers is interrupted
-mid-session -- that is the whole point of `measure_collateral.sh`: to put a number (and a
-kWh figure) on that cost and weigh it against the alternative of letting the surge trip
-the feeder (a wider, uncontrolled outage). Nothing auto-reverts a quarantine; an operator
-releases the stations once the firmware is confirmed clean (15.5).
+in concert, so the response that stops them is to take each beaconing station off line:
+`quarantine-charger`, bound to **110303** and fired **automatically per station** when it
+is seen contacting the C2, which remote-stops and disables that charger. Every real driver
+plugged into a quarantined charger is interrupted mid-session -- that is the whole point of
+`measure_collateral.sh`: to put a number (and a kWh figure) on that cost and weigh it
+against the alternative of letting the surge trip the feeder (a wider, uncontrolled
+outage). It is bound to 110303 (the high-confidence beacon), *not* to the flood/surge
+rules, precisely because it is so disruptive: a station only beacons to a C2 if it is
+genuinely compromised. Nothing auto-reverts a quarantine; an operator releases the stations
+once the firmware is confirmed clean (15.5).
 
 ## The ACL concession
 
@@ -135,12 +145,12 @@ Section 16: with the botnet allow list in place, a station may reach only its ow
 edge and the Wazuh manager (plus 80/443 while `--allow-updates` is set); it cannot reach
 an arbitrary external C2. The lab's `c2` container sits on the central bridge, which a
 station is **not** on that allow list for -- it is reachable in this PoC only because the
-test explicitly permits it, a stated concession the W8-run card makes plain (it is also
+test explicitly permits it, a stated concession the run makes plain (it is also
 why the "before" ACL state matters: with the ACLs applied as normal, a real compromised
 station would never reach this C2 at all, and the beacon would show up as a *blocked*
 egress attempt instead, which is itself a weaker but earlier signal).
 
-## Before/after steps for the RUN card
+## Before/after steps for the run
 
 1. **Baseline**, nothing from this PoC has run yet; `EVCHARGE_BASELINE_DONE` unset.
 2. **ACL before/after**: capture the beacon with the city ACLs *not* applied (the
@@ -154,18 +164,19 @@ egress attempt instead, which is itself a weaker but earlier signal).
    in the PoC's own lab config, not the live default) to quantify what it absorbs -- the
    "standing control, no response firing" layer DESIGN-botnet.md calls out.
 4. Run `run.sh --run` (or the individual scripts) for the full scenario; during stage 4
-   of `run.sh`, perform the actual `quarantine-charger` calls for the named stations (or
-   confirm the active response fired) and capture the evidence listed in
-   `evidence/botnet/` (beacons, the 110304 alert, the flood and surge indicators, the
-   `ar.action` lines, the collateral-damage table, the detect -> locate -> mitigate
-   timeline).
+   of `run.sh`, the `quarantine-charger` active response fires automatically on each
+   station's 110303 -- confirm it from `evcharge-ar.json` and capture the evidence listed
+   in `evidence/botnet/` (beacons, the 110303 quarantine `ar.action` lines, the 110304
+   fleet alert, the flood and surge indicators, the single city-keyed correlator incident,
+   the collateral-damage table, the detect -> locate -> mitigate timeline).
 5. Process any queued revocation (`pki/process_revocations.sh`) and release the
    quarantined stations once the operator is done, per `DESIGN-botnet.md`.
 
-## Deferred to the RUN card
+## Deferred to the operator
 
 - Any live `incus launch`/`incus exec`/`systemctl restart evsim` call -- everything here
   ran `--dry-run` only.
-- The actual `quarantine-charger` active-response calls (or confirming the AR fired).
+- Confirming the automatic `quarantine-charger` active response fired (from `evcharge-ar.json`)
+  and releasing the quarantined stations afterwards.
 - Toggling the city ACLs and the edge/CSMS rate limiting for the before/after comparisons.
 - Capturing the evidence in `evidence/botnet/`.

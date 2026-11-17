@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# Botnet PoC: the collateral-damage measurement for the bulk-quarantine response
-# (DESIGN-botnet.md "Response and justification"; docs/interfaces.md v6 7.2 sim/csms
-# metrics, 7.3 city recording rules). Snapshots sum(evcharge_sim_sessions_total
+# Botnet PoC: the collateral-damage measurement for the automatic quarantine-charger
+# response (DESIGN-botnet.md "Response and justification"; docs/interfaces.md v6 7.2
+# sim/csms metrics, 7.3 city recording rules). Snapshots sum(evcharge_sim_sessions_total
 # {result="interrupted"}) per city (city Prometheus, per_charger scope, 7.2) and the
-# CSMS connected-chargers/stopped-session totals (central Prometheus) before and after
-# the bulk quarantine, and reports the delta: sessions interrupted by the response and
-# an estimate of the kWh not delivered because of it -- the honest cost side of the
-# argument in DESIGN-botnet.md.
+# CSMS connected-chargers/stopped-session totals (central Prometheus) before the
+# compromise and after the quarantine has fired, and reports the delta: sessions
+# interrupted by the response and an estimate of the kWh not delivered because of it --
+# the honest cost side of the argument in DESIGN-botnet.md.
 #
 #   measure_collateral.sh --phase before|after [--cities porto,lisboa,aveiro]
 #                          [--session-minutes 8] [--state-file PATH]
@@ -21,13 +21,13 @@ set -euo pipefail
 . "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 
 PHASE="before"
-CITIES_CSV="porto,lisboa,aveiro"
+CITIES_CSV="lisboa"
 SESSION_MINUTES=8
 STATE_FILE="${EVCHARGE_BOTNET_COLLATERAL_STATE:-/tmp/evcharge-botnet-collateral-before.state}"
 
 print_usage() {
   cat <<EOF
-usage: $(basename "$0") --phase before|after [--cities porto,lisboa,aveiro] \\
+usage: $(basename "$0") --phase before|after [--cities lisboa] \\
        [--session-minutes N] [--state-file PATH] [--run] [--duration SECONDS] [--dry-run]
 
 before: snapshots interrupted-session counts, average charging power, CSMS connected
@@ -102,7 +102,7 @@ if [ "$PHASE" = before ]; then
   fi
   echo
   echo "measure_collateral: before-snapshot recorded here (interrupted sessions baseline," \
-       "taken before the bulk quarantine)"
+       "taken before the compromise, so the delta is the automatic quarantine's doing)"
   exit 0
 fi
 

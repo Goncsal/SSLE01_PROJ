@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# Orchestrates the botnet PoC end to end: deploy C2 -> compromise stations -> the C2
-# schedule drives flood+surge -> (detection) -> bulk-quarantine step (the W8-run card
-# performs the actual quarantine-charger calls, or confirms the active response fired;
-# this script only waits and measures) -> measure collateral damage -> restore sim.env +
-# delete C2. See README.md for the before/after mitigation steps (ACL concession,
-# rate-limit toggle) the RUN card performs around these calls.
+# Orchestrates the botnet PoC end to end: deploy C2 -> baseline snapshot -> compromise 3
+# Lisboa stations -> each beacon raises 110303 and the quarantine-charger active response
+# fires automatically per station (110304 names the fleet) while the C2 schedule drives
+# flood+surge -> measure the collateral of that automatic quarantine -> restore sim.env +
+# delete C2. See README.md for the ACL concession and the rate-limit before/after the RUN
+# card performs around these calls.
 #
-#   run.sh [--run] [--stations N] [--cities porto,lisboa,aveiro] [--duration N] [--dry-run]
+#   run.sh [--run] [--stations N] [--cities lisboa] [--duration N] [--dry-run]
 #
 # Default: --dry-run (runs every sub-script with --dry-run too). --run is refused unless
 # EVCHARGE_BASELINE_DONE=1 (checked here and again by each sub-script).
@@ -14,18 +14,19 @@ set -euo pipefail
 # shellcheck source=./lib.sh
 . "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 
-STATIONS_N=6
-CITIES_CSV="porto,lisboa,aveiro"
+STATIONS_N=3
+CITIES_CSV="lisboa"
 
 print_usage() {
   cat <<EOF
-usage: $(basename "$0") [--run] [--stations N] [--cities porto,lisboa,aveiro] \\
+usage: $(basename "$0") [--run] [--stations N] [--cities lisboa] \\
        [--duration SECONDS] [--dry-run]
 
 Runs, in order: deploy_c2.sh (backgrounded so its schedule can run alongside the other
-stages), compromise.sh, a before-snapshot, a wait while the C2 schedule drives
-idle -> flood -> surge -> stop and (outside this script) the bulk quarantine fires, an
-after-snapshot, then compromise.sh --restore and the C2 is stopped.
+stages), a baseline snapshot, compromise.sh (3 Lisboa stations by default), a wait while
+the C2 schedule drives idle -> flood -> surge -> stop and the quarantine-charger active
+response fires automatically on each station's beacon (110303), an after-snapshot of the
+collateral, then compromise.sh --restore and the C2 is stopped.
 EOF
   usage_common
 }
@@ -72,24 +73,27 @@ else
   sleep 5
 fi
 
-banner "2/5 compromise $STATIONS_N station(s) across $CITIES_CSV" \
-       "host.new_outbound -> 110303 per station; 110304 cross-station (same C2, names the fleet)" \
-       "none yet (detection only)"
+# Baseline BEFORE the compromise: the automatic quarantine fires on the first beacon
+# (within a beacon interval of compromise), so a snapshot taken after compromise would
+# race it. The healthy, pre-attack interrupted-session count is the right baseline for the
+# collateral delta.
+banner "2/5 baseline snapshot (healthy, pre-compromise)" "n/a" "n/a"
+"$BOTNET_DIR/measure_collateral.sh" --phase before --cities "$CITIES_CSV" "$MODE_FLAG"
+
+banner "3/5 compromise $STATIONS_N Lisboa station(s) ($CITIES_CSV)" \
+       "host.new_outbound -> 110303 per station; 110304 names the fleet (3 stations -> C2 / 5 min)" \
+       "110303 -> quarantine-charger per station (automatic active response)"
 "$BOTNET_DIR/compromise.sh" --stations "$STATIONS_N" --cities "$CITIES_CSV" \
   --duration "$DURATION" "$MODE_FLAG"
 
-banner "3/5 before-snapshot" "n/a" "n/a"
-"$BOTNET_DIR/measure_collateral.sh" --phase before --cities "$CITIES_CSV" "$MODE_FLAG"
-
-banner "4/5 flood + surge (driven by the C2 schedule) -> bulk quarantine" \
-       "ocpp.rate_limited/conn.kicked -> 110300/110301/110307; session.start burst -> 110308 + CityLoadSpike" \
-       "bulk quarantine (quarantine-charger per station) -- performed by the W8-run card, not this script"
+banner "4/5 flood + surge (C2 schedule) while the automatic quarantine takes effect" \
+       "ocpp.rate_limited/conn.kicked -> 110300/110301; edge limit_req -> 110306/110307; session.start burst -> 110308 + CityLoadSpike" \
+       "quarantine-charger already firing automatically on 110303; one correlator incident (city=lisboa)"
 if [ "$DRY_RUN" = 1 ]; then
-  would "wait for the C2 schedule to reach flood/surge, then for the W8-run card's" \
-        "quarantine-charger calls (or confirm the AR fired from evcharge-ar.json)"
+  would "wait for the C2 schedule to reach flood/surge while quarantine-charger fires" \
+        "automatically on each station's 110303 (confirm from evcharge-ar.json)"
 else
-  echo "waiting up to ${DURATION}s for the C2 schedule and the quarantine step" \
-       "(performed outside this script)..."
+  echo "waiting up to ${DURATION}s for the C2 schedule and the automatic quarantine..."
   sleep "$DURATION"
 fi
 
