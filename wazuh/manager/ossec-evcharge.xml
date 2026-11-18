@@ -48,11 +48,13 @@
   </active-response>
 
   <!-- 110303: a station beacons to an unknown destination; the target is the STATION id, so every
-       charger of the station is isolated. No timeout, release is manual -->
+       charger of the station is isolated. 110304 (three stations beaconing to one destination) is a
+       child of 110303, so the beacon that completes the pattern matches 110304 and not 110303; its
+       alert carries that third station's own hier_id, so it is bound too. No timeout, release is manual -->
   <active-response>
     <command>quarantine-charger</command>
     <location>server</location>
-    <rules_id>110303</rules_id>
+    <rules_id>110303,110304</rules_id>
   </active-response>
 
   <!-- 110210 honours the fraud service dry-run flag -->

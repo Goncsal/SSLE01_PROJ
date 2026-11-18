@@ -23,7 +23,7 @@ def triggers():
 def test_responses_point_at_existing_rules():
     t = triggers()
     assert t == {"firewall-drop": {"110121", "110307"}, "evcharge-edge-drop": {"110132"},
-                 "quarantine-charger": {"110303"}, "block-card": {"110210"}}
+                 "quarantine-charger": {"110303", "110304"}, "block-card": {"110210"}}
     for ids in t.values():
         assert ids <= RULE_IDS
 

@@ -7,7 +7,7 @@ Each script is a single file, standard library only, and answers the Wazuh 4.x p
 
 | Script | Runs on | Rules | Does |
 |---|---|---|---|
-| `quarantine-charger` | manager, `/var/ossec/framework/python/bin/python3` | 110303 | evidence, registry quarantine, CSMS stop/Inoperative/disconnect, revocation request; target is a charger or a station |
+| `quarantine-charger` | manager, `/var/ossec/framework/python/bin/python3` | 110303, 110304 | evidence, registry quarantine, CSMS stop/Inoperative/disconnect, revocation request; target is a charger or a station |
 | `block-card` | manager | 110210 | evidence, billing card block, session flag |
 | `evcharge-edge-drop` | agents (`location all`), `python3` | 110132 | `iptables` DROP of `srcip` at the city edge, removed after 600 s |
 

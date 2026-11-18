@@ -73,7 +73,7 @@ whitelist 110013 can be shown silent.
 |---|---|---|
 | `evcharge-edge-drop` (all agents, 600 s) | 110132: 3 x `ident.ip_mismatch` from one `srcip` in 60 s | `iptables` DROP of `srcip` on the edge of that city |
 | `block-card` (manager) | 110210: `fraud.alert` with `auto_action=block_card`, `dry_run=false` | billing card block |
-| `quarantine-charger` (manager) | 110303: `host.new_outbound` outside the allow list; `hier_id` is the **station** | registry quarantine of the station, CSMS stop and disconnect for each of its chargers |
+| `quarantine-charger` (manager) | 110303: `host.new_outbound` outside the allow list; 110304: the third station of the botnet pattern (matches 110304 instead of 110303); `hier_id` is the **station** | registry quarantine of the station, CSMS stop and disconnect for each of its chargers |
 | `firewall-drop` (edge, 600 s) | 110121, 110307 | source address of the edge log line |
 
 The fraud service quarantines on its own (`power_gap`); that audit is visible as 110208 (alert),
