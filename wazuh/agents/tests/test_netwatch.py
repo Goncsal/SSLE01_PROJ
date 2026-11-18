@@ -22,9 +22,9 @@ def test_parse_ss_rows():
     rows = netwatch.parse_ss(SS)
     assert len(rows) == 7
     assert rows[0] == {"local_ip": "10.31.0.16", "local_port": 37182, "dstip": "10.31.0.2",
-                       "dstport": 443, "process": "python"}
+                       "dstport": 443, "process_name": "python"}
     assert rows[4]["dstip"] == "203.0.113.9"          # v4-mapped address unwrapped
-    assert rows[5]["process"] == "unknown"             # no users: column
+    assert rows[5]["process_name"] == "unknown"             # no users: column
 
 
 def test_parse_listeners_and_allow():
@@ -36,7 +36,7 @@ def test_only_unknown_destination_reported_once():
     seen = {}
     out = netwatch.new_outbound(netwatch.parse_ss(SS), netwatch.parse_listeners(LISTEN),
                                 netwatch.load_allow(ALLOW), seen, now=1000.0)
-    assert [(r["dstip"], r["dstport"], r["process"]) for r in out] == [("203.0.113.9", 8443, "curl")]
+    assert [(r["dstip"], r["dstport"], r["process_name"]) for r in out] == [("203.0.113.9", 8443, "curl")]
     # same destination again within the hour: silent
     again = netwatch.new_outbound(netwatch.parse_ss(SS), set(), netwatch.load_allow(ALLOW), seen, 2000.0)
     assert again == []
@@ -51,12 +51,12 @@ def test_inbound_to_listening_port_ignored():
 
 
 def test_line_format():
-    row = {"dstip": "203.0.113.9", "dstport": 8443, "process": "curl"}
+    row = {"dstip": "203.0.113.9", "dstport": 8443, "process_name": "curl"}
     line = netwatch.build_line("pt.porto.st-001", row, 1762400000.123)
     assert line["service"] == "netwatch" and line["event"] == "host.new_outbound"
     assert line["instance"] == line["hier_id"] == "pt.porto.st-001"
     assert line["level"] == "warning" and line["ts"].endswith("Z")
-    assert (line["dstip"], line["dstport"], line["process"]) == ("203.0.113.9", 8443, "curl")
+    assert (line["dstip"], line["dstport"], line["process_name"]) == ("203.0.113.9", 8443, "curl")
     assert line["city"] == "porto" and line["station"] == "st-001"
     for key in ("ts", "level", "service", "instance", "event", "msg"):
         assert key in line

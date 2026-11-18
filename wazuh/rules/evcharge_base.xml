@@ -35,7 +35,7 @@
   <rule id="110012" level="0">
     <if_sid>110000</if_sid>
     <field name="event">^host\.new_outbound$</field>
-    <field name="process" type="pcre2">^(apt|apt-get|http|https|gpgv)$</field>
+    <field name="process_name" type="pcre2">^(apt|apt-get|http|https|gpgv)$</field>
     <description>Station: outbound connection of a package manager, ignored.</description>
   </rule>
 

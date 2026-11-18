@@ -43,7 +43,7 @@ Version 5 (2026-11-06), for Phase 5 (Wazuh), after the monitoring run:
   `BILLING_RESPONDER_TOKEN`): isolate-only scopes for the active responses, never the
   admin token.
 - 6: events `host.new_outbound` (station outbound-connection watcher) and `ar.action`
-  (active-response audit); fields `dstip`, `dstport`, `process`, `ar_command`, `rule_id`,
+  (active-response audit); fields `dstip`, `dstport`, `process_name`, `ar_command`, `rule_id`,
   `alert_id`.
 - 7.3: `city:station_power_gap_watts` and `city:edge_up:min` need `group_left ()`
   (found by the rule unit tests).
@@ -914,7 +914,7 @@ automatically from `hier_id`.
 | `logger`, `exc` | string | `cost_eur` | float |
 | `cert_verify`, `cert_dn` | string (edge) | `upstream`, `upstream_status` | string (edge) |
 | `bytes_out` | int (edge) | `dstip`, `dstport` | string, int (netwatch; Wazuh static `dstip`) |
-| `process` | string (netwatch) | `ar_command`, `rule_id`, `alert_id` | string (active responses) |
+| `process_name` | string (netwatch) | `ar_command`, `rule_id`, `alert_id` | string (active responses) |
 
 `srcip` is deliberately the Wazuh static field name, so `same_source_ip` frequency rules
 and `firewall-drop` work on these logs. The names `action`, `status`, `id`, `url` and
@@ -971,7 +971,7 @@ Wazuh rule blocks (`wazuh/rules`): 100120–139 hijacking,
 | `fraud.action` | fraud | warning | `rule`, `target`, `result` | fraud response |
 | `incident.open` / `incident.update` / `incident.close` | correlator | warning / info | `incident_id`, `kind`, `root_cause`, `hier_id`, `srcip`, `card`, `t_locate_s` | correlation |
 | `edge.access` | edge (nginx) | info / warning (4xx) / error (5xx) | `hier_id`, `srcip`, `http_status`, `tls`, `cert_verify`, `cert_dn`, `cert_serial`, `upstream`, `upstream_status`, `duration_s`, `bytes_out` | hijacking (revoked / foreign certs, scanning), botnet (handshake floods, 429) |
-| `host.new_outbound` | netwatch (station) | warning | `hier_id` (station), `dstip`, `dstport`, `process` | botnet (C2 beacon) |
+| `host.new_outbound` | netwatch (station) | warning | `hier_id` (station), `dstip`, `dstport`, `process_name` | botnet (C2 beacon) |
 | `ar.action` | ar (Wazuh manager) | info / warning (refused) / error | `ar_command`, `target`, `hier_id` or `card`, `srcip`, `rule_id`, `alert_id`, `result`, `reason` | response audit |
 | `ar.evidence` | ar (Wazuh manager) | info | `ar_command`, `target`, `kind`, `http_status`, `detail` | kept before an action (post-mortem) |
 | `sim.start` | sim | info | `hier_id` (station), `version` | |
@@ -1916,7 +1916,7 @@ Station outbound watcher (`netwatch`): a small Python script run by a systemd ti
 each destination not in `/etc/evcharge/netwatch-allow.txt` (the city edge, the Wazuh
 manager, the city gateway; written at deploy from `incus list`, never in the repo) that it
 has not reported in the last hour, writes one `host.new_outbound` line (base fields of 6,
-`service: netwatch`, `instance`/`hier_id` = the station, `dstip`, `dstport`, `process`) to
+`service: netwatch`, `instance`/`hier_id` = the station, `dstip`, `dstport`, `process_name`) to
 `/var/log/evcharge/netwatch.json`.
 
 ### 15.2 Decoders
@@ -1967,7 +1967,7 @@ Field tests are on the JSON fields of section 6 (`event`, `result`, `reason`, `l
 | 110000 | 0 | `decoded_as json` and `service` ∈ {csms, registry, billing, fraud, correlator, sim, edge, netwatch, ar} | parent of every rule below |
 | 110010 | 0 | `edge.access` with `http_status` 101 | a WebSocket that ended normally |
 | 110011 | 2 | `auth.reject` with `result` `ConcurrentTx` | normal traffic (4.4); counted by 110203 |
-| 110012 | 0 | `netwatch` lines whose `process` is a package manager (`apt`, `http`, `https`, `gpgv`) | maintenance traffic |
+| 110012 | 0 | `netwatch` lines whose `process_name` is a package manager (`apt`, `http`, `https`, `gpgv`) | maintenance traffic |
 | 110013 | 0 | `ident.ip_mismatch` for a `hier_id` in `evcharge-ip-exceptions` | known exceptions |
 | 110014 | 0 | `sim.*` events other than `sim.rejected` | station controller chatter |
 | 110015 | 2 | `session.start` | counted by 110206 and 110308 |

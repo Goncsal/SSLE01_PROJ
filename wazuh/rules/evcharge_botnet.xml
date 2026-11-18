@@ -26,7 +26,7 @@
   <rule id="110303" level="8">
     <if_sid>110000</if_sid>
     <field name="event">^host\.new_outbound$</field>
-    <description>Botnet: $(hier_id) opened a new outbound connection to $(dstip):$(dstport) by $(process) (T0869).</description>
+    <description>Botnet: $(hier_id) opened a new outbound connection to $(dstip):$(dstport) by $(process_name) (T0869).</description>
     <mitre><id>T1071</id></mitre>
     <group>mitre_ics_T0869,</group>
   </rule>

@@ -61,7 +61,7 @@ def parse_ss(text: str) -> list[dict]:
         m = _PROC_RE.search(line)
         rows.append({"local_ip": local[0], "local_port": local[1],
                      "dstip": peer[0], "dstport": peer[1],
-                     "process": m.group(1) if m else "unknown"})
+                     "process_name": m.group(1) if m else "unknown"})
     return rows
 
 
@@ -114,7 +114,7 @@ def socket_report(rows: list[dict], listeners: set[int], allow: set[str]) -> str
         if (ipaddress.ip_address(r["dstip"]).is_loopback or r["dstip"] in allow
                 or r["local_port"] in listeners):
             continue
-        dests.add(f"{r['dstip']}:{r['dstport']} {r['process']}")
+        dests.add(f"{r['dstip']}:{r['dstport']} {r['process_name']}")
     return "\n".join(sorted(dests)) if dests else "no destinations outside the allow list"
 
 
@@ -127,11 +127,11 @@ def build_line(hier_id: str, row: dict, now: float) -> dict:
         "service": "netwatch",
         "instance": hier_id,
         "event": "host.new_outbound",
-        "msg": f"new outbound connection to {row['dstip']}:{row['dstport']} by {row['process']}",
+        "msg": f"new outbound connection to {row['dstip']}:{row['dstport']} by {row['process_name']}",
         "hier_id": hier_id,
         "dstip": row["dstip"],
         "dstport": row["dstport"],
-        "process": row["process"],
+        "process_name": row["process_name"],
     }
     if len(parts) == 3:
         line["city"], line["station"] = parts[1], parts[2]
